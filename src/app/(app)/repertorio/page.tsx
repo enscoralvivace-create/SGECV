@@ -1,9 +1,19 @@
 "use client";
 
 import Link from "next/link";
+import {
+  type FormEvent,
+  useState,
+} from "react";
 
+import RepertoireFormModal from "@/components/repertoire/RepertoireFormModal";
+
+import type {
+  RepertoireFormData,
+} from "@/types/repertoire";
 import Button from "@/components/common/Button";
 import { useRepertoire } from "@/hooks/useRepertoire";
+import { emptyRepertoireForm } from "@/utils/repertoire";
 
 function formatDuration(
   durationMinutes: number | null,
@@ -30,22 +40,101 @@ function getStatusClasses(
 
     default:
       return "bg-slate-100 text-slate-700";
+      
+      const emptyRepertoireForm: RepertoireFormData = {
+  title: "",
+  composer: "",
+  arranger: "",
+  key: "",
+  durationMinutes: "",
+  status: "En estudio",
+  notes: "",
+};
   }
 }
 
 export default function RepertoirePage() {
-  const {
-    repertoire,
-    loading,
-    error,
-    refreshRepertoire,
-  } = useRepertoire();
+     const {
+  repertoire,
+  loading,
+  error,
+  refreshRepertoire,
+  createItem,
+} = useRepertoire();
 
-  function handleCreateItem(): void {
-    console.log(
-      "El formulario de nueva obra se implementará en el siguiente paso.",
+  const [form, setForm] =
+  useState<RepertoireFormData>(
+    emptyRepertoireForm,
+  );
+
+const [isFormOpen, setIsFormOpen] =
+  useState(false);
+
+const [isSaving, setIsSaving] =
+  useState(false);
+
+const [message, setMessage] =
+  useState("");
+
+  function openCreateForm(): void {
+  setForm(emptyRepertoireForm);
+  setMessage("");
+  setIsFormOpen(true);
+}
+
+function closeForm(): void {
+  if (isSaving) {
+    return;
+  }
+
+  setForm(emptyRepertoireForm);
+  setIsFormOpen(false);
+}
+
+async function handleSubmit(
+  event: FormEvent<HTMLFormElement>,
+): Promise<void> {
+  event.preventDefault();
+
+  if (!form.title.trim()) {
+    setMessage(
+      "Escribe el título de la obra.",
+    );
+
+    return;
+  }
+
+  if (
+    form.durationMinutes.trim() &&
+    Number(form.durationMinutes) < 0
+  ) {
+    setMessage(
+      "La duración no puede ser negativa.",
+    );
+
+    return;
+  }
+
+  setIsSaving(true);
+  setMessage("");
+
+  const wasCreated =
+    await createItem(form);
+
+  if (wasCreated) {
+    setForm(emptyRepertoireForm);
+    setIsFormOpen(false);
+    setMessage(
+      "Obra guardada correctamente.",
+    );
+  } else {
+    setMessage(
+      "No fue posible guardar la obra.",
     );
   }
+
+  setIsSaving(false);
+}
 
   return (
     <main className="min-h-screen bg-slate-100">
@@ -85,11 +174,15 @@ export default function RepertoirePage() {
             </p>
           </div>
 
-          <Button onClick={handleCreateItem}>
+          <Button onClick={openCreateForm}>
             + Nueva obra
           </Button>
         </div>
-
+{message && (
+  <div className="mb-6 rounded-xl border border-slate-200 bg-white px-5 py-4 text-sm font-medium text-slate-700 shadow-sm">
+    {message}
+  </div>
+)}
         {error && (
           <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-medium text-red-700">
             <p>
@@ -221,6 +314,18 @@ export default function RepertoirePage() {
             </div>
           )}
       </section>
+      {isFormOpen && (
+  <RepertoireFormModal
+    form={form}
+    setForm={setForm}
+    editingItem={null}
+    isSaving={isSaving}
+    onClose={closeForm}
+    onSubmit={(event) => {
+      void handleSubmit(event);
+                }}  
+            />  
+        )}
     </main>
   );
 }
