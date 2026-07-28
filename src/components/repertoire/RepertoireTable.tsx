@@ -47,7 +47,36 @@ function hasContent(
 ): boolean {
   return Boolean(value?.trim());
 }
+function getResourceProgress(
+  item: RepertoireItem,
+): {
+  completed: number;
+  total: number;
+  percentage: number;
+} {
+  const resources = [
+    item.score_url,
+    item.audio_url,
+    item.video_url,
+    item.translation,
+    item.pronunciation,
+    item.director_notes,
+  ];
 
+  const completed = resources.filter(
+    hasContent,
+  ).length;
+
+  const total = resources.length;
+
+  return {
+    completed,
+    total,
+    percentage: Math.round(
+      (completed / total) * 100,
+    ),
+  };
+}
 function ResourceIndicator({
   icon,
   label,
@@ -166,56 +195,85 @@ export default function RepertoireTable({
                 </td>
 
                 <td className="px-5 py-4">
-                  <div className="flex min-w-52 flex-wrap gap-2">
-                    <ResourceIndicator
-                      icon="📄"
-                      label="Partitura"
-                      available={hasContent(
-                        item.score_url,
-                      )}
-                    />
+  {(() => {
+    const progress =
+      getResourceProgress(item);
 
-                    <ResourceIndicator
-                      icon="🎧"
-                      label="Audio"
-                      available={hasContent(
-                        item.audio_url,
-                      )}
-                    />
+    return (
+      <div className="min-w-52 space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-sm font-semibold text-slate-700">
+            {progress.completed} de{" "}
+            {progress.total}
+          </span>
 
-                    <ResourceIndicator
-                      icon="🎥"
-                      label="Video"
-                      available={hasContent(
-                        item.video_url,
-                      )}
-                    />
+          <span className="text-xs font-bold text-slate-500">
+            {progress.percentage}%
+          </span>
+        </div>
 
-                    <ResourceIndicator
-                      icon="🌎"
-                      label="Traducción"
-                      available={hasContent(
-                        item.translation,
-                      )}
-                    />
+        <div className="h-2 overflow-hidden rounded-full bg-slate-200">
+          <div
+            className="h-full rounded-full bg-emerald-600 transition-all"
+            style={{
+              width: `${progress.percentage}%`,
+            }}
+          />
+        </div>
 
-                    <ResourceIndicator
-                      icon="🗣️"
-                      label="Pronunciación"
-                      available={hasContent(
-                        item.pronunciation,
-                      )}
-                    />
+        <div className="flex flex-wrap gap-2">
+          <ResourceIndicator
+            icon="📄"
+            label="Partitura"
+            available={hasContent(
+              item.score_url,
+            )}
+          />
 
-                    <ResourceIndicator
-                      icon="📝"
-                      label="Notas del director"
-                      available={hasContent(
-                        item.director_notes,
-                      )}
-                    />
-                  </div>
-                </td>
+          <ResourceIndicator
+            icon="🎧"
+            label="Audio"
+            available={hasContent(
+              item.audio_url,
+            )}
+          />
+
+          <ResourceIndicator
+            icon="🎥"
+            label="Video"
+            available={hasContent(
+              item.video_url,
+            )}
+          />
+
+          <ResourceIndicator
+            icon="🌎"
+            label="Traducción"
+            available={hasContent(
+              item.translation,
+            )}
+          />
+
+          <ResourceIndicator
+            icon="🗣️"
+            label="Pronunciación"
+            available={hasContent(
+              item.pronunciation,
+            )}
+          />
+
+          <ResourceIndicator
+            icon="📝"
+            label="Notas del director"
+            available={hasContent(
+              item.director_notes,
+            )}
+          />
+        </div>
+      </div>
+    );
+  })()}
+</td>
 
                 <td className="px-5 py-4">
                   <div className="flex justify-end gap-2">
