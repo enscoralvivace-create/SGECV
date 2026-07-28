@@ -11,6 +11,12 @@ interface RepertoireTableProps {
   onResources: (item: RepertoireItem) => void;
 }
 
+interface ResourceIndicatorProps {
+  icon: string;
+  label: string;
+  available: boolean;
+}
+
 function formatDuration(
   durationMinutes: number | null,
 ): string {
@@ -34,6 +40,36 @@ function getStatusClasses(
     case "Archivado":
       return "bg-slate-200 text-slate-700";
   }
+}
+
+function hasContent(
+  value: string | null | undefined,
+): boolean {
+  return Boolean(value?.trim());
+}
+
+function ResourceIndicator({
+  icon,
+  label,
+  available,
+}: ResourceIndicatorProps) {
+  return (
+    <span
+      title={`${label}: ${
+        available ? "Disponible" : "No disponible"
+      }`}
+      aria-label={`${label}: ${
+        available ? "Disponible" : "No disponible"
+      }`}
+      className={`inline-flex h-8 w-8 items-center justify-center rounded-lg border text-sm ${
+        available
+          ? "border-emerald-200 bg-emerald-50"
+          : "border-slate-200 bg-slate-100 grayscale opacity-45"
+      }`}
+    >
+      {icon}
+    </span>
+  );
 }
 
 export default function RepertoireTable({
@@ -71,6 +107,10 @@ export default function RepertoireTable({
 
               <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wide text-slate-600">
                 Estado
+              </th>
+
+              <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wide text-slate-600">
+                Recursos
               </th>
 
               <th className="px-5 py-4 text-right text-xs font-bold uppercase tracking-wide text-slate-600">
@@ -126,6 +166,58 @@ export default function RepertoireTable({
                 </td>
 
                 <td className="px-5 py-4">
+                  <div className="flex min-w-52 flex-wrap gap-2">
+                    <ResourceIndicator
+                      icon="📄"
+                      label="Partitura"
+                      available={hasContent(
+                        item.score_url,
+                      )}
+                    />
+
+                    <ResourceIndicator
+                      icon="🎧"
+                      label="Audio"
+                      available={hasContent(
+                        item.audio_url,
+                      )}
+                    />
+
+                    <ResourceIndicator
+                      icon="🎥"
+                      label="Video"
+                      available={hasContent(
+                        item.video_url,
+                      )}
+                    />
+
+                    <ResourceIndicator
+                      icon="🌎"
+                      label="Traducción"
+                      available={hasContent(
+                        item.translation,
+                      )}
+                    />
+
+                    <ResourceIndicator
+                      icon="🗣️"
+                      label="Pronunciación"
+                      available={hasContent(
+                        item.pronunciation,
+                      )}
+                    />
+
+                    <ResourceIndicator
+                      icon="📝"
+                      label="Notas del director"
+                      available={hasContent(
+                        item.director_notes,
+                      )}
+                    />
+                  </div>
+                </td>
+
+                <td className="px-5 py-4">
                   <div className="flex justify-end gap-2">
                     <button
                       type="button"
@@ -134,14 +226,19 @@ export default function RepertoireTable({
                     >
                       Editar
                     </button>
-<button
-  type="button"
-  onClick={() => onResources(item)}
-  className="rounded-lg border border-sky-300 bg-white px-4 py-2 text-sm font-semibold text-sky-700 transition hover:border-sky-700 hover:text-sky-900"
->
-  📚 Recursos
-</button>
-                    {item.status === "Archivado" ? (
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        onResources(item)
+                      }
+                      className="rounded-lg border border-sky-300 bg-white px-4 py-2 text-sm font-semibold text-sky-700 transition hover:border-sky-700 hover:text-sky-900"
+                    >
+                      📚 Recursos
+                    </button>
+
+                    {item.status ===
+                    "Archivado" ? (
                       <button
                         type="button"
                         onClick={() =>
