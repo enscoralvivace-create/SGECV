@@ -13,6 +13,22 @@ function hasContent(
   return Boolean(value?.trim());
 }
 
+function openExternalResource(
+  value: string | null | undefined,
+): void {
+  const url = value?.trim();
+
+  if (!url) {
+    return;
+  }
+
+  window.open(
+    url,
+    "_blank",
+    "noopener,noreferrer",
+  );
+}
+
 export default function RepertoireDetailModal({
   item,
   onClose,
@@ -27,6 +43,7 @@ export default function RepertoireDetailModal({
   ];
 
   const completed = resources.filter(hasContent).length;
+
   const percentage = Math.round(
     (completed / resources.length) * 100,
   );
@@ -36,6 +53,7 @@ export default function RepertoireDetailModal({
       <div className="w-full max-w-3xl rounded-2xl bg-white shadow-2xl">
 
         <div className="flex items-center justify-between border-b px-8 py-6">
+
           <div>
             <h2 className="text-3xl font-bold text-slate-900">
               {item.title}
@@ -47,17 +65,21 @@ export default function RepertoireDetailModal({
           </div>
 
           <button
+            type="button"
             onClick={onClose}
             className="rounded-lg border px-4 py-2 hover:bg-slate-100"
           >
             ✕
           </button>
+
         </div>
 
         <div className="space-y-8 p-8">
 
           <section>
+
             <div className="mb-2 flex justify-between">
+
               <span className="font-semibold">
                 Recursos
               </span>
@@ -65,20 +87,24 @@ export default function RepertoireDetailModal({
               <span>
                 {completed} / {resources.length}
               </span>
+
             </div>
 
             <div className="h-3 overflow-hidden rounded-full bg-slate-200">
+
               <div
                 className="h-full rounded-full bg-emerald-600"
                 style={{
                   width: `${percentage}%`,
                 }}
               />
+
             </div>
 
             <p className="mt-2 text-sm text-slate-500">
               {percentage}% completado
             </p>
+
           </section>
 
           <section className="grid grid-cols-2 gap-4">
@@ -107,8 +133,7 @@ export default function RepertoireDetailModal({
             <InfoCard
               title="Arreglista"
               value={
-                item.arranger ??
-                "Sin registrar"
+                item.arranger ?? "Sin registrar"
               }
             />
 
@@ -126,18 +151,30 @@ export default function RepertoireDetailModal({
                 icon="📄"
                 title="Partitura"
                 available={hasContent(item.score_url)}
+                actionLabel="Abrir"
+                onAction={() =>
+                  openExternalResource(item.score_url)
+                }
               />
 
               <ResourceRow
                 icon="🎧"
                 title="Audio"
                 available={hasContent(item.audio_url)}
+                actionLabel="Escuchar"
+                onAction={() =>
+                  openExternalResource(item.audio_url)
+                }
               />
 
               <ResourceRow
                 icon="🎥"
                 title="Video"
                 available={hasContent(item.video_url)}
+                actionLabel="Ver"
+                onAction={() =>
+                  openExternalResource(item.video_url)
+                }
               />
 
               <ResourceRow
@@ -163,11 +200,12 @@ export default function RepertoireDetailModal({
           </section>
 
         </div>
+
       </div>
+
     </div>
   );
 }
-
 function InfoCard({
   title,
   value,
@@ -192,26 +230,45 @@ function ResourceRow({
   icon,
   title,
   available,
+  actionLabel,
+  onAction,
 }: {
   icon: string;
   title: string;
   available: boolean;
+  actionLabel?: string;
+  onAction?: () => void;
 }) {
   return (
     <div
-      className={`flex items-center justify-between rounded-xl border p-4 ${
+      className={`flex items-center justify-between gap-3 rounded-xl border p-4 ${
         available
           ? "border-emerald-200 bg-emerald-50"
           : "border-slate-200 bg-slate-100"
       }`}
     >
-      <span>
+      <span className="font-medium text-slate-800">
         {icon} {title}
       </span>
 
-      <span>
-        {available ? "✅" : "❌"}
-      </span>
+      {actionLabel ? (
+        <button
+          type="button"
+          onClick={onAction}
+          disabled={!available}
+          className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
+            available
+              ? "bg-emerald-600 text-white hover:bg-emerald-700"
+              : "cursor-not-allowed bg-slate-200 text-slate-400"
+          }`}
+        >
+          {actionLabel}
+        </button>
+      ) : (
+        <span className="text-lg">
+          {available ? "✅" : "❌"}
+        </span>
+      )}
     </div>
   );
 }
