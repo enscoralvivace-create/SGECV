@@ -33,80 +33,185 @@ export default function RepertoireDetailModal({
   item,
   onClose,
 }: RepertoireDetailModalProps) {
-  const resources = [
-    item.score_url,
-    item.audio_url,
-    item.video_url,
-    item.translation,
-    item.pronunciation,
-    item.director_notes,
-  ];
+  const preparationItems = [
+  {
+    icon: "📄",
+    label: "Partitura",
+    value: item.score_url,
+  },
+  {
+    icon: "🎧",
+    label: "Audio",
+    value: item.audio_url,
+  },
+  {
+    icon: "🎥",
+    label: "Video",
+    value: item.video_url,
+  },
+  {
+    icon: "🌎",
+    label: "Traducción",
+    value: item.translation,
+  },
+  {
+    icon: "🗣️",
+    label: "Pronunciación",
+    value: item.pronunciation,
+  },
+  {
+    icon: "📝",
+    label: "Notas del director",
+    value: item.director_notes,
+  },
+];
 
-  const completed = resources.filter(hasContent).length;
+const completed = preparationItems.filter(({ value }) =>
+  hasContent(value),
+).length;
 
   const percentage = Math.round(
-    (completed / resources.length) * 100,
-  );
+  (completed / preparationItems.length) * 100,
+);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6">
       <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
 
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-8 py-6">
+        <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 px-8 py-6 backdrop-blur">
 
-          <div>
-            <h2 className="text-3xl font-bold text-slate-900">
-              {item.title}
-            </h2>
+  <div className="flex items-start justify-between gap-6">
 
-            <p className="mt-2 text-slate-600">
-              {item.composer ?? "Compositor sin registrar"}
-            </p>
-          </div>
+    <div className="min-w-0">
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg border px-4 py-2 transition hover:bg-slate-100"
-            aria-label="Cerrar detalle de la obra"
-          >
-            ✕
-          </button>
+      <div className="mb-3 flex flex-wrap items-center gap-3">
 
-        </div>
+        <span className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">
+          Detalle de obra
+        </span>
+
+        <StatusBadge status={item.status} />
+
+      </div>
+
+      <h2 className="text-3xl font-bold tracking-tight text-slate-900">
+        {item.title}
+      </h2>
+
+      <p className="mt-2 text-base text-slate-600">
+        {item.composer ?? "Compositor sin registrar"}
+      </p>
+
+    </div>
+
+    <button
+      type="button"
+      onClick={onClose}
+      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-lg text-slate-500 shadow-sm transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-900"
+      aria-label="Cerrar detalle de la obra"
+    >
+      ✕
+    </button>
+
+  </div>
+
+</div>
 
         <div className="space-y-8 p-8">
 
-          <section>
+          <section className="rounded-2xl border border-slate-200 bg-slate-50/70 p-6">
 
-            <div className="mb-2 flex justify-between">
+  <div className="flex flex-wrap items-start justify-between gap-4">
 
-              <span className="font-semibold">
-                Recursos
-              </span>
+    <div>
+      <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
+        Preparación de la obra
+      </p>
 
-              <span>
-                {completed} / {resources.length}
-              </span>
+      <h3 className="mt-2 text-xl font-bold text-slate-900">
+        Materiales disponibles
+      </h3>
 
-            </div>
+      <p className="mt-1 text-sm text-slate-500">
+        {completed} de {preparationItems.length} recursos registrados
+      </p>
+    </div>
 
-            <div className="h-3 overflow-hidden rounded-full bg-slate-200">
+    <div className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-emerald-100 bg-white shadow-sm">
+      <span className="text-lg font-bold text-emerald-700">
+        {percentage}%
+      </span>
+    </div>
 
-              <div
-                className="h-full rounded-full bg-emerald-600 transition-all"
-                style={{
-                  width: `${percentage}%`,
-                }}
-              />
+  </div>
 
-            </div>
+  <div className="mt-6 h-3 overflow-hidden rounded-full bg-slate-200">
 
-            <p className="mt-2 text-sm text-slate-500">
-              {percentage}% completado
-            </p>
+    <div
+      className="h-full rounded-full bg-emerald-600 transition-all duration-500"
+      style={{
+        width: `${percentage}%`,
+      }}
+    />
 
-          </section>
+  </div>
+
+  <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+
+    {preparationItems.map((resource) => {
+      const available = hasContent(resource.value);
+
+      return (
+        <div
+          key={resource.label}
+          className={`flex items-center justify-between rounded-xl border px-4 py-3 ${
+            available
+              ? "border-emerald-200 bg-white"
+              : "border-slate-200 bg-slate-100/80"
+          }`}
+        >
+          <div className="flex items-center gap-3">
+
+            <span
+              className="text-xl"
+              aria-hidden="true"
+            >
+              {resource.icon}
+            </span>
+
+            <span
+              className={`text-sm font-semibold ${
+                available
+                  ? "text-slate-800"
+                  : "text-slate-500"
+              }`}
+            >
+              {resource.label}
+            </span>
+
+          </div>
+
+          <span
+            className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
+              available
+                ? "bg-emerald-600 text-white"
+                : "bg-slate-200 text-slate-400"
+            }`}
+            aria-label={
+              available
+                ? `${resource.label} disponible`
+                : `${resource.label} pendiente`
+            }
+          >
+            {available ? "✓" : "—"}
+          </span>
+        </div>
+      );
+    })}
+
+  </div>
+
+</section>
 
           <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
@@ -142,63 +247,101 @@ export default function RepertoireDetailModal({
 
           <section>
 
-            <h3 className="mb-4 text-lg font-bold text-slate-900">
-              Recursos disponibles
-            </h3>
+  <h3 className="mb-5 text-xl font-bold text-slate-900">
+    Recursos de la obra
+  </h3>
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+  <div className="space-y-4">
 
-              <ResourceRow
-                icon="📄"
-                title="Partitura"
-                available={hasContent(item.score_url)}
-                actionLabel="Abrir"
-                onAction={() =>
-                  openExternalResource(item.score_url)
-                }
-              />
+    {preparationItems.map((resource) => {
 
-              <ResourceRow
-                icon="🎧"
-                title="Audio"
-                available={hasContent(item.audio_url)}
-                actionLabel="Escuchar"
-                onAction={() =>
-                  openExternalResource(item.audio_url)
-                }
-              />
+      const available = hasContent(resource.value);
 
-              <ResourceRow
-                icon="🎥"
-                title="Video"
-                available={hasContent(item.video_url)}
-                actionLabel="Ver"
-                onAction={() =>
-                  openExternalResource(item.video_url)
-                }
-              />
+      const action =
+        resource.label === "Partitura"
+          ? () => openExternalResource(item.score_url)
+          : resource.label === "Audio"
+          ? () => openExternalResource(item.audio_url)
+          : resource.label === "Video"
+          ? () => openExternalResource(item.video_url)
+          : undefined;
 
-              <ResourceRow
-                icon="🌎"
-                title="Traducción"
-                available={hasContent(item.translation)}
-              />
+      const actionLabel =
+        resource.label === "Partitura"
+          ? "Abrir"
+          : resource.label === "Audio"
+          ? "Escuchar"
+          : resource.label === "Video"
+          ? "Ver"
+          : undefined;
 
-              <ResourceRow
-                icon="🗣️"
-                title="Pronunciación"
-                available={hasContent(item.pronunciation)}
-              />
+      return (
+        <div
+          key={resource.label}
+          className={`rounded-2xl border p-5 transition-all ${
+            available
+              ? "border-emerald-200 bg-white shadow-sm"
+              : "border-slate-200 bg-slate-50"
+          }`}
+        >
+          <div className="flex items-center justify-between gap-4">
 
-              <ResourceRow
-                icon="📝"
-                title="Notas del director"
-                available={hasContent(item.director_notes)}
-              />
+            <div className="flex items-center gap-4">
+
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100 text-2xl">
+                {resource.icon}
+              </div>
+
+              <div>
+
+                <p className="font-semibold text-slate-900">
+                  {resource.label}
+                </p>
+
+                <p className="text-sm text-slate-500">
+                  {available
+                    ? "Disponible"
+                    : "Pendiente"}
+                </p>
+
+              </div>
 
             </div>
 
-          </section>
+            {action ? (
+              <button
+                type="button"
+                onClick={action}
+                disabled={!available}
+                className={`rounded-xl px-4 py-2 text-sm font-semibold ${
+                  available
+                    ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                    : "cursor-not-allowed bg-slate-200 text-slate-400"
+                }`}
+              >
+                {actionLabel}
+              </button>
+            ) : (
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-bold ${
+                  available
+                    ? "bg-emerald-100 text-emerald-700"
+                    : "bg-slate-200 text-slate-500"
+                }`}
+              >
+                {available ? "Disponible" : "Pendiente"}
+              </span>
+            )}
+
+          </div>
+
+        </div>
+      );
+    })}
+
+  </div>
+
+</section>
 
           <ContentSection
             icon="🌎"
@@ -206,7 +349,18 @@ export default function RepertoireDetailModal({
             content={item.translation}
             emptyMessage="No se ha registrado una traducción para esta obra."
           />
-
+<ContentSection
+  icon="🗣️"
+  title="Pronunciación"
+  content={item.pronunciation}
+  emptyMessage="No se ha registrado una guía de pronunciación para esta obra."
+/>
+<ContentSection
+  icon="📝"
+  title="Notas del director"
+  content={item.director_notes}
+  emptyMessage="El director aún no ha registrado observaciones para esta obra."
+/>
         </div>
 
       </div>
@@ -222,15 +376,43 @@ function InfoCard({
   value: string;
 }) {
   return (
-    <div className="rounded-xl border bg-slate-50 p-4">
-      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+    <div className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-lg">
+
+      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
         {title}
       </p>
 
-      <p className="mt-2 font-semibold text-slate-900">
+      <p className="mt-3 text-lg font-semibold leading-6 text-slate-900">
         {value}
       </p>
+
     </div>
+  );
+}
+
+function StatusBadge({
+  status,
+}: {
+  status: RepertoireItem["status"];
+}) {
+  const styles: Record<
+    RepertoireItem["status"],
+    string
+  > = {
+    Activo:
+      "border-emerald-200 bg-emerald-50 text-emerald-700",
+    "En estudio":
+      "border-amber-200 bg-amber-50 text-amber-700",
+    Archivado:
+      "border-slate-300 bg-slate-100 text-slate-600",
+  };
+
+  return (
+    <span
+      className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${styles[status]}`}
+    >
+      {status}
+    </span>
   );
 }
 
@@ -249,24 +431,51 @@ function ResourceRow({
 }) {
   return (
     <div
-      className={`flex items-center justify-between gap-3 rounded-xl border p-4 ${
+      className={`group flex min-h-24 items-center justify-between gap-4 rounded-2xl border p-4 transition-all duration-200 ${
         available
-          ? "border-emerald-200 bg-emerald-50"
-          : "border-slate-200 bg-slate-100"
+          ? "border-emerald-200 bg-gradient-to-br from-white to-emerald-50 shadow-sm hover:-translate-y-1 hover:shadow-md"
+          : "border-slate-200 bg-slate-50"
       }`}
     >
-      <span className="font-medium text-slate-800">
-        {icon} {title}
-      </span>
+      <div className="flex min-w-0 items-center gap-4">
+        <div
+          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-2xl ${
+            available
+              ? "bg-emerald-100"
+              : "bg-slate-200 grayscale"
+          }`}
+          aria-hidden="true"
+        >
+          {icon}
+        </div>
+
+        <div className="min-w-0">
+          <p
+            className={`font-semibold ${
+              available
+                ? "text-slate-900"
+                : "text-slate-500"
+            }`}
+          >
+            {title}
+          </p>
+
+          <p className="mt-1 text-xs text-slate-500">
+            {available
+              ? "Recurso disponible"
+              : "Sin registrar"}
+          </p>
+        </div>
+      </div>
 
       {actionLabel ? (
         <button
           type="button"
           onClick={onAction}
           disabled={!available}
-          className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
+          className={`shrink-0 rounded-xl px-4 py-2 text-sm font-semibold transition ${
             available
-              ? "bg-emerald-600 text-white hover:bg-emerald-700"
+              ? "bg-emerald-600 text-white shadow-sm hover:bg-emerald-700"
               : "cursor-not-allowed bg-slate-200 text-slate-400"
           }`}
         >
@@ -274,14 +483,18 @@ function ResourceRow({
         </button>
       ) : (
         <span
-          className="text-lg"
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+            available
+              ? "bg-emerald-600 text-white"
+              : "bg-slate-200 text-slate-400"
+          }`}
           aria-label={
             available
               ? `${title} disponible`
               : `${title} no disponible`
           }
         >
-          {available ? "✅" : "❌"}
+          {available ? "✓" : "—"}
         </span>
       )}
     </div>
@@ -303,17 +516,32 @@ function ContentSection({
 
   return (
     <section className="overflow-hidden rounded-2xl border border-slate-200">
-      <div className="border-b bg-slate-50 px-6 py-4">
-        <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900">
-          <span aria-hidden="true">
-            {icon}
-          </span>
+      <div className="border-b bg-slate-50 px-6 py-5">
 
-          {title}
-        </h3>
-      </div>
+  <h3 className="flex items-center gap-3 text-lg font-bold text-slate-900">
 
-      <div className="p-6">
+    <span
+      className="text-xl"
+      aria-hidden="true"
+    >
+      {icon}
+    </span>
+
+    {title}
+
+  </h3>
+
+  <p className="mt-2 text-sm text-slate-500">
+    {title === "Traducción"
+      ? "Texto traducido para facilitar el estudio de la obra."
+      : title === "Pronunciación"
+      ? "Guía fonética para apoyar la interpretación coral."
+      : "Observaciones e indicaciones musicales del director."}
+  </p>
+
+</div>
+
+      <div className="p-7">
         {available ? (
           <p className="whitespace-pre-wrap leading-7 text-slate-700">
             {content?.trim()}

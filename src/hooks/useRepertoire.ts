@@ -37,11 +37,6 @@ export function useRepertoire() {
       try {
         const data = await getRepertoire();
 
-console.log(
-  "Repertorio recibido desde Supabase:",
-  data,
-);
-
 setRepertoire(data);
       } catch (loadError) {
         const errorMessage =
