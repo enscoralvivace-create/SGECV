@@ -11,6 +11,7 @@ import RepertoireFormModal from "@/components/repertoire/RepertoireFormModal";
 
 import type {
   RepertoireFormData,
+  RepertoireItem,
 } from "@/types/repertoire";
 import Button from "@/components/common/Button";
 import { useRepertoire } from "@/hooks/useRepertoire";
@@ -23,7 +24,8 @@ export default function RepertoirePage() {
   error,
   refreshRepertoire,
   createItem,
-} = useRepertoire();
+  updateItem,
+} = useRepertoire(); 
 
   const [form, setForm] =
   useState<RepertoireFormData>(
@@ -39,8 +41,31 @@ const [isSaving, setIsSaving] =
 const [message, setMessage] =
   useState("");
 
+  const [editingItem, setEditingItem] =
+  useState<RepertoireItem | null>(null);
+
   function openCreateForm(): void {
+  setEditingItem(null);
   setForm(emptyRepertoireForm);
+  setMessage("");
+  setIsFormOpen(true);
+}
+  function openEditForm(
+  item: RepertoireItem,
+): void {
+  setEditingItem(item);
+
+  setForm({
+    title: item.title,
+    composer: item.composer ?? "",
+    arranger: item.arranger ?? "",
+    key: item.key ?? "",
+    durationMinutes:
+      item.duration_minutes?.toString() ?? "",
+    status: item.status,
+    notes: item.notes ?? "",
+  });
+
   setMessage("");
   setIsFormOpen(true);
 }
@@ -50,6 +75,7 @@ function closeForm(): void {
     return;
   }
 
+  setEditingItem(null);
   setForm(emptyRepertoireForm);
   setIsFormOpen(false);
 }
@@ -81,25 +107,39 @@ async function handleSubmit(
   setIsSaving(true);
   setMessage("");
 
-  const wasCreated =
-    await createItem(form);
+  let wasSuccessful = false;
 
-  if (wasCreated) {
-    setForm(emptyRepertoireForm);
-    setIsFormOpen(false);
-    setMessage(
-      "Obra guardada correctamente.",
-    );
-  } else {
-    setMessage(
-      "No fue posible guardar la obra.",
-    );
-  }
-
-  setIsSaving(false);
+if (editingItem) {
+  wasSuccessful = await updateItem(
+    editingItem.id,
+    form,
+  );
+} else {
+  wasSuccessful = await createItem(form);
 }
 
-  return (
+if (wasSuccessful) {
+  setForm(emptyRepertoireForm);
+  setEditingItem(null);
+  setIsFormOpen(false);
+
+  setMessage(
+    editingItem
+      ? "Obra actualizada correctamente."
+      : "Obra guardada correctamente.",
+  );
+} else {
+  setMessage(
+    editingItem
+      ? "No fue posible actualizar la obra."
+      : "No fue posible guardar la obra.",
+  );
+}
+
+setIsSaving(false);
+}
+
+return (
     <main className="min-h-screen bg-slate-100">
       <header className="bg-emerald-900 px-6 py-6 text-white">
         <div className="mx-auto max-w-7xl">
@@ -191,22 +231,24 @@ async function handleSubmit(
   !error &&
   repertoire.length > 0 && (
     <RepertoireTable
-      repertoire={repertoire}
-    />
+  repertoire={repertoire}
+  onEdit={openEditForm}
+/>
   )}
       </section>
+
       {isFormOpen && (
-  <RepertoireFormModal
-    form={form}
-    setForm={setForm}
-    editingItem={null}
-    isSaving={isSaving}
-    onClose={closeForm}
-    onSubmit={(event) => {
-      void handleSubmit(event);
-                }}  
-            />  
-        )}
+        <RepertoireFormModal
+          form={form}
+          setForm={setForm}
+          editingItem={editingItem}
+          isSaving={isSaving}
+          onClose={closeForm}
+          onSubmit={(event) => {
+            void handleSubmit(event);
+          }}
+        />
+      )}
     </main>
   );
 }

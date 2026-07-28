@@ -5,6 +5,8 @@ import type {
 
 interface RepertoireTableProps {
   repertoire: RepertoireItem[];
+
+  onEdit: (item: RepertoireItem) => void;
 }
 
 function formatDuration(
@@ -34,6 +36,7 @@ function getStatusClasses(
 
 export default function RepertoireTable({
   repertoire,
+  onEdit,
 }: RepertoireTableProps) {
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -64,6 +67,11 @@ export default function RepertoireTable({
               <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wide text-slate-600">
                 Estado
               </th>
+              
+              <th className="px-5 py-4 text-right text-xs font-bold uppercase tracking-wide text-slate-600">
+              Acciones
+              </th>
+              
             </tr>
           </thead>
 
@@ -115,6 +123,15 @@ export default function RepertoireTable({
                     {item.status}
                   </span>
                 </td>
+                <td className="px-5 py-4 text-right">
+  <button
+  type="button"
+  onClick={() => onEdit(item)}
+  className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-emerald-700 hover:text-emerald-800"
+>
+  Editar
+</button>
+</td>
               </tr>
             ))}
           </tbody>
