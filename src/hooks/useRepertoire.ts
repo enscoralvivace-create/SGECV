@@ -19,52 +19,37 @@ import type {
   RepertoireStatus,
 } from "@/types/repertoire";
 
-interface UseRepertoireResult {
-  repertoire: RepertoireItem[];
-  loading: boolean;
-  error: string | null;
-  refreshRepertoire: () => Promise<void>;
-  createItem: (
-    form: RepertoireFormData,
-  ) => Promise<boolean>;
-  updateItem: (
-    id: number,
-    form: RepertoireFormData,
-  ) => Promise<boolean>;
-  changeStatus: (
-    id: number,
-    status: RepertoireFormData["status"],
-  ) => Promise<boolean>;
-}
-
-export function useRepertoire(): UseRepertoireResult {
-  const [repertoire, setRepertoire] = useState<
-    RepertoireItem[]
-  >([]);
+export function useRepertoire() {
+  const [repertoire, setRepertoire] =
+    useState<RepertoireItem[]>([]);
 
   const [loading, setLoading] =
-    useState<boolean>(true);
+    useState(true);
 
-  const [error, setError] = useState<
-    string | null
-  >(null);
+  const [error, setError] =
+    useState<string | null>(null);
 
   const refreshRepertoire =
     useCallback(async (): Promise<void> => {
+      setLoading(true);
+      setError(null);
+
       try {
-        setLoading(true);
-        setError(null);
+        const data = await getRepertoire();
 
-        const items = await getRepertoire();
+console.log(
+  "Repertorio recibido desde Supabase:",
+  data,
+);
 
-        setRepertoire(items);
-      } catch (caughtError) {
-        const message =
-          caughtError instanceof Error
-            ? caughtError.message
+setRepertoire(data);
+      } catch (loadError) {
+        const errorMessage =
+          loadError instanceof Error
+            ? loadError.message
             : "No fue posible cargar el repertorio.";
 
-        setError(message);
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -77,20 +62,20 @@ export function useRepertoire(): UseRepertoireResult {
   async function createItem(
     form: RepertoireFormData,
   ): Promise<boolean> {
-    try {
-      setError(null);
+    setError(null);
 
+    try {
       await createRepertoireItem(form);
       await refreshRepertoire();
 
       return true;
-    } catch (caughtError) {
-      const message =
-        caughtError instanceof Error
-          ? caughtError.message
-          : "No fue posible agregar la obra.";
+    } catch (createError) {
+      const errorMessage =
+        createError instanceof Error
+          ? createError.message
+          : "No fue posible guardar la obra.";
 
-      setError(message);
+      setError(errorMessage);
 
       return false;
     }
@@ -100,39 +85,51 @@ export function useRepertoire(): UseRepertoireResult {
     id: number,
     form: RepertoireFormData,
   ): Promise<boolean> {
-    try {
-      setError(null);
+    setError(null);
 
+    try {
       await updateRepertoireItem(id, form);
       await refreshRepertoire();
 
       return true;
-    } catch (caughtError) {
-      const message =
-        caughtError instanceof Error
-          ? caughtError.message
+    } catch (updateError) {
+      const errorMessage =
+        updateError instanceof Error
+          ? updateError.message
           : "No fue posible actualizar la obra.";
 
-      setError(message);
+      setError(errorMessage);
 
       return false;
     }
   }
 
   async function changeStatus(
-  id: number,
-  status: RepertoireStatus,
-): Promise<boolean> {
-  try {
-    await updateRepertoireStatus(id, status);
-    await refreshRepertoire();
+    id: number,
+    status: RepertoireStatus,
+  ): Promise<boolean> {
+    setError(null);
 
-    return true;
-  } catch (caughtError) {
-    // ...
-    return false;
+    try {
+      await updateRepertoireStatus(
+        id,
+        status,
+      );
+
+      await refreshRepertoire();
+
+      return true;
+    } catch (statusError) {
+      const errorMessage =
+        statusError instanceof Error
+          ? statusError.message
+          : "No fue posible cambiar el estado de la obra.";
+
+      setError(errorMessage);
+
+      return false;
+    }
   }
-}
 
   return {
     repertoire,

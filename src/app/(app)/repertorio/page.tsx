@@ -9,9 +9,15 @@ import {
 
 import Button from "@/components/common/Button";
 import RepertoireFormModal from "@/components/repertoire/RepertoireFormModal";
-import RepertoireTable from "@/components/repertoire/RepertoireTable";
-import { useRepertoire } from "@/hooks/useRepertoire";
 import RepertoireResourcesModal from "@/components/repertoire/RepertoireResourcesModal";
+import RepertoireTable from "@/components/repertoire/RepertoireTable";
+
+import { useRepertoire } from "@/hooks/useRepertoire";
+
+import {
+  updateRepertoireResources,
+  type RepertoireResourcesData,
+} from "@/services/repertoireService";
 
 import type {
   RepertoireFormData,
@@ -34,14 +40,14 @@ const repertoireFilters: RepertoireFilter[] = [
 
 export default function RepertoirePage() {
   const {
-    repertoire,
-    loading,
-    error,
-    refreshRepertoire,
-    createItem,
-    updateItem,
-    changeStatus,
-  } = useRepertoire();
+  repertoire = [],
+  loading,
+  error,
+  refreshRepertoire,
+  createItem,
+  updateItem,
+  changeStatus,
+} = useRepertoire();
 
   const [form, setForm] =
     useState<RepertoireFormData>(
@@ -54,60 +60,116 @@ export default function RepertoirePage() {
   const [isSaving, setIsSaving] =
     useState(false);
 
+  const [
+    isSavingResources,
+    setIsSavingResources,
+  ] = useState(false);
+
   const [message, setMessage] =
     useState("");
 
   const [editingItem, setEditingItem] =
-  useState<RepertoireItem | null>(null);
+    useState<RepertoireItem | null>(null);
 
   const [resourcesItem, setResourcesItem] =
-  useState<RepertoireItem | null>(null);
+    useState<RepertoireItem | null>(null);
 
-const [selectedFilter, setSelectedFilter] =
-  useState<RepertoireFilter>("Todas");
+  const [selectedFilter, setSelectedFilter] =
+    useState<RepertoireFilter>("Todas");
 
-const [searchTerm, setSearchTerm] =
-  useState("");
+  const [searchTerm, setSearchTerm] =
+    useState("");
 
   const filteredRepertoire = useMemo(() => {
-  const normalizedSearch =
-    searchTerm.trim().toLowerCase();
+    const normalizedSearch =
+      searchTerm.trim().toLowerCase();
 
-  return repertoire.filter((item) => {
-    const matchesStatus =
-      selectedFilter === "Todas" ||
-      item.status === selectedFilter;
+    return repertoire.filter((item) => {
+      const matchesStatus =
+        selectedFilter === "Todas" ||
+        item.status === selectedFilter;
 
-    const searchableText = [
-      item.title,
-      item.composer ?? "",
-      item.arranger ?? "",
-      item.key ?? "",
-    ]
-      .join(" ")
-      .toLowerCase();
+      const searchableText = [
+        item.title,
+        item.composer ?? "",
+        item.arranger ?? "",
+        item.key ?? "",
+      ]
+        .join(" ")
+        .toLowerCase();
 
-    const matchesSearch =
-      normalizedSearch === "" ||
-      searchableText.includes(normalizedSearch);
+      const matchesSearch =
+        normalizedSearch === "" ||
+        searchableText.includes(
+          normalizedSearch,
+        );
 
-    return matchesStatus && matchesSearch;
-  });
-}, [
-  repertoire,
-  selectedFilter,
-  searchTerm,
-]);
+      return matchesStatus && matchesSearch;
+    });
+  }, [
+    repertoire,
+    selectedFilter,
+    searchTerm,
+  ]);
 
-function openResources(
-  item: RepertoireItem,
-): void {
-  setResourcesItem(item);
-}
+  function openResources(
+    item: RepertoireItem,
+  ): void {
+    setMessage("");
+    setResourcesItem(item);
+  }
 
-function closeResources(): void {
-  setResourcesItem(null);
-}
+  function closeResources(): void {
+    if (isSavingResources) {
+      return;
+    }
+
+    setResourcesItem(null);
+  }
+
+  async function handleSaveResources(
+    resources: RepertoireResourcesData,
+  ): Promise<boolean> {
+    if (!resourcesItem) {
+      setMessage(
+        "No se encontró la obra seleccionada.",
+      );
+
+      return false;
+    }
+
+    setIsSavingResources(true);
+    setMessage("");
+
+    try {
+      await updateRepertoireResources(
+        resourcesItem.id,
+        resources,
+      );
+
+      await refreshRepertoire();
+
+      setResourcesItem(null);
+
+      setMessage(
+        "Recursos guardados correctamente.",
+      );
+
+      return true;
+    } catch (saveError) {
+      const errorMessage =
+        saveError instanceof Error
+          ? saveError.message
+          : "No fue posible guardar los recursos.";
+
+      setMessage(errorMessage);
+
+      return false;
+    } finally {
+      setIsSavingResources(false);
+    }
+  }
+
   function getFilterCount(
     filter: RepertoireFilter,
   ): number {
@@ -133,21 +195,24 @@ function closeResources(): void {
     setEditingItem(item);
 
     setForm({
-  title: item.title,
-  composer: item.composer ?? "",
-  arranger: item.arranger ?? "",
-  key: item.key ?? "",
-  durationMinutes:
-    item.duration_minutes?.toString() ?? "",
-  status: item.status,
-  notes: item.notes ?? "",
-  scoreUrl: item.score_url ?? "",
-  audioUrl: item.audio_url ?? "",
-  videoUrl: item.video_url ?? "",
-  translation: item.translation ?? "",
-  pronunciation: item.pronunciation ?? "",
-  directorNotes: item.director_notes ?? "",
-});
+      title: item.title,
+      composer: item.composer ?? "",
+      arranger: item.arranger ?? "",
+      key: item.key ?? "",
+      durationMinutes:
+        item.duration_minutes?.toString() ??
+        "",
+      status: item.status,
+      notes: item.notes ?? "",
+      scoreUrl: item.score_url ?? "",
+      audioUrl: item.audio_url ?? "",
+      videoUrl: item.video_url ?? "",
+      translation: item.translation ?? "",
+      pronunciation:
+        item.pronunciation ?? "",
+      directorNotes:
+        item.director_notes ?? "",
+    });
 
     setMessage("");
     setIsFormOpen(true);
@@ -190,7 +255,8 @@ function closeResources(): void {
     setIsSaving(true);
     setMessage("");
 
-    const isEditing = editingItem !== null;
+    const isEditing =
+      editingItem !== null;
 
     let wasSuccessful = false;
 
@@ -250,30 +316,33 @@ function closeResources(): void {
         : "No fue posible archivar la obra.",
     );
   }
-async function handleReactivate(
-  item: RepertoireItem,
-): Promise<void> {
-  const confirmed = window.confirm(
-    `¿Deseas reactivar la obra "${item.title}"?`,
-  );
 
-  if (!confirmed) {
-    return;
+  async function handleReactivate(
+    item: RepertoireItem,
+  ): Promise<void> {
+    const confirmed = window.confirm(
+      `¿Deseas reactivar la obra "${item.title}"?`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setMessage("");
+
+    const wasSuccessful =
+      await changeStatus(
+        item.id,
+        "Activo",
+      );
+
+    setMessage(
+      wasSuccessful
+        ? "Obra reactivada correctamente."
+        : "No fue posible reactivar la obra.",
+    );
   }
 
-  setMessage("");
-
-  const wasSuccessful = await changeStatus(
-    item.id,
-    "Activo",
-  );
-
-  setMessage(
-    wasSuccessful
-      ? "Obra reactivada correctamente."
-      : "No fue posible reactivar la obra.",
-  );
-}
   return (
     <main className="min-h-screen bg-slate-100">
       <header className="bg-emerald-900 px-6 py-6 text-white">
@@ -318,71 +387,80 @@ async function handleReactivate(
         </div>
 
         {!loading &&
-  !error &&
-  repertoire.length > 0 && (
-    <div className="mb-6 space-y-4">
-      <div>
-        <label
-          htmlFor="repertoire-search"
-          className="mb-2 block text-sm font-semibold text-slate-700"
-        >
-          Buscar obra
-        </label>
-
-        <div className="relative">
-          <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
-            🔍
-          </span>
-
-          <input
-            id="repertoire-search"
-            type="search"
-            value={searchTerm}
-            onChange={(event) => {
-              setSearchTerm(event.target.value);
-            }}
-            placeholder="Buscar por título, compositor, arreglista o tonalidad"
-            className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-11 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
-          />
-        </div>
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        {repertoireFilters.map(
-          (filter) => {
-            const isSelected =
-              selectedFilter === filter;
-
-            return (
-              <button
-                key={filter}
-                type="button"
-                onClick={() => {
-                  setSelectedFilter(filter);
-                }}
-                className={`rounded-lg border px-4 py-2 text-sm font-semibold transition ${
-                  isSelected
-                    ? "border-emerald-700 bg-emerald-700 text-white"
-                    : "border-slate-300 bg-white text-slate-700 hover:border-emerald-600 hover:text-emerald-700"
-                }`}
-              >
-                {filter}{" "}
-                <span
-                  className={
-                    isSelected
-                      ? "text-emerald-100"
-                      : "text-slate-500"
-                  }
+          !error &&
+          repertoire.length > 0 && (
+            <div className="mb-6 space-y-4">
+              <div>
+                <label
+                  htmlFor="repertoire-search"
+                  className="mb-2 block text-sm font-semibold text-slate-700"
                 >
-                  ({getFilterCount(filter)})
-                </span>
-              </button>
-            );
-          },
-        )}
-      </div>
-    </div>
-  )}
+                  Buscar obra
+                </label>
+
+                <div className="relative">
+                  <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
+                    🔍
+                  </span>
+
+                  <input
+                    id="repertoire-search"
+                    type="search"
+                    value={searchTerm}
+                    onChange={(event) => {
+                      setSearchTerm(
+                        event.target.value,
+                      );
+                    }}
+                    placeholder="Buscar por título, compositor, arreglista o tonalidad"
+                    className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-11 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {repertoireFilters.map(
+                  (filter) => {
+                    const isSelected =
+                      selectedFilter ===
+                      filter;
+
+                    return (
+                      <button
+                        key={filter}
+                        type="button"
+                        onClick={() => {
+                          setSelectedFilter(
+                            filter,
+                          );
+                        }}
+                        className={`rounded-lg border px-4 py-2 text-sm font-semibold transition ${
+                          isSelected
+                            ? "border-emerald-700 bg-emerald-700 text-white"
+                            : "border-slate-300 bg-white text-slate-700 hover:border-emerald-600 hover:text-emerald-700"
+                        }`}
+                      >
+                        {filter}{" "}
+                        <span
+                          className={
+                            isSelected
+                              ? "text-emerald-100"
+                              : "text-slate-500"
+                          }
+                        >
+                          (
+                          {getFilterCount(
+                            filter,
+                          )}
+                          )
+                        </span>
+                      </button>
+                    );
+                  },
+                )}
+              </div>
+            </div>
+          )}
 
         {message && (
           <div className="mb-6 rounded-xl border border-slate-200 bg-white px-5 py-4 text-sm font-medium text-slate-700 shadow-sm">
@@ -433,15 +511,18 @@ async function handleReactivate(
         {!loading &&
           !error &&
           repertoire.length > 0 &&
-          filteredRepertoire.length === 0 && (
+          filteredRepertoire.length ===
+            0 && (
             <div className="rounded-xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center shadow-sm">
               <h3 className="text-lg font-bold text-slate-900">
-  No se encontraron obras
-</h3>
+                No se encontraron obras
+              </h3>
 
-<p className="mt-2 text-slate-600">
-  No hay resultados para la búsqueda o el filtro seleccionado.
-</p>
+              <p className="mt-2 text-slate-600">
+                No hay resultados para la
+                búsqueda o el filtro
+                seleccionado.
+              </p>
             </div>
           )}
 
@@ -449,16 +530,20 @@ async function handleReactivate(
           !error &&
           filteredRepertoire.length > 0 && (
             <RepertoireTable
-  repertoire={filteredRepertoire}
-  onEdit={openEditForm}
-  onArchive={handleArchive}
-  onReactivate={handleReactivate}
-  onResources={openResources}
-/>
+              repertoire={
+                filteredRepertoire
+              }
+              onEdit={openEditForm}
+              onArchive={handleArchive}
+              onReactivate={
+                handleReactivate
+              }
+              onResources={openResources}
+            />
           )}
       </section>
 
-                   {isFormOpen && (
+      {isFormOpen && (
         <RepertoireFormModal
           form={form}
           setForm={setForm}
@@ -470,12 +555,15 @@ async function handleReactivate(
           }}
         />
       )}
+
       {resourcesItem && (
-  <RepertoireResourcesModal
-    item={resourcesItem}
-    onClose={closeResources}
-  />
-)}
+        <RepertoireResourcesModal
+          item={resourcesItem}
+          isSaving={isSavingResources}
+          onClose={closeResources}
+          onSave={handleSaveResources}
+        />
+      )}
     </main>
   );
 }

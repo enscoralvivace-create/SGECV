@@ -15,6 +15,24 @@ interface RepertoirePayload {
   notes: string | null;
 }
 
+export interface RepertoireResourcesData {
+  scoreUrl: string;
+  audioUrl: string;
+  videoUrl: string;
+  translation: string;
+  pronunciation: string;
+  directorNotes: string;
+}
+
+interface RepertoireResourcesPayload {
+  score_url: string | null;
+  audio_url: string | null;
+  video_url: string | null;
+  translation: string | null;
+  pronunciation: string | null;
+  director_notes: string | null;
+}
+
 function formToPayload(
   form: RepertoireFormData,
 ): RepertoirePayload {
@@ -38,6 +56,25 @@ function formToPayload(
     status: form.status,
     notes:
       form.notes.trim() || null,
+  };
+}
+
+function resourcesToPayload(
+  resources: RepertoireResourcesData,
+): RepertoireResourcesPayload {
+  return {
+    score_url:
+      resources.scoreUrl.trim() || null,
+    audio_url:
+      resources.audioUrl.trim() || null,
+    video_url:
+      resources.videoUrl.trim() || null,
+    translation:
+      resources.translation.trim() || null,
+    pronunciation:
+      resources.pronunciation.trim() || null,
+    director_notes:
+      resources.directorNotes.trim() || null,
   };
 }
 
@@ -110,6 +147,27 @@ export async function updateRepertoireStatus(
   if (!data || data.length === 0) {
     throw new Error(
       "El estado no pudo actualizarse. Revisa las políticas RLS de Supabase.",
+    );
+  }
+}
+
+export async function updateRepertoireResources(
+  id: number,
+  resources: RepertoireResourcesData,
+): Promise<void> {
+  const { data, error } = await supabase
+    .from("repertoire")
+    .update(resourcesToPayload(resources))
+    .eq("id", id)
+    .select("id");
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!data || data.length === 0) {
+    throw new Error(
+      "Los recursos no pudieron actualizarse. Revisa las políticas RLS de Supabase.",
     );
   }
 }

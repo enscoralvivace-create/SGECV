@@ -2,6 +2,11 @@
 
 import { useState } from "react";
 
+import {
+  updateRepertoireResources,
+  type RepertoireResourcesData,
+} from "@/services/repertoireService";
+
 import type {
   RepertoireFormData,
   RepertoireItem,
@@ -32,6 +37,11 @@ export function useRepertoire() {
   const [isSaving, setIsSaving] =
     useState(false);
 
+  const [
+    isSavingResources,
+    setIsSavingResources,
+  ] = useState(false);
+
   const [isFormOpen, setIsFormOpen] =
     useState(false);
 
@@ -40,6 +50,68 @@ export function useRepertoire() {
 
   const [message, setMessage] =
     useState("");
+
+  async function saveResources(
+    id: number,
+    resources: RepertoireResourcesData,
+  ): Promise<boolean> {
+    setIsSavingResources(true);
+    setMessage("");
+
+    try {
+      await updateRepertoireResources(
+        id,
+        resources,
+      );
+
+      setItems((currentItems) =>
+        currentItems.map((item) => {
+          if (item.id !== id) {
+            return item;
+          }
+
+          return {
+            ...item,
+            score_url:
+              resources.scoreUrl.trim() ||
+              null,
+            audio_url:
+              resources.audioUrl.trim() ||
+              null,
+            video_url:
+              resources.videoUrl.trim() ||
+              null,
+            translation:
+              resources.translation.trim() ||
+              null,
+            pronunciation:
+              resources.pronunciation.trim() ||
+              null,
+            director_notes:
+              resources.directorNotes.trim() ||
+              null,
+          };
+        }),
+      );
+
+      setMessage(
+        "Recursos guardados correctamente.",
+      );
+
+      return true;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "No fue posible guardar los recursos.";
+
+      setMessage(errorMessage);
+
+      return false;
+    } finally {
+      setIsSavingResources(false);
+    }
+  }
 
   return {
     items,
@@ -60,6 +132,9 @@ export function useRepertoire() {
     isSaving,
     setIsSaving,
 
+    isSavingResources,
+    setIsSavingResources,
+
     isFormOpen,
     setIsFormOpen,
 
@@ -68,5 +143,7 @@ export function useRepertoire() {
 
     message,
     setMessage,
+
+    saveResources,
   };
 }
