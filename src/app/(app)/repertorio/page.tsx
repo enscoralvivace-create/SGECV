@@ -57,20 +57,43 @@ export default function RepertoirePage() {
     useState("");
 
   const [editingItem, setEditingItem] =
-    useState<RepertoireItem | null>(null);
+  useState<RepertoireItem | null>(null);
 
-  const [selectedFilter, setSelectedFilter] =
-    useState<RepertoireFilter>("Todas");
+const [selectedFilter, setSelectedFilter] =
+  useState<RepertoireFilter>("Todas");
+
+const [searchTerm, setSearchTerm] =
+  useState("");
 
   const filteredRepertoire = useMemo(() => {
-    if (selectedFilter === "Todas") {
-      return repertoire;
-    }
+  const normalizedSearch =
+    searchTerm.trim().toLowerCase();
 
-    return repertoire.filter(
-      (item) => item.status === selectedFilter,
-    );
-  }, [repertoire, selectedFilter]);
+  return repertoire.filter((item) => {
+    const matchesStatus =
+      selectedFilter === "Todas" ||
+      item.status === selectedFilter;
+
+    const searchableText = [
+      item.title,
+      item.composer ?? "",
+      item.arranger ?? "",
+      item.key ?? "",
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    const matchesSearch =
+      normalizedSearch === "" ||
+      searchableText.includes(normalizedSearch);
+
+    return matchesStatus && matchesSearch;
+  });
+}, [
+  repertoire,
+  selectedFilter,
+  searchTerm,
+]);
 
   function getFilterCount(
     filter: RepertoireFilter,
@@ -276,43 +299,71 @@ async function handleReactivate(
         </div>
 
         {!loading &&
-          !error &&
-          repertoire.length > 0 && (
-            <div className="mb-6 flex flex-wrap gap-2">
-              {repertoireFilters.map(
-                (filter) => {
-                  const isSelected =
-                    selectedFilter === filter;
+  !error &&
+  repertoire.length > 0 && (
+    <div className="mb-6 space-y-4">
+      <div>
+        <label
+          htmlFor="repertoire-search"
+          className="mb-2 block text-sm font-semibold text-slate-700"
+        >
+          Buscar obra
+        </label>
 
-                  return (
-                    <button
-                      key={filter}
-                      type="button"
-                      onClick={() => {
-                        setSelectedFilter(filter);
-                      }}
-                      className={`rounded-lg border px-4 py-2 text-sm font-semibold transition ${
-                        isSelected
-                          ? "border-emerald-700 bg-emerald-700 text-white"
-                          : "border-slate-300 bg-white text-slate-700 hover:border-emerald-600 hover:text-emerald-700"
-                      }`}
-                    >
-                      {filter}{" "}
-                      <span
-                        className={
-                          isSelected
-                            ? "text-emerald-100"
-                            : "text-slate-500"
-                        }
-                      >
-                        ({getFilterCount(filter)})
-                      </span>
-                    </button>
-                  );
-                },
-              )}
-            </div>
-          )}
+        <div className="relative">
+          <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
+            🔍
+          </span>
+
+          <input
+            id="repertoire-search"
+            type="search"
+            value={searchTerm}
+            onChange={(event) => {
+              setSearchTerm(event.target.value);
+            }}
+            placeholder="Buscar por título, compositor, arreglista o tonalidad"
+            className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-11 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+          />
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {repertoireFilters.map(
+          (filter) => {
+            const isSelected =
+              selectedFilter === filter;
+
+            return (
+              <button
+                key={filter}
+                type="button"
+                onClick={() => {
+                  setSelectedFilter(filter);
+                }}
+                className={`rounded-lg border px-4 py-2 text-sm font-semibold transition ${
+                  isSelected
+                    ? "border-emerald-700 bg-emerald-700 text-white"
+                    : "border-slate-300 bg-white text-slate-700 hover:border-emerald-600 hover:text-emerald-700"
+                }`}
+              >
+                {filter}{" "}
+                <span
+                  className={
+                    isSelected
+                      ? "text-emerald-100"
+                      : "text-slate-500"
+                  }
+                >
+                  ({getFilterCount(filter)})
+                </span>
+              </button>
+            );
+          },
+        )}
+      </div>
+    </div>
+  )}
 
         {message && (
           <div className="mb-6 rounded-xl border border-slate-200 bg-white px-5 py-4 text-sm font-medium text-slate-700 shadow-sm">
@@ -366,13 +417,12 @@ async function handleReactivate(
           filteredRepertoire.length === 0 && (
             <div className="rounded-xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center shadow-sm">
               <h3 className="text-lg font-bold text-slate-900">
-                No hay obras en esta categoría
-              </h3>
+  No se encontraron obras
+</h3>
 
-              <p className="mt-2 text-slate-600">
-                No existen obras con el estado
-                “{selectedFilter}”.
-              </p>
+<p className="mt-2 text-slate-600">
+  No hay resultados para la búsqueda o el filtro seleccionado.
+</p>
             </div>
           )}
 
