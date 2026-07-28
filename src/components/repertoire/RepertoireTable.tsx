@@ -7,6 +7,7 @@ interface RepertoireTableProps {
   repertoire: RepertoireItem[];
   onEdit: (item: RepertoireItem) => void;
   onArchive: (item: RepertoireItem) => void;
+  onReactivate: (item: RepertoireItem) => void;
 }
 
 function formatDuration(
@@ -38,6 +39,7 @@ export default function RepertoireTable({
   repertoire,
   onEdit,
   onArchive,
+  onReactivate,
 }: RepertoireTableProps) {
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -106,7 +108,9 @@ export default function RepertoireTable({
                 </td>
 
                 <td className="px-5 py-4 text-sm text-slate-700">
-                  {formatDuration(item.duration_minutes)}
+                  {formatDuration(
+                    item.duration_minutes,
+                  )}
                 </td>
 
                 <td className="px-5 py-4">
@@ -129,13 +133,27 @@ export default function RepertoireTable({
                       Editar
                     </button>
 
-                    <button
-                      type="button"
-                      onClick={() => onArchive(item)}
-                      className="rounded-lg border border-amber-300 bg-white px-4 py-2 text-sm font-semibold text-amber-700 transition hover:border-amber-700 hover:text-amber-900"
-                    >
-                      📦 Archivar
-                    </button>
+                    {item.status === "Archivado" ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onReactivate(item)
+                        }
+                        className="rounded-lg border border-emerald-300 bg-white px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:border-emerald-700 hover:text-emerald-900"
+                      >
+                        🔄 Reactivar
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onArchive(item)
+                        }
+                        className="rounded-lg border border-amber-300 bg-white px-4 py-2 text-sm font-semibold text-amber-700 transition hover:border-amber-700 hover:text-amber-900"
+                      >
+                        📦 Archivar
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>

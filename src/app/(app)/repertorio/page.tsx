@@ -208,7 +208,30 @@ export default function RepertoirePage() {
         : "No fue posible archivar la obra.",
     );
   }
+async function handleReactivate(
+  item: RepertoireItem,
+): Promise<void> {
+  const confirmed = window.confirm(
+    `¿Deseas reactivar la obra "${item.title}"?`,
+  );
 
+  if (!confirmed) {
+    return;
+  }
+
+  setMessage("");
+
+  const wasSuccessful = await changeStatus(
+    item.id,
+    "Activo",
+  );
+
+  setMessage(
+    wasSuccessful
+      ? "Obra reactivada correctamente."
+      : "No fue posible reactivar la obra.",
+  );
+}
   return (
     <main className="min-h-screen bg-slate-100">
       <header className="bg-emerald-900 px-6 py-6 text-white">
@@ -357,10 +380,11 @@ export default function RepertoirePage() {
           !error &&
           filteredRepertoire.length > 0 && (
             <RepertoireTable
-              repertoire={filteredRepertoire}
-              onEdit={openEditForm}
-              onArchive={handleArchive}
-            />
+  repertoire={filteredRepertoire}
+  onEdit={openEditForm}
+  onArchive={handleArchive}
+  onReactivate={handleReactivate}
+/>
           )}
       </section>
 
