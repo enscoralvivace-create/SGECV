@@ -11,6 +11,12 @@ export const emptyRepertoireForm: RepertoireFormData = {
   durationMinutes: "",
   status: "En estudio",
   notes: "",
+  scoreUrl: "",
+  audioUrl: "",
+  videoUrl: "",
+  translation: "",
+  pronunciation: "",
+  directorNotes: "",
 };
 
 export function repertoireItemToForm(
@@ -27,5 +33,11 @@ export function repertoireItemToForm(
         : "",
     status: item.status,
     notes: item.notes ?? "",
+    scoreUrl: item.score_url ?? "",
+    audioUrl: item.audio_url ?? "",
+    videoUrl: item.video_url ?? "",
+    translation: item.translation ?? "",
+    pronunciation: item.pronunciation ?? "",
+    directorNotes: item.director_notes ?? "",
   };
 }

@@ -16,6 +16,7 @@ import {
 import type {
   RepertoireFormData,
   RepertoireItem,
+  RepertoireStatus,
 } from "@/types/repertoire";
 
 interface UseRepertoireResult {
@@ -119,27 +120,19 @@ export function useRepertoire(): UseRepertoireResult {
   }
 
   async function changeStatus(
-    id: number,
-    status: RepertoireFormData["status"],
-  ): Promise<boolean> {
-    try {
-      setError(null);
+  id: number,
+  status: RepertoireStatus,
+): Promise<boolean> {
+  try {
+    await updateRepertoireStatus(id, status);
+    await refreshRepertoire();
 
-      await updateRepertoireStatus(id, status);
-      await refreshRepertoire();
-
-      return true;
-    } catch (caughtError) {
-      const message =
-        caughtError instanceof Error
-          ? caughtError.message
-          : "No fue posible cambiar el estado.";
-
-      setError(message);
-
-      return false;
-    }
+    return true;
+  } catch (caughtError) {
+    // ...
+    return false;
   }
+}
 
   return {
     repertoire,

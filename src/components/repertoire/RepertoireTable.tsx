@@ -8,6 +8,7 @@ interface RepertoireTableProps {
   onEdit: (item: RepertoireItem) => void;
   onArchive: (item: RepertoireItem) => void;
   onReactivate: (item: RepertoireItem) => void;
+  onResources: (item: RepertoireItem) => void;
 }
 
 function formatDuration(
@@ -40,6 +41,7 @@ export default function RepertoireTable({
   onEdit,
   onArchive,
   onReactivate,
+  onResources,
 }: RepertoireTableProps) {
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -132,7 +134,13 @@ export default function RepertoireTable({
                     >
                       Editar
                     </button>
-
+<button
+  type="button"
+  onClick={() => onResources(item)}
+  className="rounded-lg border border-sky-300 bg-white px-4 py-2 text-sm font-semibold text-sky-700 transition hover:border-sky-700 hover:text-sky-900"
+>
+  📚 Recursos
+</button>
                     {item.status === "Archivado" ? (
                       <button
                         type="button"

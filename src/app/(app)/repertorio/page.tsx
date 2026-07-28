@@ -11,6 +11,7 @@ import Button from "@/components/common/Button";
 import RepertoireFormModal from "@/components/repertoire/RepertoireFormModal";
 import RepertoireTable from "@/components/repertoire/RepertoireTable";
 import { useRepertoire } from "@/hooks/useRepertoire";
+import RepertoireResourcesModal from "@/components/repertoire/RepertoireResourcesModal";
 
 import type {
   RepertoireFormData,
@@ -59,6 +60,9 @@ export default function RepertoirePage() {
   const [editingItem, setEditingItem] =
   useState<RepertoireItem | null>(null);
 
+  const [resourcesItem, setResourcesItem] =
+  useState<RepertoireItem | null>(null);
+
 const [selectedFilter, setSelectedFilter] =
   useState<RepertoireFilter>("Todas");
 
@@ -95,6 +99,15 @@ const [searchTerm, setSearchTerm] =
   searchTerm,
 ]);
 
+function openResources(
+  item: RepertoireItem,
+): void {
+  setResourcesItem(item);
+}
+
+function closeResources(): void {
+  setResourcesItem(null);
+}
   function getFilterCount(
     filter: RepertoireFilter,
   ): number {
@@ -120,15 +133,21 @@ const [searchTerm, setSearchTerm] =
     setEditingItem(item);
 
     setForm({
-      title: item.title,
-      composer: item.composer ?? "",
-      arranger: item.arranger ?? "",
-      key: item.key ?? "",
-      durationMinutes:
-        item.duration_minutes?.toString() ?? "",
-      status: item.status,
-      notes: item.notes ?? "",
-    });
+  title: item.title,
+  composer: item.composer ?? "",
+  arranger: item.arranger ?? "",
+  key: item.key ?? "",
+  durationMinutes:
+    item.duration_minutes?.toString() ?? "",
+  status: item.status,
+  notes: item.notes ?? "",
+  scoreUrl: item.score_url ?? "",
+  audioUrl: item.audio_url ?? "",
+  videoUrl: item.video_url ?? "",
+  translation: item.translation ?? "",
+  pronunciation: item.pronunciation ?? "",
+  directorNotes: item.director_notes ?? "",
+});
 
     setMessage("");
     setIsFormOpen(true);
@@ -434,11 +453,12 @@ async function handleReactivate(
   onEdit={openEditForm}
   onArchive={handleArchive}
   onReactivate={handleReactivate}
+  onResources={openResources}
 />
           )}
       </section>
 
-      {isFormOpen && (
+                   {isFormOpen && (
         <RepertoireFormModal
           form={form}
           setForm={setForm}
@@ -450,6 +470,12 @@ async function handleReactivate(
           }}
         />
       )}
+      {resourcesItem && (
+  <RepertoireResourcesModal
+    item={resourcesItem}
+    onClose={closeResources}
+  />
+)}
     </main>
   );
 }
