@@ -3,6 +3,7 @@
 import Link from "next/link";
 import {
   type FormEvent,
+  useMemo,
   useState,
 } from "react";
 
@@ -14,9 +15,21 @@ import { useRepertoire } from "@/hooks/useRepertoire";
 import type {
   RepertoireFormData,
   RepertoireItem,
+  RepertoireStatus,
 } from "@/types/repertoire";
 
 import { emptyRepertoireForm } from "@/utils/repertoire";
+
+type RepertoireFilter =
+  | "Todas"
+  | RepertoireStatus;
+
+const repertoireFilters: RepertoireFilter[] = [
+  "Todas",
+  "Activo",
+  "En estudio",
+  "Archivado",
+];
 
 export default function RepertoirePage() {
   const {
@@ -46,6 +59,31 @@ export default function RepertoirePage() {
   const [editingItem, setEditingItem] =
     useState<RepertoireItem | null>(null);
 
+  const [selectedFilter, setSelectedFilter] =
+    useState<RepertoireFilter>("Todas");
+
+  const filteredRepertoire = useMemo(() => {
+    if (selectedFilter === "Todas") {
+      return repertoire;
+    }
+
+    return repertoire.filter(
+      (item) => item.status === selectedFilter,
+    );
+  }, [repertoire, selectedFilter]);
+
+  function getFilterCount(
+    filter: RepertoireFilter,
+  ): number {
+    if (filter === "Todas") {
+      return repertoire.length;
+    }
+
+    return repertoire.filter(
+      (item) => item.status === filter,
+    ).length;
+  }
+
   function openCreateForm(): void {
     setEditingItem(null);
     setForm(emptyRepertoireForm);
@@ -64,8 +102,7 @@ export default function RepertoirePage() {
       arranger: item.arranger ?? "",
       key: item.key ?? "",
       durationMinutes:
-        item.duration_minutes?.toString() ??
-        "",
+        item.duration_minutes?.toString() ?? "",
       status: item.status,
       notes: item.notes ?? "",
     });
@@ -215,6 +252,45 @@ export default function RepertoirePage() {
           </Button>
         </div>
 
+        {!loading &&
+          !error &&
+          repertoire.length > 0 && (
+            <div className="mb-6 flex flex-wrap gap-2">
+              {repertoireFilters.map(
+                (filter) => {
+                  const isSelected =
+                    selectedFilter === filter;
+
+                  return (
+                    <button
+                      key={filter}
+                      type="button"
+                      onClick={() => {
+                        setSelectedFilter(filter);
+                      }}
+                      className={`rounded-lg border px-4 py-2 text-sm font-semibold transition ${
+                        isSelected
+                          ? "border-emerald-700 bg-emerald-700 text-white"
+                          : "border-slate-300 bg-white text-slate-700 hover:border-emerald-600 hover:text-emerald-700"
+                      }`}
+                    >
+                      {filter}{" "}
+                      <span
+                        className={
+                          isSelected
+                            ? "text-emerald-100"
+                            : "text-slate-500"
+                        }
+                      >
+                        ({getFilterCount(filter)})
+                      </span>
+                    </button>
+                  );
+                },
+              )}
+            </div>
+          )}
+
         {message && (
           <div className="mb-6 rounded-xl border border-slate-200 bg-white px-5 py-4 text-sm font-medium text-slate-700 shadow-sm">
             {message}
@@ -251,8 +327,7 @@ export default function RepertoirePage() {
           repertoire.length === 0 && (
             <div className="rounded-xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center shadow-sm">
               <h3 className="text-lg font-bold text-slate-900">
-                Todavía no hay obras
-                registradas
+                Todavía no hay obras registradas
               </h3>
 
               <p className="mt-2 text-slate-600">
@@ -264,9 +339,25 @@ export default function RepertoirePage() {
 
         {!loading &&
           !error &&
-          repertoire.length > 0 && (
+          repertoire.length > 0 &&
+          filteredRepertoire.length === 0 && (
+            <div className="rounded-xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center shadow-sm">
+              <h3 className="text-lg font-bold text-slate-900">
+                No hay obras en esta categoría
+              </h3>
+
+              <p className="mt-2 text-slate-600">
+                No existen obras con el estado
+                “{selectedFilter}”.
+              </p>
+            </div>
+          )}
+
+        {!loading &&
+          !error &&
+          filteredRepertoire.length > 0 && (
             <RepertoireTable
-              repertoire={repertoire}
+              repertoire={filteredRepertoire}
               onEdit={openEditForm}
               onArchive={handleArchive}
             />
