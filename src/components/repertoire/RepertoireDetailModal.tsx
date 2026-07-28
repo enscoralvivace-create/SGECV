@@ -50,9 +50,9 @@ export default function RepertoireDetailModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6">
-      <div className="w-full max-w-3xl rounded-2xl bg-white shadow-2xl">
+      <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
 
-        <div className="flex items-center justify-between border-b px-8 py-6">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-8 py-6">
 
           <div>
             <h2 className="text-3xl font-bold text-slate-900">
@@ -67,7 +67,8 @@ export default function RepertoireDetailModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border px-4 py-2 hover:bg-slate-100"
+            className="rounded-lg border px-4 py-2 transition hover:bg-slate-100"
+            aria-label="Cerrar detalle de la obra"
           >
             ✕
           </button>
@@ -93,7 +94,7 @@ export default function RepertoireDetailModal({
             <div className="h-3 overflow-hidden rounded-full bg-slate-200">
 
               <div
-                className="h-full rounded-full bg-emerald-600"
+                className="h-full rounded-full bg-emerald-600 transition-all"
                 style={{
                   width: `${percentage}%`,
                 }}
@@ -107,7 +108,7 @@ export default function RepertoireDetailModal({
 
           </section>
 
-          <section className="grid grid-cols-2 gap-4">
+          <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
             <InfoCard
               title="Duración"
@@ -141,11 +142,11 @@ export default function RepertoireDetailModal({
 
           <section>
 
-            <h3 className="mb-4 text-lg font-bold">
+            <h3 className="mb-4 text-lg font-bold text-slate-900">
               Recursos disponibles
             </h3>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
 
               <ResourceRow
                 icon="📄"
@@ -199,13 +200,20 @@ export default function RepertoireDetailModal({
 
           </section>
 
+          <ContentSection
+            icon="🌎"
+            title="Traducción"
+            content={item.translation}
+            emptyMessage="No se ha registrado una traducción para esta obra."
+          />
+
         </div>
 
       </div>
-
     </div>
   );
 }
+
 function InfoCard({
   title,
   value,
@@ -215,7 +223,7 @@ function InfoCard({
 }) {
   return (
     <div className="rounded-xl border bg-slate-50 p-4">
-      <p className="text-xs uppercase text-slate-500">
+      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
         {title}
       </p>
 
@@ -265,10 +273,57 @@ function ResourceRow({
           {actionLabel}
         </button>
       ) : (
-        <span className="text-lg">
+        <span
+          className="text-lg"
+          aria-label={
+            available
+              ? `${title} disponible`
+              : `${title} no disponible`
+          }
+        >
           {available ? "✅" : "❌"}
         </span>
       )}
     </div>
+  );
+}
+
+function ContentSection({
+  icon,
+  title,
+  content,
+  emptyMessage,
+}: {
+  icon: string;
+  title: string;
+  content: string | null | undefined;
+  emptyMessage: string;
+}) {
+  const available = hasContent(content);
+
+  return (
+    <section className="overflow-hidden rounded-2xl border border-slate-200">
+      <div className="border-b bg-slate-50 px-6 py-4">
+        <h3 className="flex items-center gap-2 text-lg font-bold text-slate-900">
+          <span aria-hidden="true">
+            {icon}
+          </span>
+
+          {title}
+        </h3>
+      </div>
+
+      <div className="p-6">
+        {available ? (
+          <p className="whitespace-pre-wrap leading-7 text-slate-700">
+            {content?.trim()}
+          </p>
+        ) : (
+          <p className="italic text-slate-500">
+            {emptyMessage}
+          </p>
+        )}
+      </div>
+    </section>
   );
 }
