@@ -1,145 +1,178 @@
 "use client";
 
-import RepertoireTable from "@/components/repertoire/RepertoireTable";
 import Link from "next/link";
 import {
   type FormEvent,
   useState,
 } from "react";
 
+import Button from "@/components/common/Button";
 import RepertoireFormModal from "@/components/repertoire/RepertoireFormModal";
+import RepertoireTable from "@/components/repertoire/RepertoireTable";
+import { useRepertoire } from "@/hooks/useRepertoire";
 
 import type {
   RepertoireFormData,
   RepertoireItem,
 } from "@/types/repertoire";
-import Button from "@/components/common/Button";
-import { useRepertoire } from "@/hooks/useRepertoire";
+
 import { emptyRepertoireForm } from "@/utils/repertoire";
 
 export default function RepertoirePage() {
-     const {
-  repertoire,
-  loading,
-  error,
-  refreshRepertoire,
-  createItem,
-  updateItem,
-} = useRepertoire(); 
+  const {
+    repertoire,
+    loading,
+    error,
+    refreshRepertoire,
+    createItem,
+    updateItem,
+    changeStatus,
+  } = useRepertoire();
 
   const [form, setForm] =
-  useState<RepertoireFormData>(
-    emptyRepertoireForm,
-  );
+    useState<RepertoireFormData>(
+      emptyRepertoireForm,
+    );
 
-const [isFormOpen, setIsFormOpen] =
-  useState(false);
+  const [isFormOpen, setIsFormOpen] =
+    useState(false);
 
-const [isSaving, setIsSaving] =
-  useState(false);
+  const [isSaving, setIsSaving] =
+    useState(false);
 
-const [message, setMessage] =
-  useState("");
+  const [message, setMessage] =
+    useState("");
 
   const [editingItem, setEditingItem] =
-  useState<RepertoireItem | null>(null);
+    useState<RepertoireItem | null>(null);
 
   function openCreateForm(): void {
-  setEditingItem(null);
-  setForm(emptyRepertoireForm);
-  setMessage("");
-  setIsFormOpen(true);
-}
+    setEditingItem(null);
+    setForm(emptyRepertoireForm);
+    setMessage("");
+    setIsFormOpen(true);
+  }
+
   function openEditForm(
-  item: RepertoireItem,
-): void {
-  setEditingItem(item);
+    item: RepertoireItem,
+  ): void {
+    setEditingItem(item);
 
-  setForm({
-    title: item.title,
-    composer: item.composer ?? "",
-    arranger: item.arranger ?? "",
-    key: item.key ?? "",
-    durationMinutes:
-      item.duration_minutes?.toString() ?? "",
-    status: item.status,
-    notes: item.notes ?? "",
-  });
+    setForm({
+      title: item.title,
+      composer: item.composer ?? "",
+      arranger: item.arranger ?? "",
+      key: item.key ?? "",
+      durationMinutes:
+        item.duration_minutes?.toString() ??
+        "",
+      status: item.status,
+      notes: item.notes ?? "",
+    });
 
-  setMessage("");
-  setIsFormOpen(true);
-}
-
-function closeForm(): void {
-  if (isSaving) {
-    return;
+    setMessage("");
+    setIsFormOpen(true);
   }
 
-  setEditingItem(null);
-  setForm(emptyRepertoireForm);
-  setIsFormOpen(false);
-}
+  function closeForm(): void {
+    if (isSaving) {
+      return;
+    }
 
-async function handleSubmit(
-  event: FormEvent<HTMLFormElement>,
-): Promise<void> {
-  event.preventDefault();
+    setEditingItem(null);
+    setForm(emptyRepertoireForm);
+    setIsFormOpen(false);
+  }
 
-  if (!form.title.trim()) {
-    setMessage(
-      "Escribe el título de la obra.",
+  async function handleSubmit(
+    event: FormEvent<HTMLFormElement>,
+  ): Promise<void> {
+    event.preventDefault();
+
+    if (!form.title.trim()) {
+      setMessage(
+        "Escribe el título de la obra.",
+      );
+
+      return;
+    }
+
+    if (
+      form.durationMinutes.trim() &&
+      Number(form.durationMinutes) < 0
+    ) {
+      setMessage(
+        "La duración no puede ser negativa.",
+      );
+
+      return;
+    }
+
+    setIsSaving(true);
+    setMessage("");
+
+    const isEditing = editingItem !== null;
+
+    let wasSuccessful = false;
+
+    if (editingItem) {
+      wasSuccessful = await updateItem(
+        editingItem.id,
+        form,
+      );
+    } else {
+      wasSuccessful =
+        await createItem(form);
+    }
+
+    if (wasSuccessful) {
+      setForm(emptyRepertoireForm);
+      setEditingItem(null);
+      setIsFormOpen(false);
+
+      setMessage(
+        isEditing
+          ? "Obra actualizada correctamente."
+          : "Obra guardada correctamente.",
+      );
+    } else {
+      setMessage(
+        isEditing
+          ? "No fue posible actualizar la obra."
+          : "No fue posible guardar la obra.",
+      );
+    }
+
+    setIsSaving(false);
+  }
+
+  async function handleArchive(
+    item: RepertoireItem,
+  ): Promise<void> {
+    const confirmed = window.confirm(
+      `¿Deseas archivar la obra "${item.title}"?`,
     );
 
-    return;
-  }
+    if (!confirmed) {
+      return;
+    }
 
-  if (
-    form.durationMinutes.trim() &&
-    Number(form.durationMinutes) < 0
-  ) {
+    setMessage("");
+
+    const wasSuccessful =
+      await changeStatus(
+        item.id,
+        "Archivado",
+      );
+
     setMessage(
-      "La duración no puede ser negativa.",
+      wasSuccessful
+        ? "Obra archivada correctamente."
+        : "No fue posible archivar la obra.",
     );
-
-    return;
   }
 
-  setIsSaving(true);
-  setMessage("");
-
-  let wasSuccessful = false;
-
-if (editingItem) {
-  wasSuccessful = await updateItem(
-    editingItem.id,
-    form,
-  );
-} else {
-  wasSuccessful = await createItem(form);
-}
-
-if (wasSuccessful) {
-  setForm(emptyRepertoireForm);
-  setEditingItem(null);
-  setIsFormOpen(false);
-
-  setMessage(
-    editingItem
-      ? "Obra actualizada correctamente."
-      : "Obra guardada correctamente.",
-  );
-} else {
-  setMessage(
-    editingItem
-      ? "No fue posible actualizar la obra."
-      : "No fue posible guardar la obra.",
-  );
-}
-
-setIsSaving(false);
-}
-
-return (
+  return (
     <main className="min-h-screen bg-slate-100">
       <header className="bg-emerald-900 px-6 py-6 text-white">
         <div className="mx-auto max-w-7xl">
@@ -181,11 +214,13 @@ return (
             + Nueva obra
           </Button>
         </div>
-{message && (
-  <div className="mb-6 rounded-xl border border-slate-200 bg-white px-5 py-4 text-sm font-medium text-slate-700 shadow-sm">
-    {message}
-  </div>
-)}
+
+        {message && (
+          <div className="mb-6 rounded-xl border border-slate-200 bg-white px-5 py-4 text-sm font-medium text-slate-700 shadow-sm">
+            {message}
+          </div>
+        )}
+
         {error && (
           <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-medium text-red-700">
             <p>
@@ -228,13 +263,14 @@ return (
           )}
 
         {!loading &&
-  !error &&
-  repertoire.length > 0 && (
-    <RepertoireTable
-  repertoire={repertoire}
-  onEdit={openEditForm}
-/>
-  )}
+          !error &&
+          repertoire.length > 0 && (
+            <RepertoireTable
+              repertoire={repertoire}
+              onEdit={openEditForm}
+              onArchive={handleArchive}
+            />
+          )}
       </section>
 
       {isFormOpen && (

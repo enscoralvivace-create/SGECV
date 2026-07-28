@@ -74,13 +74,20 @@ export async function updateRepertoireItem(
   id: number,
   form: RepertoireFormData,
 ): Promise<void> {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("repertoire")
     .update(formToPayload(form))
-    .eq("id", id);
+    .eq("id", id)
+    .select("id");
 
   if (error) {
     throw new Error(error.message);
+  }
+
+  if (!data || data.length === 0) {
+    throw new Error(
+      "La obra no pudo actualizarse. Revisa las políticas RLS de Supabase.",
+    );
   }
 }
 
@@ -88,12 +95,21 @@ export async function updateRepertoireStatus(
   id: number,
   status: RepertoireFormData["status"],
 ): Promise<void> {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("repertoire")
-    .update({ status })
-    .eq("id", id);
+    .update({
+      status,
+    })
+    .eq("id", id)
+    .select("id");
 
   if (error) {
     throw new Error(error.message);
+  }
+
+  if (!data || data.length === 0) {
+    throw new Error(
+      "El estado no pudo actualizarse. Revisa las políticas RLS de Supabase.",
+    );
   }
 }

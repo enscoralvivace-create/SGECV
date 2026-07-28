@@ -5,8 +5,8 @@ import type {
 
 interface RepertoireTableProps {
   repertoire: RepertoireItem[];
-
   onEdit: (item: RepertoireItem) => void;
+  onArchive: (item: RepertoireItem) => void;
 }
 
 function formatDuration(
@@ -37,6 +37,7 @@ function getStatusClasses(
 export default function RepertoireTable({
   repertoire,
   onEdit,
+  onArchive,
 }: RepertoireTableProps) {
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -67,11 +68,10 @@ export default function RepertoireTable({
               <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wide text-slate-600">
                 Estado
               </th>
-              
+
               <th className="px-5 py-4 text-right text-xs font-bold uppercase tracking-wide text-slate-600">
-              Acciones
+                Acciones
               </th>
-              
             </tr>
           </thead>
 
@@ -94,24 +94,19 @@ export default function RepertoireTable({
                 </td>
 
                 <td className="px-5 py-4 text-sm text-slate-700">
-                  {item.composer ??
-                    "Sin especificar"}
+                  {item.composer ?? "Sin especificar"}
                 </td>
 
                 <td className="px-5 py-4 text-sm text-slate-700">
-                  {item.arranger ??
-                    "Sin especificar"}
+                  {item.arranger ?? "Sin especificar"}
                 </td>
 
                 <td className="px-5 py-4 text-sm text-slate-700">
-                  {item.key ??
-                    "Sin especificar"}
+                  {item.key ?? "Sin especificar"}
                 </td>
 
                 <td className="px-5 py-4 text-sm text-slate-700">
-                  {formatDuration(
-                    item.duration_minutes,
-                  )}
+                  {formatDuration(item.duration_minutes)}
                 </td>
 
                 <td className="px-5 py-4">
@@ -123,15 +118,26 @@ export default function RepertoireTable({
                     {item.status}
                   </span>
                 </td>
-                <td className="px-5 py-4 text-right">
-  <button
-  type="button"
-  onClick={() => onEdit(item)}
-  className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-emerald-700 hover:text-emerald-800"
->
-  Editar
-</button>
-</td>
+
+                <td className="px-5 py-4">
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onEdit(item)}
+                      className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-emerald-700 hover:text-emerald-800"
+                    >
+                      Editar
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => onArchive(item)}
+                      className="rounded-lg border border-amber-300 bg-white px-4 py-2 text-sm font-semibold text-amber-700 transition hover:border-amber-700 hover:text-amber-900"
+                    >
+                      📦 Archivar
+                    </button>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
