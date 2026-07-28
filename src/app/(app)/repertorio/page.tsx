@@ -6,7 +6,7 @@ import {
   useMemo,
   useState,
 } from "react";
-
+import RepertoireDetailModal from "@/components/repertoire/RepertoireDetailModal";
 import Button from "@/components/common/Button";
 import RepertoireFormModal from "@/components/repertoire/RepertoireFormModal";
 import RepertoireResourcesModal from "@/components/repertoire/RepertoireResourcesModal";
@@ -74,6 +74,9 @@ export default function RepertoirePage() {
   const [resourcesItem, setResourcesItem] =
     useState<RepertoireItem | null>(null);
 
+  const [detailItem, setDetailItem] =
+  useState<RepertoireItem | null>(null);
+
   const [selectedFilter, setSelectedFilter] =
     useState<RepertoireFilter>("Todas");
 
@@ -119,6 +122,15 @@ export default function RepertoirePage() {
     setResourcesItem(item);
   }
 
+  function openDetail(
+  item: RepertoireItem,
+): void {
+  setDetailItem(item);
+}
+
+function closeDetail(): void {
+  setDetailItem(null);
+}
   function closeResources(): void {
     if (isSavingResources) {
       return;
@@ -529,17 +541,14 @@ export default function RepertoirePage() {
         {!loading &&
           !error &&
           filteredRepertoire.length > 0 && (
-            <RepertoireTable
-              repertoire={
-                filteredRepertoire
-              }
-              onEdit={openEditForm}
-              onArchive={handleArchive}
-              onReactivate={
-                handleReactivate
-              }
-              onResources={openResources}
-            />
+           <RepertoireTable
+  repertoire={filteredRepertoire}
+  onEdit={openEditForm}
+  onArchive={handleArchive}
+  onReactivate={handleReactivate}
+  onResources={openResources}
+  onDetail={openDetail}
+/>
           )}
       </section>
 
@@ -564,6 +573,12 @@ export default function RepertoirePage() {
           onSave={handleSaveResources}
         />
       )}
+      {detailItem && (
+  <RepertoireDetailModal
+    item={detailItem}
+    onClose={closeDetail}
+  />
+)}
     </main>
   );
 }
