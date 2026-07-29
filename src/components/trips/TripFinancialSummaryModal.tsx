@@ -7,6 +7,7 @@ import {
 } from "react";
 
 import Button from "@/components/common/Button";
+import TripFinancialReportModal from "@/components/trips/TripFinancialReportModal";
 import RegisterPaymentModal from "@/components/payments/RegisterPaymentModal";
 
 import {
@@ -97,6 +98,10 @@ export default function TripFinancialSummaryModal({
     useState<TripMemberFinancialSummary | null>(
       null,
     );
+    const [
+  isReportOpen,
+  setIsReportOpen,
+] = useState(false);
 
   const [isLoading, setIsLoading] =
     useState(true);
@@ -427,11 +432,22 @@ export default function TripFinancialSummaryModal({
               )}
           </div>
 
-          <footer className="flex justify-end border-t border-slate-200 px-6 py-5">
-            <Button onClick={onClose}>
-              Cerrar
-            </Button>
-          </footer>
+          <footer className="flex flex-wrap items-center justify-end gap-3 border-t border-slate-200 px-6 py-5">
+  {summary && !isLoading && !error && (
+    <Button
+      variant="secondary"
+      onClick={() =>
+        setIsReportOpen(true)
+      }
+    >
+      Ver reporte
+    </Button>
+  )}
+
+  <Button onClick={onClose}>
+    Cerrar
+  </Button>
+</footer>
         </div>
       </div>
 
@@ -454,6 +470,15 @@ export default function TripFinancialSummaryModal({
           }
         />
       )}
+      {isReportOpen && summary && (
+  <TripFinancialReportModal
+    tripName={tripName}
+    summary={summary}
+    onClose={() =>
+      setIsReportOpen(false)
+    }
+  />
+)}
     </>
   );
 }

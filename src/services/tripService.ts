@@ -343,26 +343,26 @@ export async function getTripFinancialSummary(
   );
 
   const recoveryPercentage =
-    totalCharged > 0
-      ? Math.min(
-          Math.round(
-            (totalPaid / totalCharged) *
-              1000,
-          ) / 10,
-          100,
-        )
-      : 0;
+  totalCharged > 0
+    ? Math.min(
+        Math.round(
+          (totalPaid / totalCharged) *
+            1000,
+        ) / 10,
+        100,
+      )
+    : 0;
 
-  return {
-    estimatedBudget,
-    totalCharged,
-    totalPaid,
-    totalPending,
-    recoveryPercentage,
-    members,
-  };
+return {
+  estimatedBudget,
+  totalCharged,
+  totalPaid,
+  totalPending,
+  recoveryPercentage,
+  members,
+};
 }
-
+  
 export async function createTrip(
   form: TripFormData,
 ): Promise<void> {
