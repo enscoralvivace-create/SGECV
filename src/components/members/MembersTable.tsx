@@ -9,6 +9,7 @@ interface MembersTableProps {
   isLoading: boolean;
   processingId: number | null;
   onEdit: (member: Member) => void;
+  onAccountStatement: (member: Member) => void;
   onToggleStatus: (member: Member) => void;
 }
 
@@ -32,6 +33,7 @@ export default function MembersTable({
   isLoading,
   processingId,
   onEdit,
+  onAccountStatement,
   onToggleStatus,
 }: MembersTableProps) {
   return (
@@ -46,7 +48,7 @@ export default function MembersTable({
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1100px] text-left">
+          <table className="w-full min-w-[1180px] text-left">
             <thead className="bg-slate-50 text-sm uppercase text-slate-600">
               <tr>
                 <th className="px-6 py-4">
@@ -119,14 +121,14 @@ export default function MembersTable({
                     </td>
 
                     <td className="px-6 py-4">
-  <StatusBadge
-    status={member.status}
-    className="text-sm"
-  />
-</td>
+                      <StatusBadge
+                        status={member.status}
+                        className="text-sm"
+                      />
+                    </td>
 
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-4">
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                         <button
                           type="button"
                           onClick={() =>
@@ -136,6 +138,17 @@ export default function MembersTable({
                           className="font-semibold text-emerald-700 transition hover:text-emerald-900 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           Editar
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            onAccountStatement(member)
+                          }
+                          disabled={isProcessing}
+                          className="font-semibold text-sky-700 transition hover:text-sky-900 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          Estado de cuenta
                         </button>
 
                         <button
