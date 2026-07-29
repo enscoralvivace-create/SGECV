@@ -37,25 +37,64 @@ function createInitials(
   }
 
   return values
-    .map((value) => value.charAt(0).toUpperCase())
+    .map((value) =>
+      value.charAt(0).toUpperCase(),
+    )
     .slice(0, 2)
     .join("");
 }
 
-export async function getCurrentUserProfile(): Promise<CurrentUserProfile> {
+function isMissingSessionError(
+  error: {
+    name?: string;
+    message?: string;
+  },
+): boolean {
+  return (
+    error.name ===
+      "AuthSessionMissingError" ||
+    error.message
+      ?.toLowerCase()
+      .includes("auth session missing") ===
+      true
+  );
+}
+
+export async function getCurrentUserProfile(): Promise<
+  CurrentUserProfile | null
+> {
+  const {
+    data: { session },
+    error: sessionError,
+  } = await supabase.auth.getSession();
+
+  if (sessionError) {
+    throw new Error(
+      `No fue posible consultar la sesión: ${sessionError.message}`,
+    );
+  }
+
+  if (!session?.user?.id) {
+    return null;
+  }
+
   const {
     data: { user },
     error: authError,
   } = await supabase.auth.getUser();
 
   if (authError) {
+    if (isMissingSessionError(authError)) {
+      return null;
+    }
+
     throw new Error(
       `No fue posible consultar la sesión: ${authError.message}`,
     );
   }
 
   if (!user?.id) {
-    throw new Error("No existe una sesión activa.");
+    return null;
   }
 
   const { data, error } = await supabase
@@ -80,7 +119,11 @@ export async function getCurrentUserProfile(): Promise<CurrentUserProfile> {
 
   const row = data as CurrentUserRow;
   const lastName = row.last_name ?? "";
-  const fullName = [row.name, lastName]
+
+  const fullName = [
+    row.name,
+    lastName,
+  ]
     .filter(Boolean)
     .join(" ");
 
@@ -90,7 +133,10 @@ export async function getCurrentUserProfile(): Promise<CurrentUserProfile> {
     name: row.name,
     lastName,
     fullName,
-    initials: createInitials(row.name, lastName),
+    initials: createInitials(
+      row.name,
+      lastName,
+    ),
     email: row.email,
     voice: row.voice,
     role: row.role,

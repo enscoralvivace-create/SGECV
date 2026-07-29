@@ -14,6 +14,7 @@ interface TripsTableProps {
   processingId: string | null;
   onEdit: (trip: Trip) => void;
   onManageMembers: (trip: Trip) => void;
+  onManageCharges: (trip: Trip) => void;
   onChangeStatus: (
     trip: Trip,
     status: TripStatus,
@@ -73,6 +74,7 @@ export default function TripsTable({
   processingId,
   onEdit,
   onManageMembers,
+  onManageCharges,
   onChangeStatus,
 }: TripsTableProps) {
   return (
@@ -189,15 +191,33 @@ export default function TripsTable({
                         >
                           Editar
                         </button>
-<button
-  type="button"
-  onClick={() =>
-    onManageMembers(trip)
-  }
-  className="font-semibold text-sky-700 transition hover:text-sky-900"
->
-  Participantes
-</button>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            onManageMembers(trip)
+                          }
+                          disabled={isProcessing}
+                          className="font-semibold text-sky-700 transition hover:text-sky-900 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          Participantes
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            onManageCharges(trip)
+                          }
+                          disabled={
+                            isProcessing ||
+                            trip.status ===
+                              "cancelled"
+                          }
+                          className="font-semibold text-amber-700 transition hover:text-amber-900 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          Cargos
+                        </button>
+
                         {trip.status ===
                           "planning" && (
                           <button

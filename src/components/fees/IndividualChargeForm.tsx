@@ -32,6 +32,7 @@ interface IndividualChargeFormProps {
   feeTypesError: string | null;
   onBack: () => void;
   onClose: () => void;
+  onChargeCreated: () => void;
 }
 
 export default function IndividualChargeForm({
@@ -43,6 +44,7 @@ export default function IndividualChargeForm({
   feeTypesError,
   onBack,
   onClose,
+  onChargeCreated,
 }: IndividualChargeFormProps) {
   const [formData, setFormData] =
     useState<ChargeFormData>(
@@ -137,7 +139,10 @@ export default function IndividualChargeForm({
 });
 
       setFormData(INITIAL_CHARGE_FORM_DATA);
-      setIsSuccess(true);
+setIsSuccess(true);
+
+onChargeCreated();
+onClose();
     } catch (error) {
       setSubmitError(
         error instanceof Error

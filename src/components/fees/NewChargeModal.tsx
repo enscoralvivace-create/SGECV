@@ -17,10 +17,12 @@ import type { ChargeScope } from "./chargeForm.types";
 
 interface NewChargeModalProps {
   onClose: () => void;
+  onChargeCreated: () => void;
 }
 
 export default function NewChargeModal({
   onClose,
+  onChargeCreated,
 }: NewChargeModalProps) {
   const [chargeScope, setChargeScope] =
     useState<ChargeScope | null>(null);
@@ -158,6 +160,7 @@ export default function NewChargeModal({
             feeTypesError={feeTypesError}
             onBack={handleBack}
             onClose={onClose}
+            onChargeCreated={onChargeCreated}
           />
         )}
 

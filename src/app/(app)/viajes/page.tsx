@@ -8,9 +8,10 @@ import {
 import Link from "next/link";
 
 import Button from "@/components/common/Button";
+import TripChargesModal from "@/components/trips/TripChargesModal";
 import TripFormModal from "@/components/trips/TripFormModal";
-import TripsTable from "@/components/trips/TripsTable";
 import TripMembersModal from "@/components/trips/TripMembersModal";
+import TripsTable from "@/components/trips/TripsTable";
 
 import { useTrips } from "@/hooks/useTrips";
 
@@ -114,10 +115,15 @@ export default function TripsPage() {
   const [editingTrip, setEditingTrip] =
     useState<Trip | null>(null);
 
-    const [
-  selectedTripForMembers,
-  setSelectedTripForMembers,
-] = useState<Trip | null>(null);
+  const [
+    selectedTripForMembers,
+    setSelectedTripForMembers,
+  ] = useState<Trip | null>(null);
+
+  const [
+    selectedTripForCharges,
+    setSelectedTripForCharges,
+  ] = useState<Trip | null>(null);
 
   const [isFormOpen, setIsFormOpen] =
     useState(false);
@@ -252,8 +258,7 @@ export default function TripsPage() {
           : "Viaje creado correctamente.",
       );
     } catch (submitError: unknown) {
-      
-        setMessage(
+      setMessage(
         `No fue posible guardar el viaje: ${getErrorMessage(
           submitError,
           "Error desconocido.",
@@ -321,6 +326,12 @@ export default function TripsPage() {
     } finally {
       setProcessingId(null);
     }
+  }
+
+  function handleChargesCreated() {
+    setMessage(
+      "Los cargos del viaje fueron creados correctamente.",
+    );
   }
 
   return (
@@ -394,8 +405,11 @@ export default function TripsPage() {
           processingId={processingId}
           onEdit={openEditForm}
           onManageMembers={(trip) =>
-  setSelectedTripForMembers(trip)
-}
+            setSelectedTripForMembers(trip)
+          }
+          onManageCharges={(trip) =>
+            setSelectedTripForCharges(trip)
+          }
           onChangeStatus={(
             trip,
             status,
@@ -408,14 +422,28 @@ export default function TripsPage() {
         />
       </section>
 
-{selectedTripForMembers && (
-  <TripMembersModal
-    trip={selectedTripForMembers}
-    onClose={() =>
-      setSelectedTripForMembers(null)
-    }
-  />
-)}
+      {selectedTripForMembers && (
+        <TripMembersModal
+          trip={selectedTripForMembers}
+          onClose={() =>
+            setSelectedTripForMembers(null)
+          }
+        />
+      )}
+
+      {selectedTripForCharges && (
+        <TripChargesModal
+          tripId={selectedTripForCharges.id}
+          tripName={selectedTripForCharges.name}
+          onClose={() =>
+            setSelectedTripForCharges(null)
+          }
+          onChargesCreated={
+            handleChargesCreated
+          }
+        />
+      )}
+
       {isFormOpen && (
         <TripFormModal
           form={form}
