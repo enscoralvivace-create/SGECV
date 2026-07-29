@@ -9,6 +9,7 @@ import Link from "next/link";
 
 import Button from "@/components/common/Button";
 import TripChargesModal from "@/components/trips/TripChargesModal";
+import TripFinancialSummaryModal from "@/components/trips/TripFinancialSummaryModal";
 import TripFormModal from "@/components/trips/TripFormModal";
 import TripMembersModal from "@/components/trips/TripMembersModal";
 import TripsTable from "@/components/trips/TripsTable";
@@ -123,6 +124,11 @@ export default function TripsPage() {
   const [
     selectedTripForCharges,
     setSelectedTripForCharges,
+  ] = useState<Trip | null>(null);
+
+  const [
+    selectedTripForFinancialSummary,
+    setSelectedTripForFinancialSummary,
   ] = useState<Trip | null>(null);
 
   const [isFormOpen, setIsFormOpen] =
@@ -410,6 +416,11 @@ export default function TripsPage() {
           onManageCharges={(trip) =>
             setSelectedTripForCharges(trip)
           }
+          onViewFinancialSummary={(trip) =>
+            setSelectedTripForFinancialSummary(
+              trip,
+            )
+          }
           onChangeStatus={(
             trip,
             status,
@@ -440,6 +451,22 @@ export default function TripsPage() {
           }
           onChargesCreated={
             handleChargesCreated
+          }
+        />
+      )}
+
+      {selectedTripForFinancialSummary && (
+        <TripFinancialSummaryModal
+          tripId={
+            selectedTripForFinancialSummary.id
+          }
+          tripName={
+            selectedTripForFinancialSummary.name
+          }
+          onClose={() =>
+            setSelectedTripForFinancialSummary(
+              null,
+            )
           }
         />
       )}

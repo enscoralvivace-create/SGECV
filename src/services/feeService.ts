@@ -47,6 +47,7 @@ export interface CreateChargePayload {
   billing_period: string | null;
   due_date: string | null;
   notes: string | null;
+  trip_id?: string | null;
 }
 
 /**

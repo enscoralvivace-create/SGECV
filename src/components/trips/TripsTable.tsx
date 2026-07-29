@@ -15,6 +15,9 @@ interface TripsTableProps {
   onEdit: (trip: Trip) => void;
   onManageMembers: (trip: Trip) => void;
   onManageCharges: (trip: Trip) => void;
+  onViewFinancialSummary: (
+    trip: Trip,
+  ) => void;
   onChangeStatus: (
     trip: Trip,
     status: TripStatus,
@@ -75,6 +78,7 @@ export default function TripsTable({
   onEdit,
   onManageMembers,
   onManageCharges,
+  onViewFinancialSummary,
   onChangeStatus,
 }: TripsTableProps) {
   return (
@@ -216,6 +220,19 @@ export default function TripsTable({
                           className="font-semibold text-amber-700 transition hover:text-amber-900 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           Cargos
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            onViewFinancialSummary(
+                              trip,
+                            )
+                          }
+                          disabled={isProcessing}
+                          className="font-semibold text-indigo-700 transition hover:text-indigo-900 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          Resumen
                         </button>
 
                         {trip.status ===

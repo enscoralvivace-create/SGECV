@@ -5,6 +5,32 @@ import type {
   CreateTripChargesResult,
 } from "@/types/tripCharge";
 
+interface SupabaseLikeError {
+  code?: string;
+  message?: string;
+}
+
+function isDuplicateChargeError(
+  error: unknown,
+): boolean {
+  if (
+    typeof error !== "object" ||
+    error === null
+  ) {
+    return false;
+  }
+
+  const possibleError =
+    error as SupabaseLikeError;
+
+  return (
+    possibleError.code === "23505" ||
+    possibleError.message
+      ?.toLowerCase()
+      .includes("duplicate key") === true
+  );
+}
+
 export async function createTripCharges(
   payload: CreateTripChargesPayload,
 ): Promise<CreateTripChargesResult> {
@@ -22,13 +48,6 @@ export async function createTripCharges(
   let createdCount = 0;
   let skippedCount = 0;
 
-  const tripReference =
-    `Viaje: ${payload.tripId}`;
-
-  const notes = payload.notes
-    ? `${tripReference}\n${payload.notes}`
-    : tripReference;
-
   for (const memberId of uniqueMemberIds) {
     try {
       await createCharge({
@@ -37,18 +56,24 @@ export async function createTripCharges(
         amount: payload.amount,
         billing_period: null,
         due_date: payload.dueDate,
-        notes,
+        notes: payload.notes,
+        trip_id: payload.tripId,
       });
 
       createdCount += 1;
     } catch (error) {
+      if (isDuplicateChargeError(error)) {
+        skippedCount += 1;
+        continue;
+      }
+
       console.error(
         "Error creando cargo del viaje:",
         memberId,
         error,
       );
 
-      skippedCount += 1;
+      throw error;
     }
   }
 
