@@ -605,6 +605,114 @@ export default function TripFinancialReportModal({
       </div>
 
       <style jsx global>{`
+        #trip-financial-report.pdf-export-mode {
+  width: 202mm !important;
+  min-height: 265mm !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+
+#trip-financial-report.pdf-export-mode .print\:mt-1 {
+  margin-top: 0.25rem !important;
+}
+
+#trip-financial-report.pdf-export-mode .print\:mt-2 {
+  margin-top: 0.5rem !important;
+}
+
+#trip-financial-report.pdf-export-mode .print\:mt-3 {
+  margin-top: 0.75rem !important;
+}
+
+#trip-financial-report.pdf-export-mode .print\:mt-4 {
+  margin-top: 1rem !important;
+}
+
+#trip-financial-report.pdf-export-mode .print\:mt-8 {
+  margin-top: 2rem !important;
+}
+
+#trip-financial-report.pdf-export-mode .print\:pb-2\.5 {
+  padding-bottom: 0.625rem !important;
+}
+
+#trip-financial-report.pdf-export-mode .print\:pt-5 {
+  padding-top: 1.25rem !important;
+}
+
+#trip-financial-report.pdf-export-mode .print\:p-2 {
+  padding: 0.5rem !important;
+}
+
+#trip-financial-report.pdf-export-mode .print\:p-2\.5 {
+  padding: 0.625rem !important;
+}
+
+#trip-financial-report.pdf-export-mode .print\:px-2 {
+  padding-left: 0.5rem !important;
+  padding-right: 0.5rem !important;
+}
+
+#trip-financial-report.pdf-export-mode .print\:py-1\.5 {
+  padding-top: 0.375rem !important;
+  padding-bottom: 0.375rem !important;
+}
+
+#trip-financial-report.pdf-export-mode .print\:gap-2 {
+  gap: 0.5rem !important;
+}
+
+#trip-financial-report.pdf-export-mode .print\:gap-5 {
+  gap: 1.25rem !important;
+}
+
+#trip-financial-report.pdf-export-mode .print\:text-\[22px\] {
+  font-size: 22px !important;
+}
+
+#trip-financial-report.pdf-export-mode .print\:text-\[17px\] {
+  font-size: 17px !important;
+}
+
+#trip-financial-report.pdf-export-mode .print\:text-\[14px\] {
+  font-size: 14px !important;
+}
+
+#trip-financial-report.pdf-export-mode .print\:text-\[13px\] {
+  font-size: 13px !important;
+}
+
+#trip-financial-report.pdf-export-mode .print\:text-\[12px\] {
+  font-size: 12px !important;
+}
+
+#trip-financial-report.pdf-export-mode .print\:text-\[8px\] {
+  font-size: 8px !important;
+}
+
+#trip-financial-report.pdf-export-mode .print\:text-\[7px\] {
+  font-size: 7px !important;
+}
+
+#trip-financial-report.pdf-export-mode .print\:text-\[6px\] {
+  font-size: 6px !important;
+}
+
+#trip-financial-report.pdf-export-mode .print\:h-\[100px\] {
+  height: 100px !important;
+}
+
+#trip-financial-report.pdf-export-mode .print\:h-2 {
+  height: 0.5rem !important;
+}
+
+#trip-financial-report.pdf-export-mode .print\:rounded-md {
+  border-radius: 0.375rem !important;
+}
+
+#trip-financial-report.pdf-export-mode .print\:shadow-none {
+  box-shadow: none !important;
+}
         @media print {
           @page {
             size: letter portrait;

@@ -6,6 +6,97 @@ interface DownloadElementAsPdfOptions {
   fileName: string;
   backgroundColor?: string;
   marginMm?: number;
+  scale?: number;
+  imageQuality?: number;
+  title?: string;
+  author?: string;
+  subject?: string;
+  keywords?: string[];
+  creator?: string;
+}
+
+function normalizePdfFileName(
+  fileName: string,
+): string {
+  const trimmedFileName = fileName.trim();
+
+  if (!trimmedFileName) {
+    return "documento.pdf";
+  }
+
+  return trimmedFileName
+    .toLowerCase()
+    .endsWith(".pdf")
+    ? trimmedFileName
+    : `${trimmedFileName}.pdf`;
+}
+
+function normalizeImageQuality(
+  quality: number,
+): number {
+  return Math.min(
+    Math.max(quality, 0.1),
+    1,
+  );
+}
+
+function waitForLayout(): Promise<void> {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        resolve();
+      });
+    });
+  });
+}
+
+function createCanvasSlice(
+  sourceCanvas: HTMLCanvasElement,
+  startY: number,
+  sliceHeight: number,
+  backgroundColor: string,
+): HTMLCanvasElement {
+  const sliceCanvas =
+    document.createElement("canvas");
+
+  sliceCanvas.width =
+    sourceCanvas.width;
+
+  sliceCanvas.height =
+    sliceHeight;
+
+  const context =
+    sliceCanvas.getContext("2d");
+
+  if (!context) {
+    throw new Error(
+      "No fue posible preparar una página del PDF.",
+    );
+  }
+
+  context.fillStyle =
+    backgroundColor;
+
+  context.fillRect(
+    0,
+    0,
+    sliceCanvas.width,
+    sliceCanvas.height,
+  );
+
+  context.drawImage(
+    sourceCanvas,
+    0,
+    startY,
+    sourceCanvas.width,
+    sliceHeight,
+    0,
+    0,
+    sourceCanvas.width,
+    sliceHeight,
+  );
+
+  return sliceCanvas;
 }
 
 export async function downloadElementAsPdf({
@@ -13,65 +104,165 @@ export async function downloadElementAsPdf({
   fileName,
   backgroundColor = "#ffffff",
   marginMm = 8,
+  scale = 2,
+  imageQuality = 1,
+  title = "Documento de Vivace Suite",
+  author = "Ensamble Coral Vivace",
+  subject = "Documento administrativo",
+  keywords = [
+    "Vivace Suite",
+    "Ensamble Coral Vivace",
+  ],
+  creator = "Vivace Suite",
 }: DownloadElementAsPdfOptions): Promise<void> {
-  const canvas = await html2canvas(element, {
-    scale: 2,
-    useCORS: true,
-    backgroundColor,
-    logging: false,
-  });
-
-  const imageData = canvas.toDataURL(
-    "image/png",
-    1,
+  element.classList.add(
+    "pdf-export-mode",
   );
 
-  const pdf = new jsPDF({
-    orientation: "portrait",
-    unit: "mm",
-    format: "letter",
-  });
+  try {
+    await waitForLayout();
 
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = pdf.internal.pageSize.getHeight();
+    const canvas =
+      await html2canvas(
+        element,
+        {
+          scale,
+          useCORS: true,
+          backgroundColor,
+          logging: false,
+          windowWidth:
+            element.scrollWidth,
+          windowHeight:
+            element.scrollHeight,
+        },
+      );
 
-  const availableWidth =
-    pageWidth - marginMm * 2;
+    const normalizedQuality =
+      normalizeImageQuality(
+        imageQuality,
+      );
 
-  const availableHeight =
-    pageHeight - marginMm * 2;
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "letter",
+      compress: true,
+    });
 
-  const imageRatio =
-    canvas.width / canvas.height;
+    pdf.setProperties({
+      title,
+      author,
+      subject,
+      keywords:
+        keywords.join(", "),
+      creator,
+    });
 
-  let imageWidth = availableWidth;
-  let imageHeight =
-    imageWidth / imageRatio;
+    pdf.setCreationDate(
+      new Date(),
+    );
 
-  if (imageHeight > availableHeight) {
-    imageHeight = availableHeight;
-    imageWidth =
-      imageHeight * imageRatio;
+    const pageWidth =
+      pdf.internal.pageSize.getWidth();
+
+    const pageHeight =
+      pdf.internal.pageSize.getHeight();
+
+    const availableWidth =
+      pageWidth - marginMm * 2;
+
+    const availableHeight =
+      pageHeight - marginMm * 2;
+
+    /*
+     * Cantidad de píxeles verticales del canvas
+     * que caben en una hoja manteniendo el ancho
+     * completo del reporte.
+     */
+    const pixelsPerPage =
+      Math.max(
+        1,
+        Math.floor(
+          canvas.width *
+            (
+              availableHeight /
+              availableWidth
+            ),
+        ),
+      );
+
+    const totalPages =
+      Math.ceil(
+        canvas.height /
+          pixelsPerPage,
+      );
+
+    for (
+      let pageIndex = 0;
+      pageIndex < totalPages;
+      pageIndex += 1
+    ) {
+      const startY =
+        pageIndex *
+        pixelsPerPage;
+
+      const remainingHeight =
+        canvas.height -
+        startY;
+
+      const sliceHeight =
+        Math.min(
+          pixelsPerPage,
+          remainingHeight,
+        );
+
+      const pageCanvas =
+        createCanvasSlice(
+          canvas,
+          startY,
+          sliceHeight,
+          backgroundColor,
+        );
+
+      const imageData =
+        pageCanvas.toDataURL(
+          "image/jpeg",
+          normalizedQuality,
+        );
+
+      const imageHeight =
+        (
+          sliceHeight /
+          canvas.width
+        ) * availableWidth;
+
+      if (pageIndex > 0) {
+        pdf.addPage(
+          "letter",
+          "portrait",
+        );
+      }
+
+      pdf.addImage(
+        imageData,
+        "JPEG",
+        marginMm,
+        marginMm,
+        availableWidth,
+        imageHeight,
+        undefined,
+        "FAST",
+      );
+    }
+
+    pdf.save(
+      normalizePdfFileName(
+        fileName,
+      ),
+    );
+  } finally {
+    element.classList.remove(
+      "pdf-export-mode",
+    );
   }
-
-  const positionX =
-    (pageWidth - imageWidth) / 2;
-
-  const positionY =
-    (pageHeight - imageHeight) / 2;
-
-  pdf.addImage(
-    imageData,
-    "PNG",
-    positionX,
-    positionY,
-    imageWidth,
-    imageHeight,
-  );
-
-  pdf.save(
-    fileName.toLowerCase().endsWith(".pdf")
-      ? fileName
-      : `${fileName}.pdf`,
-  );
 }
