@@ -148,7 +148,7 @@ export default function TripFinancialSummaryModal({
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 py-8">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 py-8 print:hidden">
         <div className="w-full max-w-6xl overflow-hidden rounded-2xl bg-white shadow-2xl">
           <header className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5">
             <div>
