@@ -2,7 +2,16 @@
 
 import Image from "next/image";
 
+import {
+  useRef,
+  useState,
+} from "react";
+
 import Button from "@/components/common/Button";
+
+import {
+  downloadElementAsPdf,
+} from "@/services/pdfService";
 
 import type {
   TripFinancialSummary,
@@ -76,6 +85,20 @@ function getStatusClasses(
   return classes[status];
 }
 
+function createPdfFileName(
+  tripName: string,
+): string {
+  const normalizedTripName = tripName
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return normalizedTripName
+    ? `Reporte-Financiero-${normalizedTripName}`
+    : "Reporte-Financiero-Viaje";
+}
+
 function CalendarIcon() {
   return (
     <svg
@@ -90,6 +113,7 @@ function CalendarIcon() {
     >
       <path d="M8 2v4" />
       <path d="M16 2v4" />
+
       <rect
         x="3"
         y="5"
@@ -97,6 +121,7 @@ function CalendarIcon() {
         height="16"
         rx="2"
       />
+
       <path d="M3 10h18" />
       <path d="M8 14h.01" />
       <path d="M12 14h.01" />
@@ -114,6 +139,15 @@ export default function TripFinancialReportModal({
   observations = "",
   onClose,
 }: TripFinancialReportModalProps) {
+  const reportRef =
+    useRef<HTMLElement>(null);
+
+  const [isDownloadingPdf, setIsDownloadingPdf] =
+    useState(false);
+
+  const [pdfError, setPdfError] =
+    useState<string | null>(null);
+
   const recoveryPercentage =
     summary.recoveryPercentage;
 
@@ -122,6 +156,38 @@ export default function TripFinancialReportModal({
 
   function handlePrint() {
     window.print();
+  }
+
+  async function handleDownloadPdf() {
+    const reportElement = reportRef.current;
+
+    if (!reportElement || isDownloadingPdf) {
+      return;
+    }
+
+    setIsDownloadingPdf(true);
+    setPdfError(null);
+
+    try {
+      await downloadElementAsPdf({
+        element: reportElement,
+        fileName: createPdfFileName(
+          tripName,
+        ),
+        marginMm: 7,
+      });
+    } catch (error) {
+      console.error(
+        "No fue posible generar el reporte PDF:",
+        error,
+      );
+
+      setPdfError(
+        "No fue posible descargar el PDF. Inténtalo nuevamente.",
+      );
+    } finally {
+      setIsDownloadingPdf(false);
+    }
   }
 
   return (
@@ -138,7 +204,7 @@ export default function TripFinancialReportModal({
             </h2>
 
             <p className="mt-1 text-sm text-slate-600">
-              Vista previa lista para impresión
+              Vista previa en tamaño Carta
             </p>
           </div>
 
@@ -154,65 +220,66 @@ export default function TripFinancialReportModal({
 
         <div className="overflow-y-auto bg-slate-100 p-6 print:overflow-visible print:bg-white print:p-0">
           <article
+            ref={reportRef}
             id="trip-financial-report"
-            className="mx-auto w-full max-w-[1050px] bg-white px-8 py-8 shadow-sm print:w-full print:max-w-none print:px-2 print:py-1 print:shadow-none"
+            className="mx-auto min-h-[279mm] w-[216mm] max-w-full bg-white px-[12mm] py-[10mm] shadow-sm print:min-h-0 print:w-full print:max-w-none print:px-0 print:py-0 print:shadow-none"
           >
             <section className="border-b-2 border-slate-900 pb-4 print:pb-2.5">
-  <div className="grid grid-cols-[130px_minmax(0,1fr)_190px] items-stretch gap-0 print:grid-cols-[105px_minmax(0,1fr)_155px]">
-    <div className="flex items-center justify-start pr-2 print:pr-3">
-      <div className="relative -ml-2 h-40 w-full print:-ml-1 print:h-[100px]">
-        <Image
-          src="/images/logo-ecv-v2.png"
-          alt="Logotipo del Ensamble Coral Vivace"
-          fill
-          priority
-          sizes="150px"
-          className="object-contain object-left"
-        />
-      </div>
-    </div>
+              <div className="grid grid-cols-[130px_minmax(0,1fr)_190px] items-stretch gap-0 print:grid-cols-[105px_minmax(0,1fr)_155px]">
+                <div className="flex items-center justify-start pr-2 print:pr-3">
+                  <div className="relative -ml-2 h-40 w-full print:-ml-1 print:h-[100px]">
+                    <Image
+                      src="/images/logo-ecv-v2.png"
+                      alt="Logotipo del Ensamble Coral Vivace"
+                      fill
+                      priority
+                      sizes="150px"
+                      className="object-contain object-left"
+                    />
+                  </div>
+                </div>
 
-    <div className="flex min-w-0 items-center border-l-2 border-slate-300 pl-4 pr-5px-6 print:px-4">
-      <div className="min-w-0">
-        <p className="text-xs font-bold uppercase tracking-[0.24em] text-emerald-700 print:text-[7px]">
-          Documento institucional
-        </p>
+                <div className="flex min-w-0 items-center border-l-2 border-slate-300 pl-4 pr-5 print:px-4">
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold uppercase tracking-[0.24em] text-emerald-700 print:text-[7px]">
+                      Documento institucional
+                    </p>
 
-        <h1 className="mt-2 text-[2.15rem] font-bold leading-tight text-slate-950 print:mt-1 print:text-[22px]">
-          Reporte financiero del viaje
-        </h1>
+                    <h1 className="mt-2 text-[2.15rem] font-bold leading-tight text-slate-950 print:mt-1 print:text-[22px]">
+                      Reporte financiero del viaje
+                    </h1>
 
-        <p className="mt-2 text-xl font-bold text-slate-800 print:mt-1 print:text-[13px]">
-          {tripName}
-        </p>
+                    <p className="mt-2 text-xl font-bold text-slate-800 print:mt-1 print:text-[13px]">
+                      {tripName}
+                    </p>
 
-        <p className="mt-1 text-sm text-slate-600 print:text-[8px]">
-          Ensamble Coral Vivace
-        </p>
-      </div>
-    </div>
+                    <p className="mt-1 text-sm text-slate-600 print:text-[8px]">
+                      Ensamble Coral Vivace
+                    </p>
+                  </div>
+                </div>
 
-    <div className="flex items-center justify-end pl-5 print:pl-3">
-      <div className="w-full max-w-[180px] print:max-w-[145px]">
-        <p className="mb-2 text-right text-xs font-bold text-slate-900 print:mb-1 print:text-[7px]">
-          Fecha de emisión
-        </p>
+                <div className="flex items-center justify-end pl-5 print:pl-3">
+                  <div className="w-full max-w-[180px] print:max-w-[145px]">
+                    <p className="mb-2 text-right text-xs font-bold text-slate-900 print:mb-1 print:text-[7px]">
+                      Fecha de emisión
+                    </p>
 
-        <div className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 px-3 py-3 text-slate-700 print:gap-1.5 print:rounded-md print:px-2 print:py-2">
-          <span className="shrink-0 text-slate-700 print:[&>svg]:h-3 print:[&>svg]:w-3">
-            <CalendarIcon />
-          </span>
+                    <div className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 px-3 py-3 text-slate-700 print:gap-1.5 print:rounded-md print:px-2 print:py-2">
+                      <span className="shrink-0 text-slate-700 print:[&>svg]:h-3 print:[&>svg]:w-3">
+                        <CalendarIcon />
+                      </span>
 
-          <p className="whitespace-nowrap text-center text-xs font-semibold capitalize print:text-[7px]">
-            {emissionDate}
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+                      <p className="whitespace-nowrap text-center text-xs font-semibold capitalize print:text-[7px]">
+                        {emissionDate}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
 
-            <section className="mt-5 grid grid-cols-4 gap-3 print:mt-3 print:gap-2">
+                        <section className="mt-5 grid grid-cols-4 gap-3 print:mt-3 print:gap-2">
               <article className="rounded-xl border border-slate-300 p-4 print:rounded-md print:p-2">
                 <p className="text-xs font-bold uppercase tracking-wide text-slate-600 print:text-[7px]">
                   Presupuesto
@@ -496,18 +563,45 @@ export default function TripFinancialReportModal({
           </article>
         </div>
 
-        <footer className="flex items-center justify-end gap-3 border-t border-slate-200 px-6 py-5 print:hidden">
-          <Button
-            variant="secondary"
-            onClick={onClose}
-          >
-            Cerrar
-          </Button>
+                   <div className="border-t border-slate-200 bg-white px-6 py-4 print:hidden">
+          {pdfError ? (
+            <p className="mb-3 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+              {pdfError}
+            </p>
+          ) : null}
 
-          <Button onClick={handlePrint}>
-            Imprimir
-          </Button>
-        </footer>
+          <div className="flex flex-wrap justify-end gap-3">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={onClose}
+              disabled={isDownloadingPdf}
+            >
+              Cerrar
+            </Button>
+
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                void handleDownloadPdf();
+              }}
+              disabled={isDownloadingPdf}
+            >
+              {isDownloadingPdf
+                ? "Generando PDF..."
+                : "Descargar PDF"}
+            </Button>
+
+            <Button
+              type="button"
+              onClick={handlePrint}
+              disabled={isDownloadingPdf}
+            >
+              Imprimir
+            </Button>
+          </div>
+        </div>
       </div>
 
       <style jsx global>{`
@@ -515,6 +609,13 @@ export default function TripFinancialReportModal({
           @page {
             size: letter portrait;
             margin: 7mm;
+          }
+
+          html,
+          body {
+            width: 216mm;
+            min-height: 279mm;
+            background: #ffffff;
           }
 
           body * {
@@ -530,12 +631,19 @@ export default function TripFinancialReportModal({
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
+            width: 202mm;
+            min-height: 265mm;
+            margin: 0;
           }
 
           #trip-financial-report img,
           #trip-financial-report div,
-          #trip-financial-report span {
+          #trip-financial-report span,
+          #trip-financial-report article,
+          #trip-financial-report section,
+          #trip-financial-report table,
+          #trip-financial-report th,
+          #trip-financial-report td {
             print-color-adjust: exact;
             -webkit-print-color-adjust: exact;
           }
@@ -552,6 +660,7 @@ export default function TripFinancialReportModal({
           #trip-financial-report section,
           #trip-financial-report footer {
             break-inside: avoid;
+            page-break-inside: avoid;
           }
         }
       `}</style>
