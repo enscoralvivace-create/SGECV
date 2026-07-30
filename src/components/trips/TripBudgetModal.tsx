@@ -7,7 +7,9 @@ import {
 } from "react";
 
 import Button from "@/components/common/Button";
+import TripBudgetCategoryChart from "@/components/trips/TripBudgetCategoryChart";
 import TripBudgetFormModal from "@/components/trips/TripBudgetFormModal";
+import TripBudgetReceiptsModal from "@/components/trips/TripBudgetReceiptsModal";
 import TripBudgetSummary from "@/components/trips/TripBudgetSummary";
 
 import {
@@ -160,6 +162,11 @@ export default function TripBudgetModal({
   const [editingItem, setEditingItem] =
   useState<TripBudgetItem | null>(null);
 
+  const [
+  receiptsItem,
+  setReceiptsItem,
+] = useState<TripBudgetItem | null>(null);
+
   const [isDeleting, setIsDeleting] =
   useState<string | null>(null);
 
@@ -297,8 +304,12 @@ async function handleDelete(
             </div>
           </div>
 
+<div className="flex-1 overflow-y-auto">
           <TripBudgetSummary
   summary={summary}
+/>
+<TripBudgetCategoryChart
+  items={items}
 />
 
           <div className="flex flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
@@ -458,7 +469,17 @@ async function handleDelete(
                             </span>
                           </td>
                           <td className="px-5 py-4">
-  <div className="flex justify-center gap-3">
+  <div className="flex flex-wrap justify-center gap-3">
+    <button
+      type="button"
+      onClick={() =>
+        setReceiptsItem(item)
+      }
+      className="font-semibold text-violet-700 transition hover:text-violet-900"
+    >
+      Comprobantes
+    </button>
+
     <button
       type="button"
       onClick={() =>
@@ -488,35 +509,51 @@ async function handleDelete(
                         </tr>
                       );
                     })}
-                  </tbody>
+                    </tbody>
                 </table>
               </div>
             )}
           </div>
         </div>
       </div>
+    </div>
 
-            {showForm && (
-        <TripBudgetFormModal
-          initialForm={
-            editingItem
-              ? {
-                  category: editingItem.category,
-                  description: editingItem.description,
-                  estimatedAmount: editingItem.estimatedAmount.toString(),
-                  actualAmount: editingItem.actualAmount.toString(),
-                  notes: editingItem.notes ?? "",
-                }
-              : undefined
+           {showForm && (
+  <TripBudgetFormModal
+    initialForm={
+      editingItem
+        ? {
+            category: editingItem.category,
+            description: editingItem.description,
+            estimatedAmount:
+              editingItem.estimatedAmount.toString(),
+            actualAmount:
+              editingItem.actualAmount.toString(),
+            notes:
+              editingItem.notes ?? "",
           }
-          isSaving={saving}
-          onSave={handleSave}
-          onClose={() => {
-            setEditingItem(null);
-            setShowForm(false);
-          }}
-        />
-      )}
+        : undefined
+    }
+    isSaving={saving}
+    onSave={handleSave}
+    onClose={() => {
+      setEditingItem(null);
+      setShowForm(false);
+    }}
+  />
+)}
+
+{receiptsItem && (
+  <TripBudgetReceiptsModal
+    budgetItemId={receiptsItem.id}
+    budgetItemDescription={
+      receiptsItem.description
+    }
+    onClose={() =>
+      setReceiptsItem(null)
+    }
+  />
+)}
     </>
   );
 }
