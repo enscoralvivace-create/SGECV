@@ -13,6 +13,7 @@ import TripFinancialSummaryModal from "@/components/trips/TripFinancialSummaryMo
 import TripFormModal from "@/components/trips/TripFormModal";
 import TripMembersModal from "@/components/trips/TripMembersModal";
 import TripsTable from "@/components/trips/TripsTable";
+import TripBudgetModal from "@/components/trips/TripBudgetModal";
 
 import { useTrips } from "@/hooks/useTrips";
 
@@ -130,6 +131,11 @@ export default function TripsPage() {
     selectedTripForFinancialSummary,
     setSelectedTripForFinancialSummary,
   ] = useState<Trip | null>(null);
+
+  const [
+  selectedTripForBudget,
+  setSelectedTripForBudget,
+] = useState<Trip | null>(null);
 
   const [isFormOpen, setIsFormOpen] =
     useState(false);
@@ -416,6 +422,9 @@ export default function TripsPage() {
           onManageCharges={(trip) =>
             setSelectedTripForCharges(trip)
           }
+          onManageBudget={(trip) =>
+  setSelectedTripForBudget(trip)
+}
           onViewFinancialSummary={(trip) =>
             setSelectedTripForFinancialSummary(
               trip,
@@ -454,7 +463,15 @@ export default function TripsPage() {
           }
         />
       )}
-
+      {selectedTripForBudget && (
+  <TripBudgetModal
+    tripId={selectedTripForBudget.id}
+    tripName={selectedTripForBudget.name}
+    onClose={() =>
+      setSelectedTripForBudget(null)
+    }
+  />
+)}
       {selectedTripForFinancialSummary && (
         <TripFinancialSummaryModal
           tripId={
