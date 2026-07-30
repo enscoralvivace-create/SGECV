@@ -7,10 +7,19 @@ import {
   useState,
 } from "react";
 
-import Button from "@/components/common/Button";
-import StatusBadge from "@/components/common/StatusBadge";
+import AddTripMemberForm from "@/components/trips/AddTripMemberForm";
+import TripMemberSummaryCards from "@/components/trips/TripMemberSummaryCards";
+import TripMembersTable, {
+  type TripMemberFinancialOverview,
+} from "@/components/trips/TripMembersTable";
 
 import { getMembers } from "@/services/memberService";
+
+import {
+  getTripFinancialSummary,
+  type TripFinancialSummary,
+  type TripMemberFinancialStatus,
+} from "@/services/tripService";
 
 import {
   addTripMember,
@@ -33,72 +42,6 @@ interface TripMembersModalProps {
   onClose: () => void;
 }
 
-const roleOptions: Array<{
-  value: TripMemberRole;
-  label: string;
-}> = [
-  {
-    value: "participant",
-    label: "Participante",
-  },
-  {
-    value: "staff",
-    label: "Staff",
-  },
-  {
-    value: "director",
-    label: "Director",
-  },
-];
-
-const participationStatusOptions: Array<{
-  value: TripParticipationStatus;
-  label: string;
-}> = [
-  {
-    value: "invited",
-    label: "Invitado",
-  },
-  {
-    value: "confirmed",
-    label: "Confirmado",
-  },
-  {
-    value: "cancelled",
-    label: "Cancelado",
-  },
-];
-
-function getRoleLabel(
-  role: TripMemberRole,
-): string {
-  const labels: Record<
-    TripMemberRole,
-    string
-  > = {
-    participant: "Participante",
-    staff: "Staff",
-    director: "Director",
-  };
-
-  return labels[role];
-}
-
-function getParticipationStatusLabel(
-  status: TripParticipationStatus,
-): string {
-  const labels: Record<
-    TripParticipationStatus,
-    string
-  > = {
-    invited: "Invitado",
-    confirmed: "Confirmado",
-    cancelled: "Cancelado",
-  };
-
-  return labels[status];
-}
-
 function getErrorMessage(
   error: unknown,
   fallback: string,
@@ -119,15 +62,22 @@ function getErrorMessage(
   return fallback;
 }
 
-function getMemberFullName(
-  member: Member,
-): string {
-  return [
-    member.name,
-    member.last_name,
-  ]
-    .filter(Boolean)
-    .join(" ");
+function getFinancialStatus(
+  totalCharged: number,
+  totalPaid: number,
+): TripMemberFinancialStatus {
+  if (
+    totalCharged > 0 &&
+    totalPaid >= totalCharged
+  ) {
+    return "paid";
+  }
+
+  if (totalPaid > 0) {
+    return "partial";
+  }
+
+  return "pending";
 }
 
 export default function TripMembersModal({
@@ -140,8 +90,17 @@ export default function TripMembersModal({
   const [tripMembers, setTripMembers] =
     useState<TripMemberListItem[]>([]);
 
-  const [selectedMemberId, setSelectedMemberId] =
-    useState("");
+  const [
+    financialSummary,
+    setFinancialSummary,
+  ] = useState<TripFinancialSummary | null>(
+    null,
+  );
+
+  const [
+    selectedMemberId,
+    setSelectedMemberId,
+  ] = useState("");
 
   const [selectedRole, setSelectedRole] =
     useState<TripMemberRole>(
@@ -177,13 +136,20 @@ export default function TripMembersModal({
         const [
           membersData,
           tripMembersData,
+          financialSummaryData,
         ] = await Promise.all([
           getMembers(),
           getTripMembers(trip.id),
+          getTripFinancialSummary(
+            trip.id,
+          ),
         ]);
 
         setMembers(membersData);
         setTripMembers(tripMembersData);
+        setFinancialSummary(
+          financialSummaryData,
+        );
       } catch (error: unknown) {
         console.error(error);
 
@@ -230,6 +196,179 @@ export default function TripMembersModal({
         ),
     );
   }, [activeMembers, tripMembers]);
+
+  const financialByMemberId =
+    useMemo(() => {
+      const financialMap =
+        new Map<
+          number,
+          TripMemberFinancialOverview
+        >();
+
+      for (const financialMember of
+        financialSummary?.members ?? []) {
+        const current =
+          financialMap.get(
+            financialMember.memberId,
+          );
+
+        const totalCharged =
+          (current?.totalCharged ?? 0) +
+          financialMember.totalCharged;
+
+        const totalPaid =
+          (current?.totalPaid ?? 0) +
+          financialMember.totalPaid;
+
+        const totalPending = Math.max(
+          totalCharged - totalPaid,
+          0,
+        );
+
+        financialMap.set(
+          financialMember.memberId,
+          {
+            memberId:
+              financialMember.memberId,
+            hasCharge: true,
+            totalCharged,
+            totalPaid,
+            totalPending,
+            status:
+              getFinancialStatus(
+                totalCharged,
+                totalPaid,
+              ),
+          },
+        );
+      }
+
+      return financialMap;
+    }, [financialSummary]);
+
+  const participantIndicators =
+    useMemo(() => {
+      const confirmedCount =
+        tripMembers.filter(
+          (tripMember) =>
+            tripMember.participationStatus ===
+            "confirmed",
+        ).length;
+
+      const invitedCount =
+        tripMembers.filter(
+          (tripMember) =>
+            tripMember.participationStatus ===
+            "invited",
+        ).length;
+
+      const cancelledCount =
+        tripMembers.filter(
+          (tripMember) =>
+            tripMember.participationStatus ===
+            "cancelled",
+        ).length;
+
+      const financialMembers = [
+        ...financialByMemberId.values(),
+      ];
+
+      const chargedCount =
+        financialMembers.length;
+
+      const paidCount =
+        financialMembers.filter(
+          (member) =>
+            member.status === "paid",
+        ).length;
+
+      const partialCount =
+        financialMembers.filter(
+          (member) =>
+            member.status === "partial",
+        ).length;
+
+      const pendingCount =
+        financialMembers.filter(
+          (member) =>
+            member.status === "pending",
+        ).length;
+
+      return {
+        total: tripMembers.length,
+        confirmed: confirmedCount,
+        invited: invitedCount,
+        cancelled: cancelledCount,
+        charged: chargedCount,
+        paid: paidCount,
+        partial: partialCount,
+        pending: pendingCount,
+      };
+    }, [
+      financialByMemberId,
+      tripMembers,
+    ]);
+
+  const sortedTripMembers =
+    useMemo(() => {
+      const financialPriority: Record<
+        TripMemberFinancialStatus,
+        number
+      > = {
+        pending: 0,
+        partial: 1,
+        paid: 2,
+      };
+
+      return [...tripMembers].sort(
+        (firstMember, secondMember) => {
+          const firstFinancial =
+            financialByMemberId.get(
+              firstMember.memberId,
+            );
+
+          const secondFinancial =
+            financialByMemberId.get(
+              secondMember.memberId,
+            );
+
+          const firstPriority =
+            firstFinancial
+              ? financialPriority[
+                  firstFinancial.status
+                ]
+              : 3;
+
+          const secondPriority =
+            secondFinancial
+              ? financialPriority[
+                  secondFinancial.status
+                ]
+              : 3;
+
+          if (
+            firstPriority !==
+            secondPriority
+          ) {
+            return (
+              firstPriority -
+              secondPriority
+            );
+          }
+
+          return firstMember.memberName.localeCompare(
+            secondMember.memberName,
+            "es",
+            {
+              sensitivity: "base",
+            },
+          );
+        },
+      );
+    }, [
+      financialByMemberId,
+      tripMembers,
+    ]);
 
   async function handleAddMember() {
     if (!selectedMemberId) {
@@ -429,7 +568,7 @@ export default function TripMembersModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 py-8">
-      <div className="flex max-h-full w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+      <div className="flex max-h-full w-full max-w-7xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
         <header className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5 sm:px-8">
           <div>
             <h2 className="text-2xl font-bold text-slate-900">
@@ -458,135 +597,37 @@ export default function TripMembersModal({
         </header>
 
         <div className="overflow-y-auto px-6 py-6 sm:px-8">
-          <section className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-            <h3 className="text-lg font-bold text-slate-900">
-              Agregar participante
-            </h3>
+          <TripMemberSummaryCards
+            total={participantIndicators.total}
+            confirmed={participantIndicators.confirmed}
+            invited={participantIndicators.invited}
+            cancelled={participantIndicators.cancelled}
+            charged={participantIndicators.charged}
+            paid={participantIndicators.paid}
+            partial={participantIndicators.partial}
+            pending={participantIndicators.pending}
+          />
 
-            <div className="mt-4 grid gap-4 md:grid-cols-3">
-              <label className="block">
-                <span className="mb-2 block text-sm font-semibold text-slate-700">
-                  Integrante
-                </span>
-
-                <select
-                  value={selectedMemberId}
-                  onChange={(event) =>
-                    setSelectedMemberId(
-                      event.target.value,
-                    )
-                  }
-                  disabled={
-                    isLoading ||
-                    isSaving ||
-                    availableMembers.length ===
-                      0
-                  }
-                  className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100"
-                >
-                  <option value="">
-                    {availableMembers.length >
-                    0
-                      ? "Selecciona un integrante"
-                      : "No hay integrantes disponibles"}
-                  </option>
-
-                  {availableMembers.map(
-                    (member) => (
-                      <option
-                        key={member.id}
-                        value={member.id}
-                      >
-                        {getMemberFullName(
-                          member,
-                        )}
-                        {member.voice
-                          ? ` · ${member.voice}`
-                          : ""}
-                      </option>
-                    ),
-                  )}
-                </select>
-              </label>
-
-              <label className="block">
-                <span className="mb-2 block text-sm font-semibold text-slate-700">
-                  Rol
-                </span>
-
-                <select
-                  value={selectedRole}
-                  onChange={(event) =>
-                    setSelectedRole(
-                      event.target
-                        .value as TripMemberRole,
-                    )
-                  }
-                  disabled={isSaving}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100"
-                >
-                  {roleOptions.map(
-                    (option) => (
-                      <option
-                        key={option.value}
-                        value={option.value}
-                      >
-                        {option.label}
-                      </option>
-                    ),
-                  )}
-                </select>
-              </label>
-
-              <label className="block">
-                <span className="mb-2 block text-sm font-semibold text-slate-700">
-                  Estado
-                </span>
-
-                <select
-                  value={
-                    selectedParticipationStatus
-                  }
-                  onChange={(event) =>
-                    setSelectedParticipationStatus(
-                      event.target
-                        .value as TripParticipationStatus,
-                    )
-                  }
-                  disabled={isSaving}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100"
-                >
-                  {participationStatusOptions.map(
-                    (option) => (
-                      <option
-                        key={option.value}
-                        value={option.value}
-                      >
-                        {option.label}
-                      </option>
-                    ),
-                  )}
-                </select>
-              </label>
-            </div>
-
-            <div className="mt-4 flex justify-end">
-              <Button
-                type="button"
-                onClick={() => {
-                  void handleAddMember();
-                }}
-                disabled={
-                  isSaving ||
-                  !selectedMemberId
-                }
-              >
-                {isSaving
-                  ? "Agregando..."
-                  : "Agregar participante"}
-              </Button>
-            </div>
-          </section>
+          <AddTripMemberForm
+            availableMembers={availableMembers}
+            selectedMemberId={selectedMemberId}
+            selectedRole={selectedRole}
+            selectedParticipationStatus={
+              selectedParticipationStatus
+            }
+            isLoading={isLoading}
+            isSaving={isSaving}
+            onMemberChange={
+              setSelectedMemberId
+            }
+            onRoleChange={setSelectedRole}
+            onParticipationStatusChange={
+              setSelectedParticipationStatus
+            }
+            onAdd={() => {
+              void handleAddMember();
+            }}
+          />
 
           {message && (
             <div className="mt-5 rounded-xl border border-slate-200 bg-white px-5 py-4 text-sm font-medium text-slate-700 shadow-sm">
@@ -594,231 +635,37 @@ export default function TripMembersModal({
             </div>
           )}
 
-          <section className="mt-6">
-            <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">
-                  Lista de participantes
-                </h3>
-
-                <p className="mt-1 text-sm text-slate-600">
-                  {tripMembers.length}{" "}
-                  {tripMembers.length === 1
-                    ? "persona registrada"
-                    : "personas registradas"}
-                  .
-                </p>
-              </div>
-            </div>
-
-            <div className="overflow-hidden rounded-2xl border border-slate-200">
-              {isLoading ? (
-                <div className="px-6 py-14 text-center">
-                  <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-300 border-t-emerald-800" />
-
-                  <p className="mt-4 font-medium text-slate-600">
-                    Cargando participantes...
-                  </p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[850px] text-left">
-                    <thead className="bg-slate-50 text-sm uppercase text-slate-600">
-                      <tr>
-                        <th className="px-5 py-4">
-                          Integrante
-                        </th>
-
-                        <th className="px-5 py-4">
-                          Rol
-                        </th>
-
-                        <th className="px-5 py-4">
-                          Participación
-                        </th>
-
-                        <th className="px-5 py-4">
-                          Estado
-                        </th>
-
-                        <th className="px-5 py-4">
-                          Acciones
-                        </th>
-                      </tr>
-                    </thead>
-
-                    <tbody className="divide-y divide-slate-200">
-                      {tripMembers.map(
-                        (tripMember) => {
-                          const isProcessing =
-                            processingId ===
-                            tripMember.id;
-
-                          return (
-                            <tr
-                              key={
-                                tripMember.id
-                              }
-                              className="transition hover:bg-slate-50"
-                            >
-                              <td className="px-5 py-4">
-                                <p className="font-semibold text-slate-900">
-                                  {
-                                    tripMember.memberName
-                                  }
-                                </p>
-
-                                <p className="mt-1 text-sm text-slate-500">
-                                  {tripMember.memberVoice ??
-                                    "Sin voz o función registrada"}
-                                </p>
-                              </td>
-
-                              <td className="px-5 py-4">
-                                <select
-                                  value={
-                                    tripMember.role
-                                  }
-                                  onChange={(
-                                    event,
-                                  ) => {
-                                    void handleRoleChange(
-                                      tripMember,
-                                      event
-                                        .target
-                                        .value as TripMemberRole,
-                                    );
-                                  }}
-                                  disabled={
-                                    isProcessing ||
-                                    processingId !==
-                                      null
-                                  }
-                                  aria-label={`Rol de ${tripMember.memberName}`}
-                                  className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100"
-                                >
-                                  {roleOptions.map(
-                                    (option) => (
-                                      <option
-                                        key={
-                                          option.value
-                                        }
-                                        value={
-                                          option.value
-                                        }
-                                      >
-                                        {
-                                          option.label
-                                        }
-                                      </option>
-                                    ),
-                                  )}
-                                </select>
-                              </td>
-
-                              <td className="px-5 py-4">
-                                <select
-                                  value={
-                                    tripMember.participationStatus
-                                  }
-                                  onChange={(
-                                    event,
-                                  ) => {
-                                    void handleStatusChange(
-                                      tripMember,
-                                      event
-                                        .target
-                                        .value as TripParticipationStatus,
-                                    );
-                                  }}
-                                  disabled={
-                                    isProcessing ||
-                                    processingId !==
-                                      null
-                                  }
-                                  aria-label={`Estado de participación de ${tripMember.memberName}`}
-                                  className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100 disabled:cursor-not-allowed disabled:bg-slate-100"
-                                >
-                                  {participationStatusOptions.map(
-                                    (option) => (
-                                      <option
-                                        key={
-                                          option.value
-                                        }
-                                        value={
-                                          option.value
-                                        }
-                                      >
-                                        {
-                                          option.label
-                                        }
-                                      </option>
-                                    ),
-                                  )}
-                                </select>
-                              </td>
-
-                              <td className="px-5 py-4">
-                                <div className="flex flex-col items-start gap-2">
-                                  <StatusBadge
-                                    status={getParticipationStatusLabel(
-                                      tripMember.participationStatus,
-                                    )}
-                                    className="text-sm"
-                                  />
-
-                                  <span className="text-xs font-medium text-slate-500">
-                                    {getRoleLabel(
-                                      tripMember.role,
-                                    )}
-                                  </span>
-                                </div>
-                              </td>
-
-                              <td className="px-5 py-4">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    void handleRemoveMember(
-                                      tripMember,
-                                    );
-                                  }}
-                                  disabled={
-                                    isProcessing ||
-                                    processingId !==
-                                      null
-                                  }
-                                  className="font-semibold text-rose-700 transition hover:text-rose-900 disabled:cursor-not-allowed disabled:opacity-50"
-                                >
-                                  {isProcessing
-                                    ? "Procesando..."
-                                    : "Quitar"}
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        },
-                      )}
-
-                      {tripMembers.length ===
-                        0 && (
-                        <tr>
-                          <td
-                            colSpan={5}
-                            className="px-6 py-14 text-center text-slate-500"
-                          >
-                            Todavía no hay
-                            participantes registrados
-                            en este viaje.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </section>
+          <TripMembersTable
+            tripMembers={sortedTripMembers}
+            financialByMemberId={
+              financialByMemberId
+            }
+            isLoading={isLoading}
+            processingId={processingId}
+            onRoleChange={(
+              tripMember,
+              role,
+            ) => {
+              void handleRoleChange(
+                tripMember,
+                role,
+              );
+            }}
+            onStatusChange={(
+              tripMember,
+              participationStatus,
+            ) => {
+              void handleStatusChange(
+                tripMember,
+                participationStatus,
+              );
+            }}
+            onRemove={(tripMember) => {
+              void handleRemoveMember(
+                tripMember,
+              );
+            }}
+          />
         </div>
 
         <footer className="flex justify-end border-t border-slate-200 px-6 py-4 sm:px-8">
