@@ -6,6 +6,11 @@ import type {
   TripStatus,
 } from "@/types/trip";
 
+import type {
+  TripFinancialSummary,
+  TripMemberFinancialStatus,
+} from "@/types/tripFinancial";
+
 interface TripPayload {
   name: string;
   destination: string;
@@ -41,31 +46,6 @@ interface TripMemberRow {
 interface TripFeeTypeRow {
   id: string;
   name: string;
-}
-
-export type TripMemberFinancialStatus =
-  | "paid"
-  | "partial"
-  | "pending";
-
-export interface TripMemberFinancialSummary {
-  chargeId: string;
-  memberId: number;
-  memberName: string;
-  feeTypeName: string;
-  totalCharged: number;
-  totalPaid: number;
-  totalPending: number;
-  status: TripMemberFinancialStatus;
-}
-
-export interface TripFinancialSummary {
-  estimatedBudget: number;
-  totalCharged: number;
-  totalPaid: number;
-  totalPending: number;
-  recoveryPercentage: number;
-  members: TripMemberFinancialSummary[];
 }
 
 function formToPayload(
@@ -132,6 +112,22 @@ export async function getTrips(): Promise<
   }
 
   return (data ?? []) as Trip[];
+}
+
+export async function getTripById(
+  tripId: string,
+): Promise<Trip> {
+  const { data, error } = await supabase
+    .from("trips")
+    .select("*")
+    .eq("id", tripId)
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data as Trip;
 }
 
 export async function getTripFinancialSummary(
@@ -304,22 +300,24 @@ export async function getTripFinancialSummary(
       };
     });
 
-  members.sort((firstItem, secondItem) => {
-    const nameComparison =
-      firstItem.memberName.localeCompare(
-        secondItem.memberName,
+  members.sort(
+    (firstItem, secondItem) => {
+      const nameComparison =
+        firstItem.memberName.localeCompare(
+          secondItem.memberName,
+          "es",
+        );
+
+      if (nameComparison !== 0) {
+        return nameComparison;
+      }
+
+      return firstItem.feeTypeName.localeCompare(
+        secondItem.feeTypeName,
         "es",
       );
-
-    if (nameComparison !== 0) {
-      return nameComparison;
-    }
-
-    return firstItem.feeTypeName.localeCompare(
-      secondItem.feeTypeName,
-      "es",
-    );
-  });
+    },
+  );
 
   const estimatedBudget = Number(
     tripData.estimated_budget ?? 0,
@@ -343,26 +341,26 @@ export async function getTripFinancialSummary(
   );
 
   const recoveryPercentage =
-  totalCharged > 0
-    ? Math.min(
-        Math.round(
-          (totalPaid / totalCharged) *
-            1000,
-        ) / 10,
-        100,
-      )
-    : 0;
+    totalCharged > 0
+      ? Math.min(
+          Math.round(
+            (totalPaid / totalCharged) *
+              1000,
+          ) / 10,
+          100,
+        )
+      : 0;
 
-return {
-  estimatedBudget,
-  totalCharged,
-  totalPaid,
-  totalPending,
-  recoveryPercentage,
-  members,
-};
+  return {
+    estimatedBudget,
+    totalCharged,
+    totalPaid,
+    totalPending,
+    recoveryPercentage,
+    members,
+  };
 }
-  
+
 export async function createTrip(
   form: TripFormData,
 ): Promise<void> {
