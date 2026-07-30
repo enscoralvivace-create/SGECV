@@ -8,6 +8,7 @@ import {
 
 import Button from "@/components/common/Button";
 import TripBudgetFormModal from "@/components/trips/TripBudgetFormModal";
+import TripBudgetSummary from "@/components/trips/TripBudgetSummary";
 
 import {
   calculateTripBudgetSummary,
@@ -40,6 +41,20 @@ function formatCurrency(
       minimumFractionDigits: 2,
     },
   ).format(value);
+}
+
+function getDifferenceClasses(
+  difference: number,
+): string {
+  if (difference > 0) {
+    return "text-rose-700";
+  }
+
+  if (difference < 0) {
+    return "text-emerald-700";
+  }
+
+  return "text-slate-700";
 }
 
 function getErrorMessage(
@@ -82,20 +97,6 @@ function getErrorMessage(
   return fallback;
 }
 
-function getDifferenceClasses(
-  difference: number,
-): string {
-  if (difference > 0) {
-    return "text-rose-700";
-  }
-
-  if (difference < 0) {
-    return "text-emerald-700";
-  }
-
-  return "text-slate-700";
-}
-
 function getStatusLabel(
   difference: number,
   actualAmount: number,
@@ -134,7 +135,7 @@ function getStatusClasses(
   }
 
   return (
-    "bg-emerald-100 text-emerald-700 " +
+    "bg-emerald-50 text-emerald-700 " +
     "ring-emerald-200"
   );
 }
@@ -296,60 +297,9 @@ async function handleDelete(
             </div>
           </div>
 
-          <div className="grid gap-4 border-b border-slate-200 bg-slate-50 p-6 sm:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-              <p className="text-sm font-medium text-slate-500">
-                Presupuesto estimado
-              </p>
-
-              <p className="mt-2 text-xl font-bold text-slate-900">
-                {formatCurrency(
-                  summary.totalEstimated,
-                )}
-              </p>
-            </div>
-
-            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-              <p className="text-sm font-medium text-slate-500">
-                Gasto real
-              </p>
-
-              <p className="mt-2 text-xl font-bold text-slate-900">
-                {formatCurrency(
-                  summary.totalActual,
-                )}
-              </p>
-            </div>
-
-            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-              <p className="text-sm font-medium text-slate-500">
-                Diferencia
-              </p>
-
-              <p
-                className={`mt-2 text-xl font-bold ${getDifferenceClasses(
-                  summary.variance,
-                )}`}
-              >
-                {formatCurrency(
-                  summary.variance,
-                )}
-              </p>
-            </div>
-
-            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-              <p className="text-sm font-medium text-slate-500">
-                Ejecución
-              </p>
-
-              <p className="mt-2 text-xl font-bold text-indigo-700">
-                {summary.executionPercentage.toFixed(
-                  1,
-                )}
-                %
-              </p>
-            </div>
-          </div>
+          <TripBudgetSummary
+  summary={summary}
+/>
 
           <div className="flex flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
