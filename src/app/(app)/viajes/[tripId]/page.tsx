@@ -7,7 +7,6 @@ import {
 
 import {
   CheckCircle2,
-  CircleDollarSign,
   RefreshCw,
   TriangleAlert,
 } from "lucide-react";
@@ -15,9 +14,6 @@ import {
 import { useParams } from "next/navigation";
 
 import AddTripParticipantModal from "@/components/trips/AddTripParticipantModal";
-import GenerateTripChargesModal, {
-  type GenerateTripChargesFormData,
-} from "@/components/trips/GenerateTripChargesModal";
 import TripDetailHeader from "@/components/trips/TripDetailHeader";
 import TripFinancialDashboard from "@/components/trips/TripFinancialDashboard";
 import TripFormModal from "@/components/trips/TripFormModal";
@@ -27,12 +23,6 @@ import TripQuickActions from "@/components/trips/TripQuickActions";
 import { useAvailableMembers } from "@/hooks/useAvailableMembers";
 import { useTripDetail } from "@/hooks/useTripDetail";
 import { useTripParticipants } from "@/hooks/useTripParticipants";
-
-import {
-  createTripCharges,
-  getActiveFeeTypes,
-  type FeeType,
-} from "@/services/feeService";
 
 import {
   updateTrip,
@@ -77,8 +67,6 @@ export default function TripDetailPage() {
     error: participantsError,
     refreshParticipants,
     createParticipant,
-    editParticipant,
-    deleteParticipant,
   } = useTripParticipants(tripId);
 
   const {
@@ -129,53 +117,6 @@ export default function TripDetailPage() {
     setParticipantSaveError,
   ] = useState<string | null>(null);
 
-  const [
-    participantActionError,
-    setParticipantActionError,
-  ] = useState<string | null>(null);
-
-  const [
-    updatingParticipantId,
-    setUpdatingParticipantId,
-  ] = useState<string | null>(null);
-
-  const [
-    isChargesModalOpen,
-    setIsChargesModalOpen,
-  ] = useState(false);
-
-  const [
-    feeTypes,
-    setFeeTypes,
-  ] = useState<FeeType[]>([]);
-
-  const [
-    feeTypesLoading,
-    setFeeTypesLoading,
-  ] = useState(false);
-
-  const [
-    feeTypesError,
-    setFeeTypesError,
-  ] = useState<string | null>(null);
-
-  const [
-    isGeneratingCharges,
-    setIsGeneratingCharges,
-  ] = useState(false);
-
-  const [
-    financialActionError,
-    setFinancialActionError,
-  ] = useState<string | null>(null);
-
-  const confirmedParticipants =
-    participants.filter(
-      (participant) =>
-        participant.status ===
-        "confirmed",
-    );
-
   function openEditModal(): void {
     if (!trip) {
       return;
@@ -219,8 +160,6 @@ export default function TripDetailPage() {
 
   function openParticipantModal(): void {
     setParticipantSaveError(null);
-    setParticipantActionError(null);
-    setFinancialActionError(null);
     setSuccessMessage(null);
     setIsParticipantModalOpen(true);
   }
@@ -234,113 +173,12 @@ export default function TripDetailPage() {
     setParticipantSaveError(null);
   }
 
-  async function loadFeeTypes(): Promise<void> {
-    setFeeTypesLoading(true);
-    setFeeTypesError(null);
-
-    try {
-      const activeFeeTypes =
-        await getActiveFeeTypes();
-
-      setFeeTypes(activeFeeTypes);
-    } catch (loadError) {
-      setFeeTypesError(
-        getErrorMessage(loadError),
-      );
-    } finally {
-      setFeeTypesLoading(false);
-    }
-  }
-
-  function openChargesModal(): void {
-    setFinancialActionError(null);
-    setParticipantActionError(null);
-    setSuccessMessage(null);
-    setIsChargesModalOpen(true);
-
-    if (feeTypes.length === 0) {
-      void loadFeeTypes();
-    }
-  }
-
-  function closeChargesModal(): void {
-    if (isGeneratingCharges) {
-      return;
-    }
-
-    setIsChargesModalOpen(false);
-  }
-
-  async function handleGenerateCharges(
-    formData: GenerateTripChargesFormData,
-  ): Promise<void> {
-    if (confirmedParticipants.length === 0) {
-      throw new Error(
-        "El viaje no tiene participantes confirmados.",
-      );
-    }
-
-    setIsGeneratingCharges(true);
-    setFinancialActionError(null);
-    setSuccessMessage(null);
-
-    try {
-      const result =
-        await createTripCharges({
-          tripId,
-          memberIds:
-            confirmedParticipants.map(
-              (participant) =>
-                participant.memberId,
-            ),
-          feeTypeId:
-            formData.feeTypeId,
-          amount: formData.amount,
-          billingPeriod:
-            formData.billingPeriod,
-          dueDate: formData.dueDate,
-          notes: formData.notes,
-        });
-
-      setIsChargesModalOpen(false);
-
-      if (
-        result.createdCount > 0 &&
-        result.skippedCount > 0
-      ) {
-        setSuccessMessage(
-          `Se crearon ${result.createdCount} cargos y se omitieron ${result.skippedCount} porque ya existían.`,
-        );
-      } else if (
-        result.createdCount > 0
-      ) {
-        setSuccessMessage(
-          `Se crearon ${result.createdCount} cargos correctamente.`,
-        );
-      } else {
-        setSuccessMessage(
-          "No se crearon cargos nuevos porque todos los participantes confirmados ya tenían este concepto asignado.",
-        );
-      }
-    } catch (generateError) {
-      const message =
-        getErrorMessage(generateError);
-
-      setFinancialActionError(message);
-      throw generateError;
-    } finally {
-      setIsGeneratingCharges(false);
-    }
-  }
-
   async function handleAddParticipant(
     memberId: number,
     status: TripParticipantStatus,
   ): Promise<void> {
     setIsAddingParticipant(true);
     setParticipantSaveError(null);
-    setParticipantActionError(null);
-    setFinancialActionError(null);
     setSuccessMessage(null);
 
     try {
@@ -360,84 +198,6 @@ export default function TripDetailPage() {
       );
     } finally {
       setIsAddingParticipant(false);
-    }
-  }
-
-  async function handleChangeParticipantStatus(
-    participantId: string,
-    status: TripParticipantStatus,
-  ): Promise<void> {
-    setUpdatingParticipantId(
-      participantId,
-    );
-    setParticipantActionError(null);
-    setFinancialActionError(null);
-    setSuccessMessage(null);
-
-    try {
-      await editParticipant(
-        participantId,
-        {
-          status,
-        },
-      );
-
-      setSuccessMessage(
-        "Estado del participante actualizado correctamente.",
-      );
-    } catch (updateError) {
-      setParticipantActionError(
-        getErrorMessage(updateError),
-      );
-    } finally {
-      setUpdatingParticipantId(null);
-    }
-  }
-
-  async function handleRemoveParticipant(
-    participantId: string,
-  ): Promise<void> {
-    const participant =
-      participants.find(
-        (item) =>
-          item.id === participantId,
-      );
-
-    const participantName =
-      participant
-        ? `${participant.memberName} ${participant.memberLastName}`
-        : "este participante";
-
-    const confirmed =
-      window.confirm(
-        `¿Deseas eliminar a ${participantName} del viaje? Esta acción no se puede deshacer.`,
-      );
-
-    if (!confirmed) {
-      return;
-    }
-
-    setUpdatingParticipantId(
-      participantId,
-    );
-    setParticipantActionError(null);
-    setFinancialActionError(null);
-    setSuccessMessage(null);
-
-    try {
-      await deleteParticipant(
-        participantId,
-      );
-
-      setSuccessMessage(
-        "Participante eliminado correctamente.",
-      );
-    } catch (removeError) {
-      setParticipantActionError(
-        getErrorMessage(removeError),
-      );
-    } finally {
-      setUpdatingParticipantId(null);
     }
   }
 
@@ -666,53 +426,6 @@ export default function TripDetailPage() {
         </div>
       ) : null}
 
-      {participantActionError ? (
-        <div
-          role="alert"
-          className="
-            flex items-start gap-3
-            rounded-xl border
-            border-red-200 bg-red-50
-            px-4 py-3
-            text-sm text-red-900
-          "
-        >
-          <TriangleAlert
-            aria-hidden="true"
-            className="
-              mt-0.5 h-5 w-5
-              shrink-0 text-red-700
-            "
-          />
-
-          <p>{participantActionError}</p>
-        </div>
-      ) : null}
-
-      {financialActionError &&
-      !isChargesModalOpen ? (
-        <div
-          role="alert"
-          className="
-            flex items-start gap-3
-            rounded-xl border
-            border-red-200 bg-red-50
-            px-4 py-3
-            text-sm text-red-900
-          "
-        >
-          <TriangleAlert
-            aria-hidden="true"
-            className="
-              mt-0.5 h-5 w-5
-              shrink-0 text-red-700
-            "
-          />
-
-          <p>{financialActionError}</p>
-        </div>
-      ) : null}
-
       <TripQuickActions
         onEditTrip={openEditModal}
       />
@@ -721,111 +434,35 @@ export default function TripDetailPage() {
         participants={participants}
         loading={participantsLoading}
         error={participantsError}
-        updatingParticipantId={
-          updatingParticipantId
-        }
         onAddParticipant={
           openParticipantModal
         }
         onRetry={() => {
           void refreshParticipants();
         }}
-        onChangeStatus={(
-          participantId,
-          status,
-        ) => {
-          void handleChangeParticipantStatus(
-            participantId,
-            status,
-          );
-        }}
-        onRemoveParticipant={(
-          participant,
-        ) => {
-          void handleRemoveParticipant(
-            participant.id,
-          );
-        }}
       />
 
       <section className="space-y-4">
-        <div
-          className="
-            flex flex-col gap-4
-            sm:flex-row
-            sm:items-end
-            sm:justify-between
-          "
-        >
-          <div>
-            <h2
-              className="
-                text-xl font-bold
-                tracking-tight text-slate-950
-              "
-            >
-              Estado financiero
-            </h2>
-
-            <p
-              className="
-                mt-1 text-sm
-                text-slate-600
-              "
-            >
-              Seguimiento de cargos, pagos y
-              saldos de los participantes.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={openChargesModal}
-            disabled={
-              participantsLoading ||
-              confirmedParticipants.length === 0
-            }
+        <div>
+          <h2
             className="
-              inline-flex items-center
-              justify-center gap-2
-              rounded-lg bg-emerald-700
-              px-4 py-2.5
-              text-sm font-semibold
-              text-white transition-colors
-              hover:bg-emerald-800
-              focus:outline-none
-              focus:ring-2
-              focus:ring-emerald-500
-              focus:ring-offset-2
-              disabled:cursor-not-allowed
-              disabled:opacity-50
+              text-xl font-bold
+              tracking-tight text-slate-950
             "
           >
-            <CircleDollarSign
-              aria-hidden="true"
-              className="h-4 w-4"
-            />
+            Estado financiero
+          </h2>
 
-            Generar cargos
-          </button>
-        </div>
-
-        {confirmedParticipants.length ===
-          0 &&
-        !participantsLoading ? (
           <p
             className="
-              rounded-lg border
-              border-amber-200
-              bg-amber-50 px-4 py-3
-              text-sm text-amber-900
+              mt-1 text-sm
+              text-slate-600
             "
           >
-            Confirma al menos un participante
-            para poder generar cargos del
-            viaje.
+            Seguimiento de cargos, pagos y
+            saldos de los participantes.
           </p>
-        ) : null}
+        </div>
 
         <TripFinancialDashboard
           tripId={trip.id}
@@ -858,32 +495,6 @@ export default function TripDetailPage() {
               status,
             );
           }}
-        />
-      ) : null}
-
-      {isChargesModalOpen ? (
-        <GenerateTripChargesModal
-          tripName={trip.name}
-          confirmedParticipantsCount={
-            confirmedParticipants.length
-          }
-          feeTypes={feeTypes}
-          loadingFeeTypes={
-            feeTypesLoading
-          }
-          feeTypesError={
-            feeTypesError
-          }
-          submitting={
-            isGeneratingCharges
-          }
-          onClose={closeChargesModal}
-          onRetryFeeTypes={() => {
-            void loadFeeTypes();
-          }}
-          onSubmit={
-            handleGenerateCharges
-          }
         />
       ) : null}
 
