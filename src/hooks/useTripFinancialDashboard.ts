@@ -9,8 +9,16 @@ import {
 } from "react";
 
 import {
+  getTripExpenses,
+} from "@/services/tripExpenseService";
+
+import {
   getTripFinancialSummary,
 } from "@/services/tripService";
+
+import type {
+  TripExpense,
+} from "@/types/tripExpense";
 
 import type {
   TripFinancialDashboardMetrics,
@@ -19,6 +27,38 @@ import type {
   TripParticipantFinancialSummary,
 } from "@/types/tripFinancial";
 
+export interface TripFinancialReconciliation {
+  estimatedBudget: number;
+
+  totalCharged: number;
+
+  totalPaid: number;
+
+  totalPending: number;
+
+  totalExpenses: number;
+
+  availableCash: number;
+
+  budgetRemaining: number;
+
+  projectedBalance: number;
+
+  expenseBudgetPercentage: number;
+}
+
+export interface TripExpenseCategorySummary {
+  category: string;
+
+  expenseCount: number;
+
+  totalAmount: number;
+
+  percentageOfExpenses: number;
+
+  percentageOfBudget: number;
+}
+
 interface UseTripFinancialDashboardResult {
   summary: TripFinancialSummary | null;
 
@@ -26,6 +66,17 @@ interface UseTripFinancialDashboardResult {
     TripParticipantFinancialSummary[];
 
   metrics: TripFinancialDashboardMetrics;
+
+  reconciliation:
+    TripFinancialReconciliation;
+
+  expenseCategories:
+    TripExpenseCategorySummary[];
+
+  leadingExpenseCategory:
+    TripExpenseCategorySummary | null;
+
+  expenses: TripExpense[];
 
   loading: boolean;
 
@@ -74,12 +125,9 @@ function calculatePercentage(
     return 0;
   }
 
-  return Math.min(
-    Math.round(
-      (value / total) * 1000,
-    ) / 10,
-    100,
-  );
+  return Math.round(
+    (value / total) * 1000,
+  ) / 10;
 }
 
 function consolidateParticipants(
@@ -148,6 +196,96 @@ function consolidateParticipants(
   );
 }
 
+function consolidateExpenseCategories(
+  expenses: TripExpense[],
+  estimatedBudget: number,
+): TripExpenseCategorySummary[] {
+  const totalExpenses =
+    expenses.reduce(
+      (
+        accumulatedTotal,
+        expense,
+      ) =>
+        accumulatedTotal +
+        expense.amount,
+      0,
+    );
+
+  const categoryMap = new Map<
+    string,
+    {
+      expenseCount: number;
+      totalAmount: number;
+    }
+  >();
+
+  expenses.forEach((expense) => {
+    const normalizedCategory =
+      expense.category.trim() ||
+      "Sin categoría";
+
+    const currentCategory =
+      categoryMap.get(
+        normalizedCategory,
+      );
+
+    if (!currentCategory) {
+      categoryMap.set(
+        normalizedCategory,
+        {
+          expenseCount: 1,
+          totalAmount:
+            expense.amount,
+        },
+      );
+
+      return;
+    }
+
+    currentCategory.expenseCount += 1;
+    currentCategory.totalAmount +=
+      expense.amount;
+  });
+
+  return Array.from(
+    categoryMap.entries(),
+  )
+    .map(
+      ([
+        category,
+        categoryData,
+      ]) => ({
+        category,
+
+        expenseCount:
+          categoryData.expenseCount,
+
+        totalAmount:
+          categoryData.totalAmount,
+
+        percentageOfExpenses:
+          calculatePercentage(
+            categoryData.totalAmount,
+            totalExpenses,
+          ),
+
+        percentageOfBudget:
+          calculatePercentage(
+            categoryData.totalAmount,
+            estimatedBudget,
+          ),
+      }),
+    )
+    .sort(
+      (
+        firstCategory,
+        secondCategory,
+      ) =>
+        secondCategory.totalAmount -
+        firstCategory.totalAmount,
+    );
+}
+
 export function useTripFinancialDashboard(
   tripId: string,
 ): UseTripFinancialDashboardResult {
@@ -157,6 +295,11 @@ export function useTripFinancialDashboard(
   ] = useState<TripFinancialSummary | null>(
     null,
   );
+
+  const [
+    expenses,
+    setExpenses,
+  ] = useState<TripExpense[]>([]);
 
   const [
     loading,
@@ -181,10 +324,17 @@ export function useTripFinancialDashboard(
       setError(null);
 
       try {
-        const financialSummary =
-          await getTripFinancialSummary(
+        const [
+          financialSummary,
+          tripExpenses,
+        ] = await Promise.all([
+          getTripFinancialSummary(
             tripId,
-          );
+          ),
+          getTripExpenses(
+            tripId,
+          ),
+        ]);
 
         if (
           requestId !==
@@ -194,6 +344,7 @@ export function useTripFinancialDashboard(
         }
 
         setSummary(financialSummary);
+        setExpenses(tripExpenses);
       } catch (loadError) {
         if (
           requestId !==
@@ -203,6 +354,7 @@ export function useTripFinancialDashboard(
         }
 
         setSummary(null);
+        setExpenses([]);
         setError(
           getErrorMessage(loadError),
         );
@@ -272,10 +424,87 @@ export function useTripFinancialDashboard(
     };
   }, [participants, summary]);
 
+  const reconciliation = useMemo<
+    TripFinancialReconciliation
+  >(() => {
+    const estimatedBudget =
+      summary?.estimatedBudget ?? 0;
+
+    const totalCharged =
+      summary?.totalCharged ?? 0;
+
+    const totalPaid =
+      summary?.totalPaid ?? 0;
+
+    const totalPending =
+      summary?.totalPending ?? 0;
+
+    const totalExpenses =
+      expenses.reduce(
+        (
+          accumulatedTotal,
+          expense,
+        ) =>
+          accumulatedTotal +
+          expense.amount,
+        0,
+      );
+
+    return {
+      estimatedBudget,
+
+      totalCharged,
+
+      totalPaid,
+
+      totalPending,
+
+      totalExpenses,
+
+      availableCash:
+        totalPaid - totalExpenses,
+
+      budgetRemaining:
+        estimatedBudget -
+        totalExpenses,
+
+      projectedBalance:
+        totalCharged -
+        totalExpenses,
+
+      expenseBudgetPercentage:
+        calculatePercentage(
+          totalExpenses,
+          estimatedBudget,
+        ),
+    };
+  }, [expenses, summary]);
+
+  const expenseCategories = useMemo<
+    TripExpenseCategorySummary[]
+  >(
+    () =>
+      consolidateExpenseCategories(
+        expenses,
+        summary?.estimatedBudget ?? 0,
+      ),
+    [
+      expenses,
+      summary?.estimatedBudget,
+    ],
+  );
+
+  const leadingExpenseCategory =
+    expenseCategories[0] ?? null;
+
   return {
     summary,
     participants,
     metrics,
+    reconciliation,
+    expenseCategories,
+    leadingExpenseCategory,
+    expenses,
     loading,
     error,
     refreshFinancialDashboard,
