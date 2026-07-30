@@ -170,12 +170,24 @@ export default function TripFinancialReportModal({
 
     try {
       await downloadElementAsPdf({
-        element: reportElement,
-        fileName: createPdfFileName(
-          tripName,
-        ),
-        marginMm: 7,
-      });
+  element: reportElement,
+  fileName: createPdfFileName(
+    tripName,
+  ),
+  marginMm: 7,
+  title: `Reporte financiero - ${tripName}`,
+  author: "Ensamble Coral Vivace",
+  subject:
+    "Reporte financiero administrativo de viaje",
+  keywords: [
+    "Vivace Suite",
+    "Ensamble Coral Vivace",
+    "Viajes",
+    "Reporte financiero",
+    tripName,
+  ],
+  creator: "Vivace Suite",
+});
     } catch (error) {
       console.error(
         "No fue posible generar el reporte PDF:",

@@ -99,6 +99,42 @@ function createCanvasSlice(
   return sliceCanvas;
 }
 
+function drawFooter(
+  pdf: jsPDF,
+  pageNumber: number,
+  totalPages: number,
+  generatedAt: string,
+): void {
+  const pageWidth =
+    pdf.internal.pageSize.getWidth();
+
+  const pageHeight =
+    pdf.internal.pageSize.getHeight();
+
+  pdf.setFont(
+    "helvetica",
+    "normal",
+  );
+
+  pdf.setFontSize(8);
+  pdf.setTextColor(120);
+
+  pdf.text(
+    `Generado por Vivace Suite · ${generatedAt}`,
+    8,
+    pageHeight - 4,
+  );
+
+  pdf.text(
+    `Página ${pageNumber} de ${totalPages}`,
+    pageWidth - 8,
+    pageHeight - 4,
+    {
+      align: "right",
+    },
+  );
+}
+
 export async function downloadElementAsPdf({
   element,
   fileName,
@@ -158,9 +194,23 @@ export async function downloadElementAsPdf({
       creator,
     });
 
+    const creationDate =
+      new Date();
+
     pdf.setCreationDate(
-      new Date(),
+      creationDate,
     );
+
+    const generatedAt =
+      new Intl.DateTimeFormat(
+        "es-MX",
+        {
+          dateStyle: "short",
+          timeStyle: "short",
+        },
+      ).format(
+        creationDate,
+      );
 
     const pageWidth =
       pdf.internal.pageSize.getWidth();
@@ -168,28 +218,25 @@ export async function downloadElementAsPdf({
     const pageHeight =
       pdf.internal.pageSize.getHeight();
 
-    const availableWidth =
-      pageWidth - marginMm * 2;
+    const footerSpaceMm = 7;
 
-    const availableHeight =
-      pageHeight - marginMm * 2;
+   const availableWidth =
+  pageWidth - marginMm * 2;
 
-    /*
-     * Cantidad de píxeles verticales del canvas
-     * que caben en una hoja manteniendo el ancho
-     * completo del reporte.
-     */
-    const pixelsPerPage =
-      Math.max(
-        1,
-        Math.floor(
-          canvas.width *
-            (
-              availableHeight /
-              availableWidth
-            ),
+const availableHeight =
+  pageHeight - marginMm * 2;
+
+const pixelsPerPage =
+  Math.max(
+    1,
+    Math.floor(
+      canvas.width *
+        (
+          availableHeight /
+          availableWidth
         ),
-      );
+    ),
+  );
 
     const totalPages =
       Math.ceil(
@@ -252,6 +299,13 @@ export async function downloadElementAsPdf({
         imageHeight,
         undefined,
         "FAST",
+      );
+
+      drawFooter(
+        pdf,
+        pageIndex + 1,
+        totalPages,
+        generatedAt,
       );
     }
 
