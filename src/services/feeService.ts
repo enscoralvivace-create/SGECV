@@ -1,7 +1,8 @@
 import { supabase } from "@/lib/supabase";
 
 const FEE_TYPES_TABLE = "fee_types";
-const MEMBER_CHARGES_TABLE = "member_charges";
+const MEMBER_CHARGES_TABLE =
+  "member_charges";
 
 export type FeeCategory =
   | "Ordinaria"
@@ -26,12 +27,16 @@ export interface FeeType {
  * Los conceptos se ordenan alfabéticamente para que puedan
  * mostrarse directamente en formularios y selectores.
  */
-export async function getActiveFeeTypes(): Promise<FeeType[]> {
+export async function getActiveFeeTypes(): Promise<
+  FeeType[]
+> {
   const { data, error } = await supabase
     .from(FEE_TYPES_TABLE)
     .select("*")
     .eq("is_active", true)
-    .order("name", { ascending: true });
+    .order("name", {
+      ascending: true,
+    });
 
   if (error) {
     throw new Error(error.message);

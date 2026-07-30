@@ -254,21 +254,42 @@ export default function TripChargesModal({
             form.notes.trim() || null,
         });
 
-      if (result.createdCount === 0) {
-        setSubmitError(
-          "No fue posible crear ninguno de los cargos.",
-        );
-        return;
-      }
+      if (
+  result.createdCount === 0 &&
+  result.skippedCount > 0
+) {
+  setSuccessMessage(
+    result.skippedCount === 1
+      ? "El participante seleccionado ya tenía registrado este cargo."
+      : `Los ${result.skippedCount} participantes seleccionados ya tenían registrado este cargo.`,
+  );
 
-      const skippedText =
-        result.skippedCount > 0
-          ? ` ${result.skippedCount} cargo(s) no pudieron crearse.`
-          : "";
+  onChargesCreated?.();
+  return;
+}
 
-      setSuccessMessage(
-        `${result.createdCount} cargo(s) creados correctamente.${skippedText}`,
-      );
+if (result.createdCount === 0) {
+  setSubmitError(
+    "No fue posible crear ninguno de los cargos.",
+  );
+  return;
+}
+
+const createdText =
+  result.createdCount === 1
+    ? "1 cargo creado correctamente."
+    : `${result.createdCount} cargos creados correctamente.`;
+
+const skippedText =
+  result.skippedCount === 1
+    ? " 1 cargo duplicado fue omitido."
+    : result.skippedCount > 1
+      ? ` ${result.skippedCount} cargos duplicados fueron omitidos.`
+      : "";
+
+setSuccessMessage(
+  `${createdText}${skippedText}`,
+);
 
       onChargesCreated?.();
     } catch (error) {

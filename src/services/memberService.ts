@@ -10,12 +10,38 @@ const MEMBERS_TABLE = "members";
 /**
  * Obtiene todos los integrantes registrados.
  */
-export async function getMembers(): Promise<Member[]> {
+export async function getMembers(): 
+Promise<Member[]> {
   const { data, error } = await supabase
     .from(MEMBERS_TABLE)
     .select("*")
     .order("last_name", { ascending: true })
     .order("name", { ascending: true });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []) as Member[];
+}
+
+/**
+ * Obtiene únicamente los integrantes activos.
+ *
+ * Se utiliza en formularios operativos donde no deben aparecer
+ * integrantes pendientes, inactivos o dados de baja.
+ */
+export async function getActiveMembers(): Promise<Member[]> {
+  const { data, error } = await supabase
+    .from(MEMBERS_TABLE)
+    .select("*")
+    .eq("status", "Activo")
+    .order("last_name", {
+      ascending: true,
+    })
+    .order("name", {
+      ascending: true,
+    });
 
   if (error) {
     throw new Error(error.message);
