@@ -1,4 +1,7 @@
 import StatusBadge from "@/components/common/StatusBadge";
+import TripMemberFinancialCell from "@/components/trips/cells/TripMemberFinancialCell";
+import TripMemberPaymentCell from "@/components/trips/cells/TripMemberPaymentCell";
+import TripMemberActionsCell from "@/components/trips/cells/TripMemberActionsCell";
 
 import type {
   TripMemberListItem,
@@ -105,19 +108,6 @@ function getParticipationStatusLabel(
   };
 
   return labels[status];
-}
-
-function formatCurrency(
-  value: number,
-): string {
-  return new Intl.NumberFormat(
-    "es-MX",
-    {
-      style: "currency",
-      currency: "MXN",
-      minimumFractionDigits: 2,
-    },
-  ).format(value);
 }
 
 export default function TripMembersTable({
@@ -304,81 +294,15 @@ export default function TripMembersTable({
                         </td>
 
                         <td className="px-5 py-4">
-                          {financial ? (
-                            <div>
-                              <p className="font-bold text-slate-900">
-                                {formatCurrency(
-                                  financial.totalCharged,
-                                )}
-                              </p>
-
-                              <span className="mt-2 inline-flex rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
-                                Cargo generado
-                              </span>
-                            </div>
-                          ) : (
-                            <div>
-                              <p className="font-semibold text-slate-400">
-                                —
-                              </p>
-
-                              <span className="mt-1 block text-xs text-slate-400">
-                                Sin cargo
-                              </span>
-                            </div>
-                          )}
+                          <TripMemberFinancialCell
+                            financial={financial}
+                          />
                         </td>
 
                         <td className="px-5 py-4">
-                          {!financial ? (
-                            <div>
-                              <p className="font-semibold text-slate-400">
-                                —
-                              </p>
-
-                              <span className="mt-1 block text-xs text-slate-400">
-                                Sin información
-                              </span>
-                            </div>
-                          ) : financial.status ===
-                            "paid" ? (
-                            <div>
-                              <p className="font-bold text-emerald-700">
-                                {formatCurrency(
-                                  financial.totalPaid,
-                                )}
-                              </p>
-
-                              <span className="mt-2 inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                                Liquidado
-                              </span>
-                            </div>
-                          ) : financial.status ===
-                            "partial" ? (
-                            <div>
-                              <p className="font-bold text-amber-700">
-                                {formatCurrency(
-                                  financial.totalPending,
-                                )}
-                              </p>
-
-                              <span className="mt-2 inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-                                Restante · Parcial
-                              </span>
-                            </div>
-                          ) : (
-                            <div>
-                              <p className="font-bold text-rose-700">
-                                {formatCurrency(
-                                  financial.totalPending,
-                                )}
-                              </p>
-
-                              <span className="mt-2 inline-flex rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-semibold text-rose-700">
-                                Pendiente
-                              </span>
-                            </div>
-                          )}
+                          <TripMemberPaymentCell
+                            financial={financial}
+                          />
                         </td>
 
                         <td className="px-5 py-4">
@@ -399,24 +323,16 @@ export default function TripMembersTable({
                         </td>
 
                         <td className="px-5 py-4">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              onRemove(
-                                tripMember,
-                              );
-                            }}
-                            disabled={
-                              isProcessing ||
-                              processingId !==
-                                null
+                          <TripMemberActionsCell
+                            tripMember={tripMember}
+                            isProcessing={
+                              isProcessing
                             }
-                            className="font-semibold text-rose-700 transition hover:text-rose-900 disabled:cursor-not-allowed disabled:opacity-50"
-                          >
-                            {isProcessing
-                              ? "Procesando..."
-                              : "Quitar"}
-                          </button>
+                            isAnyProcessing={
+                              processingId !== null
+                            }
+                            onRemove={onRemove}
+                          />
                         </td>
                       </tr>
                     );
