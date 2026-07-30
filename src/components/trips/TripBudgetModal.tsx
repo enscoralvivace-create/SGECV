@@ -9,6 +9,7 @@ import {
 import Button from "@/components/common/Button";
 import TripBudgetCategoryChart from "@/components/trips/TripBudgetCategoryChart";
 import TripBudgetDashboard from "@/components/trips/TripBudgetDashboard";
+import TripBudgetFinancialOverview from "@/components/trips/TripBudgetFinancialOverview";
 import TripBudgetFormModal from "@/components/trips/TripBudgetFormModal";
 import TripBudgetReceiptsModal from "@/components/trips/TripBudgetReceiptsModal";
 import TripBudgetSummary from "@/components/trips/TripBudgetSummary";
@@ -374,6 +375,15 @@ async function handleDelete(
     }
     documentedItems={
       dashboardMetrics.documentedItems
+    }
+  />
+
+  <TripBudgetFinancialOverview
+    estimatedTotal={
+      summary.totalEstimated
+    }
+    actualTotal={
+      summary.totalActual
     }
   />
 
