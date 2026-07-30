@@ -11,6 +11,11 @@ export interface TripBudgetReceipt {
   createdAt: string;
 }
 
+export interface TripBudgetReceiptCount {
+  tripBudgetItemId: string;
+  receiptCount: number;
+}
+
 interface TripBudgetReceiptRow {
   id: string;
   trip_budget_item_id: string;
@@ -234,4 +239,49 @@ export async function deleteTripBudgetReceipt(
       `El archivo fue eliminado, pero no fue posible borrar su registro: ${databaseError.message}`,
     );
   }
+}
+
+export async function getTripBudgetReceiptCounts(
+  tripBudgetItemIds: string[],
+): Promise<TripBudgetReceiptCount[]> {
+  if (tripBudgetItemIds.length === 0) {
+    return [];
+  }
+
+  const {
+    data,
+    error,
+  } = await supabase
+    .from("trip_budget_receipts")
+    .select("trip_budget_item_id")
+    .in(
+      "trip_budget_item_id",
+      tripBudgetItemIds,
+    );
+
+  if (error) {
+    throw new Error(
+      `No fue posible consultar los comprobantes del presupuesto: ${error.message}`,
+    );
+  }
+
+  const counts = new Map<string, number>();
+
+  for (const row of data ?? []) {
+    const tripBudgetItemId =
+      row.trip_budget_item_id as string;
+
+    counts.set(
+      tripBudgetItemId,
+      (counts.get(tripBudgetItemId) ?? 0) + 1,
+    );
+  }
+
+  return tripBudgetItemIds.map(
+    (tripBudgetItemId) => ({
+      tripBudgetItemId,
+      receiptCount:
+        counts.get(tripBudgetItemId) ?? 0,
+    }),
+  );
 }

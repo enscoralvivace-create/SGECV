@@ -8,6 +8,7 @@ import {
 
 import Button from "@/components/common/Button";
 import TripBudgetCategoryChart from "@/components/trips/TripBudgetCategoryChart";
+import TripBudgetDashboard from "@/components/trips/TripBudgetDashboard";
 import TripBudgetFormModal from "@/components/trips/TripBudgetFormModal";
 import TripBudgetReceiptsModal from "@/components/trips/TripBudgetReceiptsModal";
 import TripBudgetSummary from "@/components/trips/TripBudgetSummary";
@@ -19,6 +20,11 @@ import {
   getTripBudgetItems,
   updateTripBudgetItem,
 } from "@/services/tripBudgetService";
+
+import {
+  getTripBudgetReceiptCounts,
+  type TripBudgetReceiptCount,
+} from "@/services/tripReceiptService";
 
 import {
   TRIP_BUDGET_CATEGORY_LABELS,
@@ -150,6 +156,11 @@ export default function TripBudgetModal({
   const [items, setItems] =
     useState<TripBudgetItem[]>([]);
 
+  const [
+  receiptCounts,
+  setReceiptCounts,
+] = useState<TripBudgetReceiptCount[]>([]);
+
   const [loading, setLoading] =
     useState(true);
 
@@ -179,11 +190,19 @@ export default function TripBudgetModal({
       setError("");
 
       const result =
-        await getTripBudgetItems(
-          tripId,
-        );
+  await getTripBudgetItems(
+    tripId,
+  );
 
-      setItems(result);
+const counts =
+  await getTripBudgetReceiptCounts(
+    result.map(
+      (item) => item.id,
+    ),
+  );
+
+setItems(result);
+setReceiptCounts(counts);
     } catch (loadError: unknown) {
       setError(
         `No fue posible cargar el presupuesto: ${getErrorMessage(
@@ -207,6 +226,44 @@ export default function TripBudgetModal({
       ),
     [items],
   );
+
+  const dashboardMetrics = useMemo(() => {
+  const receiptCountByItemId =
+    new Map(
+      receiptCounts.map(
+        (receiptCount) => [
+          receiptCount.tripBudgetItemId,
+          receiptCount.receiptCount,
+        ],
+      ),
+    );
+
+  const overBudgetItems =
+    items.filter(
+      (item) =>
+        item.actualAmount >
+        item.estimatedAmount,
+    ).length;
+
+  const documentedItems =
+    items.filter(
+      (item) =>
+        (
+          receiptCountByItemId.get(
+            item.id,
+          ) ?? 0
+        ) > 0,
+    ).length;
+
+  return {
+    totalItems: items.length,
+    overBudgetItems,
+    itemsWithoutReceipts:
+      items.length -
+      documentedItems,
+    documentedItems,
+  };
+}, [items, receiptCounts]);
 
   async function handleSave(
     form: TripBudgetItemFormData,
@@ -305,9 +362,24 @@ async function handleDelete(
           </div>
 
 <div className="flex-1 overflow-y-auto">
-          <TripBudgetSummary
-  summary={summary}
-/>
+  <TripBudgetDashboard
+    totalItems={
+      dashboardMetrics.totalItems
+    }
+    overBudgetItems={
+      dashboardMetrics.overBudgetItems
+    }
+    itemsWithoutReceipts={
+      dashboardMetrics.itemsWithoutReceipts
+    }
+    documentedItems={
+      dashboardMetrics.documentedItems
+    }
+  />
+
+  <TripBudgetSummary
+    summary={summary}
+  />
 <TripBudgetCategoryChart
   items={items}
 />
