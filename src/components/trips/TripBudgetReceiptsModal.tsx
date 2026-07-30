@@ -14,6 +14,8 @@ import {
   uploadTripBudgetReceipt,
 } from "@/services/tripReceiptService";
 
+import TripBudgetReceiptPreviewModal from "@/components/trips/TripBudgetReceiptPreviewModal";
+
 interface TripBudgetReceiptsModalProps {
   budgetItemId: string;
   budgetItemDescription: string;
@@ -109,6 +111,13 @@ export default function TripBudgetReceiptsModal({
     deletingId,
     setDeletingId,
   ] = useState<string | null>(null);
+
+  const [
+  previewReceipt,
+  setPreviewReceipt,
+] = useState<TripBudgetReceipt | null>(
+  null,
+);
 
   const [
     error,
@@ -238,7 +247,8 @@ export default function TripBudgetReceiptsModal({
     }
   }
 
-  return (
+ return (
+  <>
     <div
       className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/60 p-4"
       role="dialog"
@@ -361,7 +371,7 @@ export default function TripBudgetReceiptsModal({
               </div>
             ) : (
               <div className="mt-4 space-y-3">
-                {receipts.map(
+                                {receipts.map(
                   (receipt) => (
                     <article
                       key={receipt.id}
@@ -398,6 +408,18 @@ export default function TripBudgetReceiptsModal({
                       </div>
 
                       <div className="flex shrink-0 items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setPreviewReceipt(
+                              receipt,
+                            )
+                          }
+                          className="font-semibold text-violet-700 transition hover:text-violet-900"
+                        >
+                          Ver
+                        </button>
+
                         <button
                           type="button"
                           disabled={
@@ -445,5 +467,15 @@ export default function TripBudgetReceiptsModal({
         </div>
       </div>
     </div>
-  );
+
+    {previewReceipt && (
+      <TripBudgetReceiptPreviewModal
+        receipt={previewReceipt}
+        onClose={() =>
+          setPreviewReceipt(null)
+        }
+      />
+    )}
+  </>
+);
 }
