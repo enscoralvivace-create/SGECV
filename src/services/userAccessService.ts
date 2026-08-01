@@ -15,7 +15,7 @@ interface LegacyMemberAccessRow {
 
 function normalizeRole(
   value: string | null,
-): AppRole {
+): AppRole | null {
   switch (
     value
       ?.trim()
@@ -31,8 +31,10 @@ function normalizeRole(
       return "student";
 
     case "member":
-    default:
       return "member";
+
+    default:
+      return null;
   }
 }
 
@@ -54,13 +56,32 @@ export async function getCurrentUserAccess(): Promise<
   UserAccessProfile | null
 > {
   const {
-    data: { user },
+    data: {
+      session,
+    },
+    error: sessionError,
+  } = await supabase.auth.getSession();
+
+  if (sessionError) {
+    throw new Error(
+      `No fue posible consultar la sesión: ${sessionError.message}`,
+    );
+  }
+
+  if (!session?.user.id) {
+    return null;
+  }
+
+  const {
+    data: {
+      user,
+    },
     error: authError,
   } = await supabase.auth.getUser();
 
   if (authError) {
     throw new Error(
-      `No fue posible consultar la sesión: ${authError.message}`,
+      `No fue posible validar la sesión: ${authError.message}`,
     );
   }
 
@@ -101,9 +122,13 @@ export async function getCurrentUserAccess(): Promise<
   const row =
     data as LegacyMemberAccessRow;
 
-  const roles: AppRole[] = [
-    normalizeRole(row.role),
-  ];
+  const normalizedRole =
+    normalizeRole(row.role);
+
+  const roles: AppRole[] =
+    normalizedRole
+      ? [normalizedRole]
+      : [];
 
   return {
     authUserId:

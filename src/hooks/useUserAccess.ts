@@ -10,6 +10,8 @@ import {
   getCurrentUserAccess,
 } from "@/services/userAccessService";
 
+import { supabase } from "@/lib/supabase";
+
 import type {
   AppPermission,
   AppRole,
@@ -73,6 +75,32 @@ export default function useUserAccess(): UseUserAccessResult {
 
   useEffect(() => {
     void reload();
+  }, [reload]);
+
+  useEffect(() => {
+    const {
+      data: {
+        subscription,
+      },
+    } =
+      supabase.auth.onAuthStateChange(
+        (event) => {
+          if (
+            event === "SIGNED_OUT"
+          ) {
+            setAccess(null);
+            setError("");
+            setIsLoading(false);
+            return;
+          }
+
+          void reload();
+        },
+      );
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [reload]);
 
   const hasRole =
