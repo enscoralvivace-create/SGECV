@@ -177,7 +177,7 @@ export default function GroupChargeForm({
             step="0.01"
             placeholder="0.00"
             required
-            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-500"
+            className="min-h-11 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-base sm:text-sm text-slate-900 outline-none transition focus:border-slate-500"
           />
         </label>
 
@@ -191,7 +191,7 @@ export default function GroupChargeForm({
             name="dueDate"
             value={formData.dueDate}
             onChange={handleChange}
-            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-500"
+            className="min-h-11 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-base sm:text-sm text-slate-900 outline-none transition focus:border-slate-500"
           />
         </label>
       </div>
@@ -206,7 +206,7 @@ export default function GroupChargeForm({
           name="billingPeriod"
           value={formData.billingPeriod}
           onChange={handleChange}
-          className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-500"
+          className="min-h-11 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-base sm:text-sm text-slate-900 outline-none transition focus:border-slate-500"
         />
       </label>
 

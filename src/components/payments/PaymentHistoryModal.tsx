@@ -106,7 +106,7 @@ export default function PaymentHistoryModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/60 p-0 sm:items-center sm:p-4"
       role="presentation"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) {
@@ -118,9 +118,9 @@ export default function PaymentHistoryModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="payment-history-title"
-        className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white shadow-2xl"
+        className="max-h-[calc(100dvh-var(--safe-top))] w-full max-w-3xl overflow-y-auto rounded-t-3xl bg-white shadow-2xl sm:max-h-[90vh] sm:rounded-3xl"
       >
-        <header className="flex items-start justify-between gap-4 border-b border-slate-200 p-6">
+        <header className="sticky top-0 z-20 flex items-start justify-between gap-4 border-b border-slate-200 bg-white/95 p-4 backdrop-blur sm:p-6">
           <div>
             <p className="text-sm font-medium text-slate-500">
               Historial de pagos
@@ -128,7 +128,7 @@ export default function PaymentHistoryModal({
 
             <h2
               id="payment-history-title"
-              className="mt-1 text-2xl font-bold text-slate-900"
+              className="mt-1 text-xl font-bold text-slate-900 sm:text-2xl"
             >
               {charge.feeTypeName}
             </h2>
@@ -142,14 +142,14 @@ export default function PaymentHistoryModal({
             type="button"
             onClick={onClose}
             aria-label="Cerrar historial de pagos"
-            className="rounded-lg px-3 py-2 text-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
           >
             ×
           </button>
         </header>
 
-        <div className="space-y-6 p-6">
-          <section className="grid gap-4 sm:grid-cols-3">
+        <div className="space-y-4 p-4 pb-[max(1rem,var(--safe-bottom))] sm:space-y-6 sm:p-6">
+          <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
             <SummaryItem
               label="Cargo"
               value={currencyFormatter.format(
@@ -214,11 +214,11 @@ export default function PaymentHistoryModal({
           </section>
         </div>
 
-        <footer className="flex flex-col-reverse gap-3 border-t border-slate-200 p-6 sm:flex-row sm:justify-end">
+        <footer className="sticky bottom-0 grid grid-cols-2 gap-3 border-t border-slate-200 bg-white/95 p-4 pb-[max(1rem,var(--safe-bottom))] backdrop-blur sm:flex sm:flex-row sm:justify-end sm:p-6">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            className="min-h-11 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
           >
             Cerrar
           </button>
@@ -227,7 +227,7 @@ export default function PaymentHistoryModal({
             <button
               type="button"
               onClick={onRegisterPayment}
-              className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
+              className="min-h-11 rounded-xl bg-emerald-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700"
             >
               Registrar nuevo pago
             </button>

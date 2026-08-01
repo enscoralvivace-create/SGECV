@@ -332,7 +332,7 @@ onClose();
             step="0.01"
             placeholder="0.00"
             required
-            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-500 disabled:cursor-not-allowed disabled:bg-slate-100"
+            className="min-h-11 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-base sm:text-sm text-slate-900 outline-none transition focus:border-slate-500 disabled:cursor-not-allowed disabled:bg-slate-100"
           />
         </label>
 
@@ -347,7 +347,7 @@ onClose();
             value={formData.dueDate}
             onChange={handleChange}
             disabled={isSubmitting}
-            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-500 disabled:cursor-not-allowed disabled:bg-slate-100"
+            className="min-h-11 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-base sm:text-sm text-slate-900 outline-none transition focus:border-slate-500 disabled:cursor-not-allowed disabled:bg-slate-100"
           />
         </label>
       </div>
@@ -363,7 +363,7 @@ onClose();
           value={formData.billingPeriod}
           onChange={handleChange}
           disabled={isSubmitting}
-          className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-500 disabled:cursor-not-allowed disabled:bg-slate-100"
+          className="min-h-11 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-base sm:text-sm text-slate-900 outline-none transition focus:border-slate-500 disabled:cursor-not-allowed disabled:bg-slate-100"
         />
       </label>
 

@@ -16,6 +16,7 @@ import DataTable, {
 import EmptyState from "@/components/ui/EmptyState";
 import StatCard from "@/components/ui/StatCard";
 import StatusBadge from "@/components/ui/StatusBadge";
+import VivacePageHeader from "@/components/ui/VivacePageHeader";
 import {
   getChargeSummary,
   getRecentCharges,
@@ -248,35 +249,26 @@ export default function CuotasPage() {
   }
 
   return (
-    <main className="space-y-8">
-      <section className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-sm font-medium text-slate-500">
-            Administración financiera
-          </p>
-
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">
-            Cuotas
-          </h1>
-
-          <p className="mt-2 text-slate-600">
-            Gestiona cuotas, cargos y pagos de los
-            integrantes del Ensamble Coral Vivace.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={() =>
-            setIsNewChargeModalOpen(true)
+    <main className="min-h-screen bg-slate-50 px-4 py-5 sm:px-6 sm:py-6 lg:p-8">
+      <div className="mx-auto max-w-7xl">
+        <VivacePageHeader
+          eyebrow="Administración financiera"
+          title="Cuotas"
+          description="Consulta cargos, pagos, saldos pendientes e ingresos recientes."
+          actions={
+            <button
+              type="button"
+              onClick={() =>
+                setIsNewChargeModalOpen(true)
+              }
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-emerald-950 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-900 active:scale-[0.98] sm:w-auto"
+            >
+              + Nuevo cargo
+            </button>
           }
-          className="shrink-0 rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
-        >
-          + Nuevo cargo
-        </button>
-      </section>
+        />
 
-      <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4">
         <StatCard
           title="Pendientes"
           value={isLoading ? "—" : summary.pending}
@@ -453,6 +445,7 @@ export default function CuotasPage() {
           onPaymentCreated={handlePaymentCreated}
         />
       )}
+          </div>
     </main>
   );
 }

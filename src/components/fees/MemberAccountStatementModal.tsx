@@ -144,7 +144,7 @@ export default function MemberAccountStatementModal({
           aria-labelledby="account-statement-title"
           className="max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-2xl bg-white shadow-2xl"
         >
-          <header className="flex items-start justify-between gap-4 border-b border-slate-200 p-6">
+          <header className="sticky top-0 z-20 flex items-start justify-between gap-4 border-b border-slate-200 bg-white/95 p-4 backdrop-blur sm:p-6">
             <div>
               <p className="text-sm font-medium text-slate-500">
                 Estado de cuenta
@@ -152,7 +152,7 @@ export default function MemberAccountStatementModal({
 
               <h2
                 id="account-statement-title"
-                className="mt-1 text-2xl font-bold text-slate-900"
+                className="mt-1 text-xl font-bold text-slate-900 sm:text-2xl"
               >
                 {member.name}
               </h2>
@@ -167,14 +167,14 @@ export default function MemberAccountStatementModal({
               type="button"
               onClick={onClose}
               aria-label="Cerrar estado de cuenta"
-              className="rounded-lg px-3 py-2 text-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
             >
               ×
             </button>
           </header>
 
-          <div className="space-y-6 p-6">
-            <section className="grid gap-4 sm:grid-cols-3">
+          <div className="space-y-4 p-4 pb-[max(1rem,var(--safe-bottom))] sm:space-y-6 sm:p-6">
+            <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
               <SummaryItem
                 label="Total de cargos"
                 value={currencyFormatter.format(
@@ -244,7 +244,7 @@ export default function MemberAccountStatementModal({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+              className="min-h-11 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
             >
               Cerrar
             </button>

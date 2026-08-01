@@ -113,15 +113,15 @@ export default function NewChargeModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4">
-      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white shadow-2xl">
-        <header className="sticky top-0 z-10 flex items-start justify-between border-b border-slate-200 bg-white px-6 py-5">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/50 p-0 sm:items-center sm:p-4">
+      <div className="max-h-[calc(100dvh-var(--safe-top))] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-white shadow-2xl sm:max-h-[90vh] sm:rounded-3xl">
+        <header className="sticky top-0 z-20 flex items-start justify-between border-b border-slate-200 bg-white/95 px-4 py-4 backdrop-blur sm:px-6 sm:py-5">
           <div>
             <p className="text-sm font-medium text-slate-500">
               Administración financiera
             </p>
 
-            <h2 className="mt-1 text-2xl font-bold text-slate-900">
+            <h2 className="mt-1 text-xl font-bold text-slate-900 sm:text-2xl">
               Nuevo cargo
             </h2>
 
