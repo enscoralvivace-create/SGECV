@@ -22,7 +22,8 @@ const reportCategories: ReportCategory[] = [
     title: "Integrantes",
     description:
       "Consulta información general, distribución por voces y estado de los integrantes.",
-    status: "planned",
+    href: "/reportes/integrantes",
+    status: "available",
     icon: "members",
     features: [
       "Listado general",
@@ -243,7 +244,7 @@ function ReportCard({
       <div className="mt-6 border-t border-slate-100 pt-5">
         {report.status === "available" ? (
           <span className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-800">
-            Consultar reportes
+            Consultar reporte
             <ArrowRightIcon />
           </span>
         ) : (
