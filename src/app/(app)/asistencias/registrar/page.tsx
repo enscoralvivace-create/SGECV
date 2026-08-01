@@ -1,7 +1,14 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import {
+  Suspense,
+  useState,
+} from "react";
+
+import {
+  useSearchParams,
+} from "next/navigation";
+
 import {
   CheckCircle2,
   Clock3,
@@ -9,19 +16,33 @@ import {
   TriangleAlert,
 } from "lucide-react";
 
-import type { AttendanceCheckInResult } from "@/services/attendanceCheckInService";
-import { registerAttendanceByToken } from "@/services/attendanceCheckInService";
+import type {
+  AttendanceCheckInResult,
+} from "@/services/attendanceCheckInService";
 
-function formatTime(dateString: string | null): string {
-  if (!dateString) return "—";
+import {
+  registerAttendanceByToken,
+} from "@/services/attendanceCheckInService";
 
-  return new Intl.DateTimeFormat("es-MX", {
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(dateString));
+function formatTime(
+  dateString: string | null,
+): string {
+  if (!dateString) {
+    return "—";
+  }
+
+  return new Intl.DateTimeFormat(
+    "es-MX",
+    {
+      hour: "numeric",
+      minute: "2-digit",
+    },
+  ).format(new Date(dateString));
 }
 
-function getStatusLabel(status: string): string {
+function getStatusLabel(
+  status: string,
+): string {
   switch (status) {
     case "present":
       return "Presente";
@@ -38,15 +59,39 @@ function getStatusLabel(status: string): string {
 }
 
 export default function AttendanceRegistrationPage() {
-  const searchParams = useSearchParams();
-  const token = searchParams.get("token");
+  return (
+    <Suspense
+      fallback={
+        <AttendanceRegistrationLoading />
+      }
+    >
+      <AttendanceRegistrationContent />
+    </Suspense>
+  );
+}
 
-  const [result, setResult] =
-    useState<AttendanceCheckInResult | null>(null);
+function AttendanceRegistrationContent() {
+  const searchParams =
+    useSearchParams();
 
-  const [loading, setLoading] = useState(false);
+  const token =
+    searchParams.get("token");
 
-  const [errorMessage, setErrorMessage] =
+  const [
+    result,
+    setResult,
+  ] =
+    useState<AttendanceCheckInResult | null>(
+      null,
+    );
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [
+    errorMessage,
+    setErrorMessage,
+  ] =
     useState<string | null>(null);
 
   async function handleRegisterAttendance() {
@@ -63,7 +108,9 @@ export default function AttendanceRegistrationPage() {
 
     try {
       const attendanceResult =
-        await registerAttendanceByToken(token);
+        await registerAttendanceByToken(
+          token,
+        );
 
       setResult(attendanceResult);
     } catch (error) {
@@ -98,7 +145,8 @@ export default function AttendanceRegistrationPage() {
   }
 
   if (result) {
-    const isLate = result.record.status === "late";
+    const isLate =
+      result.record.status === "late";
 
     return (
       <main className="mx-auto flex min-h-[70vh] max-w-md items-center px-4 py-10">
@@ -149,7 +197,9 @@ export default function AttendanceRegistrationPage() {
               </span>
 
               <span className="text-sm font-semibold text-slate-900">
-                {formatTime(result.record.checked_in_at)}
+                {formatTime(
+                  result.record.checked_in_at,
+                )}
               </span>
             </div>
 
@@ -166,7 +216,9 @@ export default function AttendanceRegistrationPage() {
                     : "bg-emerald-100 text-emerald-700",
                 ].join(" ")}
               >
-                {getStatusLabel(result.record.status)}
+                {getStatusLabel(
+                  result.record.status,
+                )}
               </span>
             </div>
           </div>
@@ -187,10 +239,11 @@ export default function AttendanceRegistrationPage() {
         </h1>
 
         <p className="mt-2 text-sm text-slate-600">
-          Confirma tu llegada al ensayo del Ensamble Coral Vivace.
+          Confirma tu llegada al ensayo del Ensamble Coral
+          Vivace.
         </p>
 
-        {errorMessage && (
+        {errorMessage ? (
           <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-left">
             <div className="flex items-start gap-3">
               <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
@@ -200,12 +253,14 @@ export default function AttendanceRegistrationPage() {
               </p>
             </div>
           </div>
-        )}
+        ) : null}
 
         <button
           type="button"
           disabled={loading}
-          onClick={() => void handleRegisterAttendance()}
+          onClick={() => {
+            void handleRegisterAttendance();
+          }}
           className="mt-7 flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? (
@@ -220,6 +275,20 @@ export default function AttendanceRegistrationPage() {
             </>
           )}
         </button>
+      </div>
+    </main>
+  );
+}
+
+function AttendanceRegistrationLoading() {
+  return (
+    <main className="mx-auto flex min-h-[70vh] max-w-md items-center px-4 py-10">
+      <div className="w-full rounded-3xl border border-slate-200 bg-white p-7 text-center shadow-sm">
+        <LoaderCircle className="mx-auto h-9 w-9 animate-spin text-indigo-600" />
+
+        <p className="mt-4 text-sm font-medium text-slate-600">
+          Cargando registro de asistencia...
+        </p>
       </div>
     </main>
   );

@@ -10,8 +10,11 @@ import { getMembers } from "@/services/memberService";
 
 import {
   getTripFinancialSummary,
-  type TripFinancialSummary,
 } from "@/services/tripService";
+
+import type {
+  TripFinancialSummary,
+} from "@/types/tripFinancial";
 
 import {
   addTripMember,

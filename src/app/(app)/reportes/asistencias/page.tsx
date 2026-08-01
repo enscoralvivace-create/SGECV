@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  useEffect,
+  useCallback,
   useRef,
   useState,
 } from "react";
@@ -23,6 +23,8 @@ import AttendanceOverviewCard from "@/components/reports/attendance/AttendanceOv
 import AttendanceSessionTable from "@/components/reports/attendance/AttendanceSessionTable";
 import AttendanceStatusDistribution from "@/components/reports/attendance/AttendanceStatusDistribution";
 
+import useReportLoader from "@/hooks/useReportLoader";
+
 import { exportAttendanceReportToPdf } from "@/services/reports/attendance/attendanceReportPdfService";
 import { getAttendanceReportData } from "@/services/reports/attendance/attendanceReportService";
 
@@ -31,15 +33,16 @@ import type {
   AttendanceReportFilters,
 } from "@/types/attendanceReport";
 
+import {
+  formatReportDate,
+} from "@/utils/reportFormatters";
+
 const EMPTY_FILTERS: AttendanceDateFilterState = {
   startDate: "",
   endDate: "",
 };
 
 export default function AttendanceReportPage() {
-  const [reportData, setReportData] =
-    useState<AttendanceReportData | null>(null);
-
   const [filters, setFilters] =
     useState<AttendanceDateFilterState>(
       EMPTY_FILTERS,
@@ -50,62 +53,35 @@ export default function AttendanceReportPage() {
       EMPTY_FILTERS,
     );
 
-  const [isLoading, setIsLoading] =
-    useState(true);
+  const [validationError, setValidationError] =
+    useState("");
+
+  const attendanceLoader = useCallback(
+    () =>
+      getAttendanceReportData(
+        toServiceFilters(
+          appliedFilters,
+        ),
+      ),
+    [appliedFilters],
+  );
+
+  const {
+    data: reportData,
+    isLoading,
+    error,
+  } = useReportLoader(
+    attendanceLoader,
+  );
 
   const [isExporting, setIsExporting] =
     useState(false);
-
-  const [error, setError] =
-    useState("");
 
   const [exportError, setExportError] =
     useState("");
 
   const reportRef =
     useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadReport(): Promise<void> {
-      try {
-        setIsLoading(true);
-        setError("");
-
-        const data =
-          await getAttendanceReportData(
-            toServiceFilters(
-              appliedFilters,
-            ),
-          );
-
-        if (isMounted) {
-          setReportData(data);
-        }
-      } catch (loadError: unknown) {
-        console.error(loadError);
-
-        if (isMounted) {
-          setError(
-            loadError instanceof Error
-              ? loadError.message
-              : "No fue posible cargar el reporte de asistencias.",
-          );
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    }
-
-    void loadReport();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [appliedFilters]);
 
   function handleFilterChange(
     field: keyof AttendanceDateFilterState,
@@ -124,21 +100,21 @@ export default function AttendanceReportPage() {
       filters.startDate >
         filters.endDate
     ) {
-      setError(
+      setValidationError(
         "La fecha inicial no puede ser posterior a la fecha final.",
       );
 
       return;
     }
 
-    setError("");
+    setValidationError("");
     setAppliedFilters(filters);
   }
 
   function handleClearFilters(): void {
     setFilters(EMPTY_FILTERS);
     setAppliedFilters(EMPTY_FILTERS);
-    setError("");
+    setValidationError("");
   }
 
   async function handleExportPdf(): Promise<void> {
@@ -170,6 +146,9 @@ export default function AttendanceReportPage() {
       setIsExporting(false);
     }
   }
+
+  const displayError =
+    validationError || error;
 
   return (
     <main className="space-y-8">
@@ -208,12 +187,12 @@ export default function AttendanceReportPage() {
         <ReportLoadingState message="Cargando reporte de asistencias..." />
       ) : null}
 
-      {!isLoading && error ? (
-        <ReportErrorState message={error} />
+      {!isLoading && displayError ? (
+        <ReportErrorState message={displayError} />
       ) : null}
 
       {!isLoading &&
-      !error &&
+      !displayError &&
       reportData ? (
         <AttendanceReportContent
           reportData={reportData}
@@ -350,41 +329,20 @@ function formatReportPeriod(
     filters.startDate &&
     filters.endDate
   ) {
-    return `Del ${formatDateValue(
+    return `Del ${formatReportDate(
       filters.startDate,
-    )} al ${formatDateValue(
+    )} al ${formatReportDate(
       filters.endDate,
     )}`;
   }
 
   if (filters.startDate) {
-    return `Desde ${formatDateValue(
+    return `Desde ${formatReportDate(
       filters.startDate,
     )}`;
   }
 
-  return `Hasta ${formatDateValue(
-    filters.endDate ?? "",
+  return `Hasta ${formatReportDate(
+    filters.endDate,
   )}`;
-}
-
-function formatDateValue(
-  value: string,
-): string {
-  const date = new Date(
-    `${value}T00:00:00`,
-  );
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat(
-    "es-MX",
-    {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    },
-  ).format(date);
 }

@@ -2,7 +2,6 @@
 
 import {
   forwardRef,
-  useEffect,
   useRef,
   useState,
 } from "react";
@@ -18,6 +17,8 @@ import ReportSummaryCards, {
 } from "@/components/reports/common/ReportSummaryCards";
 import ReportTableCard from "@/components/reports/common/ReportTableCard";
 
+import useReportLoader from "@/hooks/useReportLoader";
+
 import { exportMemberReportToPdf } from "@/services/reports/members/memberReportPdfService";
 import { getMemberReportData } from "@/services/reports/members/memberReportService";
 
@@ -26,62 +27,27 @@ import type {
   MemberReportRow,
 } from "@/types/memberReport";
 
-export default function MemberReportPage() {
-  const [reportData, setReportData] =
-    useState<MemberReportData | null>(null);
+import {
+  formatReportDateTime,
+} from "@/utils/reportFormatters";
 
-  const [isLoading, setIsLoading] =
-    useState(true);
+export default function MemberReportPage() {
+  const {
+    data: reportData,
+    isLoading,
+    error,
+  } = useReportLoader(
+    getMemberReportData,
+  );
 
   const [isExporting, setIsExporting] =
     useState(false);
-
-  const [error, setError] =
-    useState("");
 
   const [exportError, setExportError] =
     useState("");
 
   const reportRef =
     useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadReport(): Promise<void> {
-      try {
-        setIsLoading(true);
-        setError("");
-
-        const data =
-          await getMemberReportData();
-
-        if (isMounted) {
-          setReportData(data);
-        }
-      } catch (loadError: unknown) {
-        console.error(loadError);
-
-        if (isMounted) {
-          setError(
-            loadError instanceof Error
-              ? loadError.message
-              : "No fue posible cargar el reporte de integrantes.",
-          );
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
-    }
-
-    void loadReport();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   async function handleExportPdf(): Promise<void> {
     if (
@@ -265,7 +231,7 @@ const MemberReportContent = forwardRef<
         footer={
           <p className="text-xs font-medium text-slate-500">
             Generado:{" "}
-            {formatGeneratedAt(
+            {formatReportDateTime(
               document.metadata.generatedAt,
             )}
           </p>
@@ -366,29 +332,12 @@ function MemberReportTable({
       <table className="min-w-full divide-y divide-slate-200">
         <thead className="bg-slate-50">
           <tr>
-            <TableHeader>
-              Integrante
-            </TableHeader>
-
-            <TableHeader>
-              Voz / función
-            </TableHeader>
-
-            <TableHeader>
-              Estado
-            </TableHeader>
-
-            <TableHeader>
-              Correo electrónico
-            </TableHeader>
-
-            <TableHeader>
-              Teléfono
-            </TableHeader>
-
-            <TableHeader>
-              Fecha de ingreso
-            </TableHeader>
+            <TableHeader>Integrante</TableHeader>
+            <TableHeader>Voz / función</TableHeader>
+            <TableHeader>Estado</TableHeader>
+            <TableHeader>Correo electrónico</TableHeader>
+            <TableHeader>Teléfono</TableHeader>
+            <TableHeader>Fecha de ingreso</TableHeader>
           </tr>
         </thead>
 
@@ -401,28 +350,13 @@ function MemberReportTable({
               <TableCell className="font-semibold text-slate-900">
                 {member.fullName}
               </TableCell>
-
+              <TableCell>{member.voice}</TableCell>
               <TableCell>
-                {member.voice}
+                <StatusBadge status={member.status} />
               </TableCell>
-
-              <TableCell>
-                <StatusBadge
-                  status={member.status}
-                />
-              </TableCell>
-
-              <TableCell>
-                {member.email}
-              </TableCell>
-
-              <TableCell>
-                {member.phone}
-              </TableCell>
-
-              <TableCell>
-                {member.joinDate}
-              </TableCell>
+              <TableCell>{member.email}</TableCell>
+              <TableCell>{member.phone}</TableCell>
+              <TableCell>{member.joinDate}</TableCell>
             </tr>
           ))}
         </tbody>
@@ -494,22 +428,4 @@ function StatusBadge({
       {status}
     </span>
   );
-}
-
-function formatGeneratedAt(
-  value: string,
-): string {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat(
-    "es-MX",
-    {
-      dateStyle: "long",
-      timeStyle: "short",
-    },
-  ).format(date);
 }

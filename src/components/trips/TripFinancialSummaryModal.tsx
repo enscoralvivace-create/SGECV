@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   useCallback,
@@ -12,10 +12,13 @@ import RegisterPaymentModal from "@/components/payments/RegisterPaymentModal";
 
 import {
   getTripFinancialSummary,
-  type TripFinancialSummary,
-  type TripMemberFinancialStatus,
-  type TripMemberFinancialSummary,
 } from "@/services/tripService";
+
+import type {
+  TripFinancialSummary,
+  TripMemberFinancialStatus,
+  TripMemberFinancialSummary,
+} from "@/types/tripFinancial";
 
 interface TripFinancialSummaryModalProps {
   tripId: string;
@@ -98,10 +101,10 @@ export default function TripFinancialSummaryModal({
     useState<TripMemberFinancialSummary | null>(
       null,
     );
-    const [
-  isReportOpen,
-  setIsReportOpen,
-] = useState(false);
+  const [
+    isReportOpen,
+    setIsReportOpen,
+  ] = useState(false);
 
   const [isLoading, setIsLoading] =
     useState(true);
@@ -335,7 +338,9 @@ export default function TripFinancialSummaryModal({
 
                             <tbody className="divide-y divide-slate-200 bg-white">
                               {summary.members.map(
-                                (member) => {
+                                (
+                                  member: TripMemberFinancialSummary,
+                                ) => {
                                   const canRegisterPayment =
                                     member.status ===
                                       "pending" ||
@@ -433,21 +438,21 @@ export default function TripFinancialSummaryModal({
           </div>
 
           <footer className="flex flex-wrap items-center justify-end gap-3 border-t border-slate-200 px-6 py-5">
-  {summary && !isLoading && !error && (
-    <Button
-      variant="secondary"
-      onClick={() =>
-        setIsReportOpen(true)
-      }
-    >
-      Ver reporte
-    </Button>
-  )}
+            {summary && !isLoading && !error && (
+              <Button
+                variant="secondary"
+                onClick={() =>
+                  setIsReportOpen(true)
+                }
+              >
+                Ver reporte
+              </Button>
+            )}
 
-  <Button onClick={onClose}>
-    Cerrar
-  </Button>
-</footer>
+            <Button onClick={onClose}>
+              Cerrar
+            </Button>
+          </footer>
         </div>
       </div>
 
@@ -471,14 +476,14 @@ export default function TripFinancialSummaryModal({
         />
       )}
       {isReportOpen && summary && (
-  <TripFinancialReportModal
-    tripName={tripName}
-    summary={summary}
-    onClose={() =>
-      setIsReportOpen(false)
-    }
-  />
-)}
+        <TripFinancialReportModal
+          tripName={tripName}
+          summary={summary}
+          onClose={() =>
+            setIsReportOpen(false)
+          }
+        />
+      )}
     </>
   );
 }

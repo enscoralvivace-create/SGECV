@@ -13,10 +13,15 @@ import {
   downloadElementAsPdf,
 } from "@/services/pdfService";
 
+import {
+  getTripFinancialSummary,
+} from "@/services/tripService";
+
 import type {
   TripFinancialSummary,
   TripMemberFinancialStatus,
-} from "@/services/tripService";
+  TripMemberFinancialSummary,
+} from "@/types/tripFinancial";
 
 interface TripFinancialReportModalProps {
   tripName: string;

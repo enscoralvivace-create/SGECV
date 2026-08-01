@@ -371,7 +371,7 @@ function addHealthSection(
   report: TripFinancialReportData,
   startY: number,
 ): number {
-  let y = addSectionTitle(
+  const y = addSectionTitle(
     document,
     "Salud financiera",
     startY,

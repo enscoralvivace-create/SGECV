@@ -1,4 +1,10 @@
-import type { ReactNode } from "react";
+import type {
+  ReactNode,
+} from "react";
+
+import {
+  formatReportDateTime,
+} from "@/utils/reportFormatters";
 
 interface ReportPrintHeaderProps {
   organization: string;
@@ -14,7 +20,7 @@ export default function ReportPrintHeader({
   reportTitle,
   subtitle,
   generatedAt,
-  logoSrc = "/images/logo.png",
+  logoSrc = "/images/logo-ecv-v2.png",
   rightContent,
 }: ReportPrintHeaderProps) {
   return (
@@ -52,25 +58,12 @@ export default function ReportPrintHeader({
           </p>
 
           <p className="mt-1 text-sm font-medium text-slate-700">
-            {formatGeneratedAt(generatedAt)}
+            {formatReportDateTime(
+              generatedAt,
+            )}
           </p>
         </div>
       </div>
     </section>
   );
-}
-
-function formatGeneratedAt(
-  value: string,
-): string {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat("es-MX", {
-    dateStyle: "long",
-    timeStyle: "short",
-  }).format(date);
 }

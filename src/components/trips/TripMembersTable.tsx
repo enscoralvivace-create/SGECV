@@ -11,7 +11,7 @@ import type {
 
 import type {
   TripMemberFinancialStatus,
-} from "@/services/tripService";
+} from "@/types/tripFinancial";
 
 export interface TripMemberFinancialOverview {
   memberId: number;

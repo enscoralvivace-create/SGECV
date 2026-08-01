@@ -2,7 +2,7 @@
 
 import type {
   TripMemberFinancialStatus,
-} from "@/services/tripService";
+} from "@/types/tripFinancial";
 
 interface FinancialOverview {
   memberId: number;

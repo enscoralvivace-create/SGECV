@@ -3,8 +3,7 @@ import Link from "next/link";
 interface ReportCategory {
   title: string;
   description: string;
-  href?: string;
-  status: "available" | "planned";
+  href: string;
   icon: ReportIconName;
   features: string[];
 }
@@ -23,7 +22,6 @@ const reportCategories: ReportCategory[] = [
     description:
       "Consulta información general, distribución por voces y estado de los integrantes.",
     href: "/reportes/integrantes",
-    status: "available",
     icon: "members",
     features: [
       "Listado general",
@@ -35,7 +33,7 @@ const reportCategories: ReportCategory[] = [
     title: "Asistencias",
     description:
       "Analiza la participación del ensamble por integrante, ensayo y periodo.",
-    status: "planned",
+    href: "/reportes/asistencias",
     icon: "attendance",
     features: [
       "Asistencia por periodo",
@@ -47,7 +45,7 @@ const reportCategories: ReportCategory[] = [
     title: "Repertorio",
     description:
       "Obtén una visión general de las obras registradas y su estado de preparación.",
-    status: "planned",
+    href: "/reportes/repertorio",
     icon: "repertoire",
     features: [
       "Obras activas",
@@ -59,10 +57,10 @@ const reportCategories: ReportCategory[] = [
     title: "Finanzas",
     description:
       "Revisa cargos, pagos, saldos pendientes e ingresos registrados.",
-    status: "planned",
+    href: "/reportes/finanzas",
     icon: "finances",
     features: [
-      "Ingresos por periodo",
+      "Ingresos y recuperación",
       "Cargos y pagos",
       "Saldos pendientes",
     ],
@@ -70,39 +68,30 @@ const reportCategories: ReportCategory[] = [
   {
     title: "Viajes",
     description:
-      "Accede a los reportes financieros profesionales de cada viaje registrado.",
-    href: "/viajes",
-    status: "available",
+      "Consulta participación, recuperación financiera y ejecución presupuestal.",
+    href: "/reportes/viajes",
     icon: "trips",
     features: [
-      "Presupuesto estimado",
+      "Participación por viaje",
       "Recuperación financiera",
-      "Exportación profesional en PDF",
+      "Presupuesto y ejecución",
     ],
   },
   {
     title: "Estadísticas generales",
     description:
       "Visualiza indicadores globales sobre la actividad y evolución del ensamble.",
-    status: "planned",
+    href: "/reportes/estadisticas",
     icon: "statistics",
     features: [
       "Indicadores generales",
-      "Tendencias históricas",
-      "Resumen ejecutivo",
+      "Resumen por módulo",
+      "Dashboard ejecutivo",
     ],
   },
 ];
 
 export default function ReportsPage() {
-  const availableReports = reportCategories.filter(
-    (report) => report.status === "available",
-  ).length;
-
-  const plannedReports = reportCategories.filter(
-    (report) => report.status === "planned",
-  ).length;
-
   return (
     <main className="space-y-8">
       <section>
@@ -131,16 +120,16 @@ export default function ReportsPage() {
 
         <SummaryCard
           title="Reportes disponibles"
-          value={availableReports}
+          value={reportCategories.length}
           description="Reportes listos para consultar"
           icon="available"
         />
 
         <SummaryCard
-          title="En desarrollo"
-          value={plannedReports}
-          description="Nuevos reportes planificados"
-          icon="development"
+          title="Exportación"
+          value={reportCategories.length}
+          description="Reportes con descarga en PDF"
+          icon="export"
         />
       </section>
 
@@ -152,7 +141,7 @@ export default function ReportsPage() {
 
           <p className="mt-1 text-sm text-slate-500">
             Selecciona una categoría para consultar sus
-            herramientas de análisis.
+            indicadores y herramientas de análisis.
           </p>
         </div>
 
@@ -174,13 +163,14 @@ export default function ReportsPage() {
             </div>
 
             <h2 className="mt-5 text-xl font-semibold">
-              Plataforma de análisis en crecimiento
+              Centro de Reportes completo
             </h2>
 
             <p className="mt-2 max-w-3xl text-sm leading-6 text-emerald-100">
-              El módulo de Reportes se ampliará progresivamente
-              con filtros por periodo, indicadores comparativos,
-              gráficas y exportaciones profesionales en PDF.
+              Vivace Suite integra reportes de Integrantes,
+              Asistencias, Repertorio, Finanzas, Viajes y
+              Estadísticas Generales con indicadores
+              consolidados y exportación profesional en PDF.
             </p>
           </div>
 
@@ -190,7 +180,7 @@ export default function ReportsPage() {
             </p>
 
             <p className="mt-1 text-sm font-medium text-emerald-100">
-              categorías planificadas
+              reportes disponibles
             </p>
           </div>
         </div>
@@ -206,14 +196,19 @@ interface ReportCardProps {
 function ReportCard({
   report,
 }: ReportCardProps) {
-  const content = (
-    <>
+  return (
+    <Link
+      href={report.href}
+      className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md"
+    >
       <div className="flex items-start justify-between gap-4">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-800">
           <ReportIcon name={report.icon} />
         </div>
 
-        <ReportStatusBadge status={report.status} />
+        <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
+          Disponible
+        </span>
       </div>
 
       <div className="mt-5">
@@ -242,62 +237,12 @@ function ReportCard({
       </ul>
 
       <div className="mt-6 border-t border-slate-100 pt-5">
-        {report.status === "available" ? (
-          <span className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-800">
-            Consultar reporte
-            <ArrowRightIcon />
-          </span>
-        ) : (
-          <span className="text-sm font-medium text-slate-400">
-            Disponible próximamente
-          </span>
-        )}
+        <span className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-800">
+          Consultar reporte
+          <ArrowRightIcon />
+        </span>
       </div>
-    </>
-  );
-
-  const className =
-    "flex h-full flex-col rounded-2xl border bg-white p-6 shadow-sm transition";
-
-  if (report.status === "available" && report.href) {
-    return (
-      <Link
-        href={report.href}
-        className={`${className} border-slate-200 hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md`}
-      >
-        {content}
-      </Link>
-    );
-  }
-
-  return (
-    <article
-      className={`${className} border-slate-200`}
-    >
-      {content}
-    </article>
-  );
-}
-
-interface ReportStatusBadgeProps {
-  status: ReportCategory["status"];
-}
-
-function ReportStatusBadge({
-  status,
-}: ReportStatusBadgeProps) {
-  if (status === "available") {
-    return (
-      <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
-        Disponible
-      </span>
-    );
-  }
-
-  return (
-    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-      Próximamente
-    </span>
+    </Link>
   );
 }
 
@@ -308,7 +253,7 @@ interface SummaryCardProps {
   icon:
     | "categories"
     | "available"
-    | "development";
+    | "export";
 }
 
 function SummaryCard({
@@ -440,7 +385,7 @@ interface SummaryIconProps {
   name:
     | "categories"
     | "available"
-    | "development";
+    | "export";
 }
 
 function SummaryIcon({
@@ -461,34 +406,10 @@ function SummaryIcon({
   if (name === "categories") {
     return (
       <svg {...commonProps}>
-        <rect
-          x="3"
-          y="3"
-          width="7"
-          height="7"
-          rx="1"
-        />
-        <rect
-          x="14"
-          y="3"
-          width="7"
-          height="7"
-          rx="1"
-        />
-        <rect
-          x="3"
-          y="14"
-          width="7"
-          height="7"
-          rx="1"
-        />
-        <rect
-          x="14"
-          y="14"
-          width="7"
-          height="7"
-          rx="1"
-        />
+        <rect x="3" y="3" width="7" height="7" rx="1" />
+        <rect x="14" y="3" width="7" height="7" rx="1" />
+        <rect x="3" y="14" width="7" height="7" rx="1" />
+        <rect x="14" y="14" width="7" height="7" rx="1" />
       </svg>
     );
   }
@@ -504,15 +425,9 @@ function SummaryIcon({
 
   return (
     <svg {...commonProps}>
-      <path d="M12 2v4" />
-      <path d="M12 18v4" />
-      <path d="m4.93 4.93 2.83 2.83" />
-      <path d="m16.24 16.24 2.83 2.83" />
-      <path d="M2 12h4" />
-      <path d="M18 12h4" />
-      <path d="m4.93 19.07 2.83-2.83" />
-      <path d="m16.24 7.76 2.83-2.83" />
-      <circle cx="12" cy="12" r="3" />
+      <path d="M12 3v12" />
+      <path d="m7 10 5 5 5-5" />
+      <path d="M5 21h14" />
     </svg>
   );
 }

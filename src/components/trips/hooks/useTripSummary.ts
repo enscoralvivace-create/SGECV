@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import type {
   TripFinancialSummary,
   TripMemberFinancialStatus,
-} from "@/services/tripService";
+} from "@/types/tripFinancial";
 
 import type { Member } from "@/types/member";
 import type {

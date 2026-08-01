@@ -218,8 +218,6 @@ export async function downloadElementAsPdf({
     const pageHeight =
       pdf.internal.pageSize.getHeight();
 
-    const footerSpaceMm = 7;
-
    const availableWidth =
   pageWidth - marginMm * 2;
 
