@@ -1,0 +1,59 @@
+[35msrc/app/(app)/reportes/asistencias/page.tsx[m[36m:[m[32m14[m[36m:[mimport Report[1;31mSummaryCard[ms, {
+[35msrc/app/(app)/reportes/asistencias/page.tsx[m[36m:[m[32m16[m[36m:[m} from "@/components/reports/common/Report[1;31mSummaryCard[ms";
+[35msrc/app/(app)/reportes/asistencias/page.tsx[m[36m:[m[32m265[m[36m:[m      <Report[1;31mSummaryCard[ms
+[35msrc/app/(app)/reportes/estadisticas/page.tsx[m[36m:[m[32m13[m[36m:[mimport Report[1;31mSummaryCard[ms, {
+[35msrc/app/(app)/reportes/estadisticas/page.tsx[m[36m:[m[32m15[m[36m:[m} from "@/components/reports/common/Report[1;31mSummaryCard[ms";
+[35msrc/app/(app)/reportes/estadisticas/page.tsx[m[36m:[m[32m191[m[36m:[m      <Report[1;31mSummaryCard[ms
+[35msrc/app/(app)/reportes/finanzas/page.tsx[m[36m:[m[32m14[m[36m:[mimport Report[1;31mSummaryCard[ms, {
+[35msrc/app/(app)/reportes/finanzas/page.tsx[m[36m:[m[32m16[m[36m:[m} from "@/components/reports/common/Report[1;31mSummaryCard[ms";
+[35msrc/app/(app)/reportes/finanzas/page.tsx[m[36m:[m[32m199[m[36m:[m      <Report[1;31mSummaryCard[ms
+[35msrc/app/(app)/reportes/integrantes/page.tsx[m[36m:[m[32m15[m[36m:[mimport Report[1;31mSummaryCard[ms, {
+[35msrc/app/(app)/reportes/integrantes/page.tsx[m[36m:[m[32m17[m[36m:[m} from "@/components/reports/common/Report[1;31mSummaryCard[ms";
+[35msrc/app/(app)/reportes/integrantes/page.tsx[m[36m:[m[32m191[m[36m:[m      <Report[1;31mSummaryCard[ms
+[35msrc/app/(app)/reportes/page.tsx[m[36m:[m[32m114[m[36m:[m        <[1;31mSummaryCard[m
+[35msrc/app/(app)/reportes/page.tsx[m[36m:[m[32m121[m[36m:[m        <[1;31mSummaryCard[m
+[35msrc/app/(app)/reportes/page.tsx[m[36m:[m[32m128[m[36m:[m        <[1;31mSummaryCard[m
+[35msrc/app/(app)/reportes/page.tsx[m[36m:[m[32m249[m[36m:[minterface [1;31mSummaryCard[mProps {
+[35msrc/app/(app)/reportes/page.tsx[m[36m:[m[32m259[m[36m:[mfunction [1;31mSummaryCard[m({
+[35msrc/app/(app)/reportes/page.tsx[m[36m:[m[32m264[m[36m:[m}: [1;31mSummaryCard[mProps) {
+[35msrc/app/(app)/reportes/repertorio/page.tsx[m[36m:[m[32m14[m[36m:[mimport Report[1;31mSummaryCard[ms, {
+[35msrc/app/(app)/reportes/repertorio/page.tsx[m[36m:[m[32m16[m[36m:[m} from "@/components/reports/common/Report[1;31mSummaryCard[ms";
+[35msrc/app/(app)/reportes/repertorio/page.tsx[m[36m:[m[32m182[m[36m:[m      <Report[1;31mSummaryCard[ms
+[35msrc/app/(app)/reportes/viajes/page.tsx[m[36m:[m[32m14[m[36m:[mimport Report[1;31mSummaryCard[ms, {
+[35msrc/app/(app)/reportes/viajes/page.tsx[m[36m:[m[32m16[m[36m:[m} from "@/components/reports/common/Report[1;31mSummaryCard[ms";
+[35msrc/app/(app)/reportes/viajes/page.tsx[m[36m:[m[32m202[m[36m:[m      <Report[1;31mSummaryCard[ms
+[35msrc/components/DashboardHeader.tsx[m[36m:[m[32m1[m[36m:[mexport default function [1;31mDashboardHeader[m() {
+[35msrc/components/SummaryCard.tsx[m[36m:[m[32m1[m[36m:[mtype [1;31mSummaryCard[mProps = {
+[35msrc/components/SummaryCard.tsx[m[36m:[m[32m7[m[36m:[mexport default function [1;31mSummaryCard[m({
+[35msrc/components/SummaryCard.tsx[m[36m:[m[32m11[m[36m:[m}: [1;31mSummaryCard[mProps) {
+[35msrc/components/dashboard/DashboardHeader.tsx[m[36m:[m[32m49[m[36m:[mexport default function [1;31mDashboardHeader[m() {
+[35msrc/components/dashboard/SummaryCard.tsx[m[36m:[m[32m3[m[36m:[minterface [1;31mSummaryCard[mProps {
+[35msrc/components/dashboard/SummaryCard.tsx[m[36m:[m[32m10[m[36m:[mexport default function [1;31mSummaryCard[m({
+[35msrc/components/dashboard/SummaryCard.tsx[m[36m:[m[32m15[m[36m:[m}: [1;31mSummaryCard[mProps) {
+[35msrc/components/reports/attendance/AttendanceSummaryCards.tsx[m[36m:[m[32m5[m[36m:[minterface Attendance[1;31mSummaryCard[msProps {
+[35msrc/components/reports/attendance/AttendanceSummaryCards.tsx[m[36m:[m[32m9[m[36m:[mexport default function Attendance[1;31mSummaryCard[ms({
+[35msrc/components/reports/attendance/AttendanceSummaryCards.tsx[m[36m:[m[32m11[m[36m:[m}: Attendance[1;31mSummaryCard[msProps) {
+[35msrc/components/reports/attendance/AttendanceSummaryCards.tsx[m[36m:[m[32m14[m[36m:[m      <[1;31mSummaryCard[m
+[35msrc/components/reports/attendance/AttendanceSummaryCards.tsx[m[36m:[m[32m20[m[36m:[m      <[1;31mSummaryCard[m
+[35msrc/components/reports/attendance/AttendanceSummaryCards.tsx[m[36m:[m[32m28[m[36m:[m      <[1;31mSummaryCard[m
+[35msrc/components/reports/attendance/AttendanceSummaryCards.tsx[m[36m:[m[32m36[m[36m:[m      <[1;31mSummaryCard[m
+[35msrc/components/reports/attendance/AttendanceSummaryCards.tsx[m[36m:[m[32m45[m[36m:[minterface [1;31mSummaryCard[mProps {
+[35msrc/components/reports/attendance/AttendanceSummaryCards.tsx[m[36m:[m[32m51[m[36m:[mfunction [1;31mSummaryCard[m({
+[35msrc/components/reports/attendance/AttendanceSummaryCards.tsx[m[36m:[m[32m55[m[36m:[m}: [1;31mSummaryCard[mProps) {
+[35msrc/components/reports/common/ReportSummaryCards.tsx[m[36m:[m[32m7[m[36m:[minterface Report[1;31mSummaryCard[msProps {
+[35msrc/components/reports/common/ReportSummaryCards.tsx[m[36m:[m[32m12[m[36m:[mexport default function Report[1;31mSummaryCard[ms({
+[35msrc/components/reports/common/ReportSummaryCards.tsx[m[36m:[m[32m15[m[36m:[m}: Report[1;31mSummaryCard[msProps) {
+[35msrc/components/trips/TripFinancialDashboard.tsx[m[36m:[m[32m21[m[36m:[mimport TripFinancial[1;31mSummaryCard[ms from "@/components/trips/TripFinancial[1;31mSummaryCard[ms";
+[35msrc/components/trips/TripFinancialDashboard.tsx[m[36m:[m[32m575[m[36m:[m          <TripFinancial[1;31mSummaryCard[ms
+[35msrc/components/trips/TripFinancialSummaryCards.tsx[m[36m:[m[32m6[m[36m:[minterface TripFinancial[1;31mSummaryCard[msProps {
+[35msrc/components/trips/TripFinancialSummaryCards.tsx[m[36m:[m[32m25[m[36m:[mexport default function TripFinancial[1;31mSummaryCard[ms({
+[35msrc/components/trips/TripFinancialSummaryCards.tsx[m[36m:[m[32m28[m[36m:[m}: TripFinancial[1;31mSummaryCard[msProps) {
+[35msrc/components/trips/TripMemberSummaryCards.tsx[m[36m:[m[32m1[m[36m:[minterface TripMember[1;31mSummaryCard[msProps {
+[35msrc/components/trips/TripMemberSummaryCards.tsx[m[36m:[m[32m12[m[36m:[minterface [1;31mSummaryCard[m {
+[35msrc/components/trips/TripMemberSummaryCards.tsx[m[36m:[m[32m20[m[36m:[mexport default function TripMember[1;31mSummaryCard[ms({
+[35msrc/components/trips/TripMemberSummaryCards.tsx[m[36m:[m[32m29[m[36m:[m}: TripMember[1;31mSummaryCard[msProps) {
+[35msrc/components/trips/TripMemberSummaryCards.tsx[m[36m:[m[32m30[m[36m:[m  const cards: [1;31mSummaryCard[m[] = [
+[35msrc/components/trips/TripMembersModal.tsx[m[36m:[m[32m4[m[36m:[mimport TripMember[1;31mSummaryCard[ms from "@/components/trips/TripMember[1;31mSummaryCard[ms";
+[35msrc/components/trips/TripMembersModal.tsx[m[36m:[m[32m86[m[36m:[m          <TripMember[1;31mSummaryCard[ms
+[35msrc/services/tripFinancialPdfService.ts[m[36m:[m[32m217[m[36m:[mfunction add[1;31mSummaryCard[ms(
+[35msrc/services/tripFinancialPdfService.ts[m[36m:[m[32m584[m[36m:[m  y = add[1;31mSummaryCard[ms(

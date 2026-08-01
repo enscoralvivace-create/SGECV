@@ -4,57 +4,78 @@ import {
   Users,
 } from "lucide-react";
 
-import DashboardHeader from "@/components/dashboard/DashboardHeader";
-import SummaryCard from "@/components/dashboard/SummaryCard";
 import TodayRehearsalCard from "@/components/dashboard/TodayRehearsalCard";
+import VivaceCard from "@/components/ui/VivaceCard";
+import VivacePageHeader from "@/components/ui/VivacePageHeader";
+import VivaceStatCard from "@/components/ui/VivaceStatCard";
 
 export default function DashboardPage() {
   return (
     <main className="p-4 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-7xl">
-        <DashboardHeader />
+        <VivacePageHeader
+          eyebrow="Panel principal"
+          title="Dashboard"
+          description="Consulta de forma rápida la actividad, asistencia y próximos compromisos del Ensamble Coral Vivace."
+        />
 
-        <section className="grid gap-6 lg:grid-cols-2">
+        <section className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
           <TodayRehearsalCard />
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-            <SummaryCard
+          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-1">
+            <VivaceStatCard
               title="Integrantes activos"
               value="—"
-              description="Se conectará con Supabase"
-              icon={<Users className="h-6 w-6" />}
+              subtitle="Se conectará con Supabase"
+              icon={
+                <Users className="h-6 w-6" />
+              }
             />
 
-            <SummaryCard
+            <VivaceStatCard
               title="Asistencia promedio"
               value="—"
-              description="Disponible al activar asistencias"
-              icon={<Music2 className="h-6 w-6" />}
+              subtitle="Disponible al activar estadísticas"
+              icon={
+                <Music2 className="h-6 w-6" />
+              }
             />
           </div>
         </section>
 
-        <section className="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="rounded-2xl bg-slate-100 p-3">
-              <CalendarDays className="h-6 w-6 text-slate-600" />
-            </div>
+        <section className="mt-6">
+          <VivaceCard
+            gradient
+            className="overflow-hidden"
+          >
+            <VivaceCard.Body>
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-950 text-white shadow-sm">
+                    <CalendarDays className="h-6 w-6" />
+                  </div>
 
-            <div>
-              <p className="text-sm font-medium text-slate-500">
-                Próximas actividades
-              </p>
+                  <div>
+                    <p className="text-sm font-semibold text-emerald-800">
+                      Próximas actividades
+                    </p>
 
-              <h2 className="text-xl font-bold text-slate-950">
-                Agenda del ensamble
-              </h2>
-            </div>
-          </div>
+                    <h2 className="mt-1 text-xl font-bold text-slate-950">
+                      Agenda del ensamble
+                    </h2>
 
-          <p className="mt-5 text-sm text-slate-500">
-            Aquí mostraremos los próximos ensayos, conciertos y
-            actividades registradas.
-          </p>
+                    <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                      Aquí mostraremos los próximos ensayos, conciertos y actividades registradas.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-emerald-100 bg-white px-4 py-3 text-sm font-semibold text-emerald-900 shadow-sm">
+                  Próximamente
+                </div>
+              </div>
+            </VivaceCard.Body>
+          </VivaceCard>
         </section>
       </div>
     </main>

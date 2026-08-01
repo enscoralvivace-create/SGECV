@@ -14,6 +14,7 @@ import Button from "@/components/common/Button";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import MemberAccountStatementModal from "@/components/fees/MemberAccountStatementModal";
 import MemberFormModal from "@/components/members/MemberFormModal";
+import MemberStatisticsModal from "@/components/members/MemberStatisticsModal";
 import MembersTable from "@/components/members/MembersTable";
 import PendingMembersCard from "@/components/members/PendingMembersCard";
 
@@ -54,6 +55,11 @@ export default function MembersPage() {
   const [
     accountStatementMember,
     setAccountStatementMember,
+  ] = useState<Member | null>(null);
+
+  const [
+    statisticsMember,
+    setStatisticsMember,
   ] = useState<Member | null>(null);
 
   const [search, setSearch] =
@@ -209,6 +215,16 @@ export default function MembersPage() {
     setForm(memberToForm(member));
     setMessage("");
     setIsFormOpen(true);
+  }
+
+  function openStatistics(
+    member: Member,
+  ) {
+    setStatisticsMember(member);
+  }
+
+  function closeStatistics() {
+    setStatisticsMember(null);
   }
 
   function openAccountStatement(
@@ -484,6 +500,9 @@ export default function MembersPage() {
           isLoading={isLoading}
           processingId={processingId}
           onEdit={openEditForm}
+          onStatistics={
+            openStatistics
+          }
           onAccountStatement={
             openAccountStatement
           }
@@ -499,6 +518,13 @@ export default function MembersPage() {
           isSaving={isSaving}
           onClose={closeForm}
           onSubmit={handleSubmit}
+        />
+      )}
+
+      {statisticsMember && (
+        <MemberStatisticsModal
+          member={statisticsMember}
+          onClose={closeStatistics}
         />
       )}
 

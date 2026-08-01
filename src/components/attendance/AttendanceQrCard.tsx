@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
 import {
   CheckCircle2,
   Clock3,
@@ -8,175 +14,250 @@ import {
   RefreshCw,
   TriangleAlert,
 } from "lucide-react";
-import { QRCodeSVG } from "qrcode.react";
 
-import type { AttendanceSession } from "@/types/attendance";
-import type { Rehearsal } from "@/types/rehearsal";
+import {
+  QRCodeSVG,
+} from "qrcode.react";
+
+import VivaceButton from "@/components/ui/VivaceButton";
+import VivaceCard from "@/components/ui/VivaceCard";
+import VivaceLoading from "@/components/ui/VivaceLoading";
+import VivaceStatCard from "@/components/ui/VivaceStatCard";
+
 import {
   getAttendanceCount,
   getOrCreateAttendanceSession,
 } from "@/services/attendanceService";
 
+import type {
+  AttendanceSession,
+} from "@/types/attendance";
+
+import type {
+  Rehearsal,
+} from "@/types/rehearsal";
+
 interface AttendanceQrCardProps {
   rehearsal: Rehearsal;
 }
 
-function formatTime(dateString: string): string {
-  return new Intl.DateTimeFormat("es-MX", {
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(dateString));
+function formatTime(
+  dateString: string,
+): string {
+  return new Intl.DateTimeFormat(
+    "es-MX",
+    {
+      hour: "numeric",
+      minute: "2-digit",
+    },
+  ).format(
+    new Date(dateString),
+  );
 }
 
 export default function AttendanceQrCard({
   rehearsal,
 }: AttendanceQrCardProps) {
-  const [session, setSession] =
-    useState<AttendanceSession | null>(null);
+  const [
+    session,
+    setSession,
+  ] =
+    useState<AttendanceSession | null>(
+      null,
+    );
 
-  const [attendanceCount, setAttendanceCount] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [errorMessage, setErrorMessage] =
+  const [
+    attendanceCount,
+    setAttendanceCount,
+  ] = useState(0);
+
+  const [
+    loading,
+    setLoading,
+  ] = useState(true);
+
+  const [
+    errorMessage,
+    setErrorMessage,
+  ] =
     useState<string | null>(null);
 
-  const loadSession = useCallback(async () => {
-    setLoading(true);
-    setErrorMessage(null);
+  const loadSession =
+    useCallback(async (): Promise<void> => {
+      setLoading(true);
+      setErrorMessage(null);
 
-    try {
-      const currentSession =
-        await getOrCreateAttendanceSession(rehearsal);
+      try {
+        const currentSession =
+          await getOrCreateAttendanceSession(
+            rehearsal,
+          );
 
-      setSession(currentSession);
+        setSession(
+          currentSession,
+        );
 
-      const count = await getAttendanceCount(
-        currentSession.id,
-      );
+        const count =
+          await getAttendanceCount(
+            currentSession.id,
+          );
 
-      setAttendanceCount(count);
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "No fue posible preparar el QR.";
+        setAttendanceCount(
+          count,
+        );
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "No fue posible preparar el QR.";
 
-      setErrorMessage(message);
-    } finally {
-      setLoading(false);
-    }
-  }, [rehearsal]);
+        setErrorMessage(
+          message,
+        );
+      } finally {
+        setLoading(false);
+      }
+    }, [rehearsal]);
 
   useEffect(() => {
     void loadSession();
   }, [loadSession]);
 
-  const qrUrl = useMemo(() => {
-    if (!session) return "";
+  const qrUrl =
+    useMemo(() => {
+      if (!session) {
+        return "";
+      }
 
-    const baseUrl =
-      typeof window !== "undefined"
-        ? window.location.origin
-        : "";
+      const baseUrl =
+        typeof window !==
+        "undefined"
+          ? window.location.origin
+          : "";
 
-    return `${baseUrl}/asistencias/registrar?token=${session.qr_token}`;
-  }, [session]);
+      return `${baseUrl}/asistencias/registrar?token=${session.qr_token}`;
+    }, [session]);
 
   if (loading) {
     return (
-      <div className="rounded-2xl bg-slate-50 p-6">
-        <div className="flex min-h-64 items-center justify-center">
-          <RefreshCw className="h-6 w-6 animate-spin text-slate-400" />
-        </div>
-      </div>
+      <VivaceLoading
+        message="Preparando el código QR..."
+        variant="card"
+        className="min-h-[320px]"
+      />
     );
   }
 
-  if (errorMessage || !session) {
+  if (
+    errorMessage ||
+    !session
+  ) {
     return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-5">
-        <div className="flex items-start gap-3">
-          <TriangleAlert className="mt-0.5 h-5 w-5 text-red-600" />
+      <VivaceCard className="border-rose-200 bg-rose-50/70">
+        <VivaceCard.Body>
+          <div className="flex items-start gap-4">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-rose-100 text-rose-700">
+              <TriangleAlert className="h-5 w-5" />
+            </div>
 
-          <div>
-            <p className="font-semibold text-red-900">
-              No se pudo generar el QR
-            </p>
+            <div className="min-w-0">
+              <p className="font-bold text-rose-900">
+                No se pudo generar el QR
+              </p>
 
-            <p className="mt-1 text-sm text-red-700">
-              {errorMessage}
-            </p>
+              <p className="mt-2 text-sm leading-6 text-rose-700">
+                {errorMessage ??
+                  "No fue posible preparar la sesión de asistencia."}
+              </p>
 
-            <button
-              type="button"
-              onClick={() => void loadSession()}
-              className="mt-4 rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white"
-            >
-              Reintentar
-            </button>
+              <VivaceButton
+                variant="danger"
+                size="sm"
+                className="mt-4"
+                leftIcon={
+                  <RefreshCw className="h-4 w-4" />
+                }
+                onClick={() => {
+                  void loadSession();
+                }}
+              >
+                Reintentar
+              </VivaceButton>
+            </div>
           </div>
-        </div>
-      </div>
+        </VivaceCard.Body>
+      </VivaceCard>
     );
   }
 
   return (
-    <div className="rounded-2xl bg-slate-50 p-5">
-      <div className="flex items-center gap-3">
-        <div className="rounded-xl bg-indigo-100 p-2 text-indigo-600">
-          <QrCode className="h-5 w-5" />
+    <VivaceCard
+      elevated={false}
+      className="border-emerald-100 bg-emerald-50/50"
+    >
+      <VivaceCard.Body>
+        <div className="flex items-start gap-4">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-950 text-white shadow-sm">
+            <QrCode className="h-5 w-5" />
+          </div>
+
+          <div className="min-w-0">
+            <p className="font-bold text-slate-950">
+              Código QR de asistencia
+            </p>
+
+            <p className="mt-1 text-sm leading-6 text-slate-600">
+              Escanea este código desde un teléfono para registrar la llegada.
+            </p>
+          </div>
         </div>
 
-        <div>
-          <p className="font-semibold text-slate-900">
-            Código QR de asistencia
+        <div className="mt-6 flex justify-center">
+          <div className="rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm">
+            <QRCodeSVG
+              value={qrUrl}
+              size={220}
+              level="M"
+              marginSize={2}
+              title="Código QR de asistencia"
+            />
+          </div>
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+          <p className="text-center text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+            Enlace de registro
           </p>
 
-          <p className="text-sm text-slate-500">
-            Escanea para registrar tu llegada
+          <p className="mt-2 break-all text-center text-xs leading-5 text-slate-500">
+            {qrUrl}
           </p>
         </div>
-      </div>
 
-      <div className="mt-5 flex justify-center">
-        <div className="rounded-2xl bg-white p-4 shadow-sm">
-          <QRCodeSVG
-            value={qrUrl}
-            size={220}
-            level="M"
-            marginSize={2}
-            title="Código QR de asistencia"
+        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          <VivaceStatCard
+            title="Registrados"
+            value={attendanceCount}
+            subtitle="Personas con asistencia capturada"
+            icon={
+              <CheckCircle2 className="h-5 w-5" />
+            }
+          />
+
+          <VivaceStatCard
+            title="Registro disponible hasta"
+            value={
+              formatTime(
+                session.late_until,
+              )
+            }
+            subtitle="Después se registrará como retardo"
+            icon={
+              <Clock3 className="h-5 w-5" />
+            }
           />
         </div>
-      </div>
-      <p className="mt-4 break-all text-center text-xs text-slate-500">
-  {qrUrl}
-</p>
-
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-xl bg-white p-4">
-          <div className="flex items-center gap-2 text-slate-500">
-            <CheckCircle2 className="h-4 w-4" />
-            <span className="text-sm">Registrados</span>
-          </div>
-
-          <p className="mt-1 text-2xl font-bold text-slate-950">
-            {attendanceCount}
-          </p>
-        </div>
-
-        <div className="rounded-xl bg-white p-4">
-          <div className="flex items-center gap-2 text-slate-500">
-            <Clock3 className="h-4 w-4" />
-            <span className="text-sm">
-              Registro disponible hasta
-            </span>
-          </div>
-
-          <p className="mt-1 font-bold text-slate-950">
-            {formatTime(session.late_until)}
-          </p>
-        </div>
-      </div>
-    </div>
+      </VivaceCard.Body>
+    </VivaceCard>
   );
 }
