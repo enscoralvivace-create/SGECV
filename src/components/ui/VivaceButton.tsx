@@ -49,7 +49,7 @@ Record<VivaceButtonVariant, string> = {
 const SIZE_STYLES:
 Record<VivaceButtonSize, string> = {
   sm:
-    "min-h-9 rounded-lg px-3 py-2 text-xs",
+    "min-h-10 rounded-lg px-3 py-2 text-xs sm:min-h-9",
   md:
     "min-h-11 rounded-xl px-4 py-2.5 text-sm",
   lg:
@@ -58,9 +58,12 @@ Record<VivaceButtonSize, string> = {
 
 const ICON_SIZE_STYLES:
 Record<VivaceButtonSize, string> = {
-  sm: "[&>svg]:h-4 [&>svg]:w-4",
-  md: "[&>svg]:h-5 [&>svg]:w-5",
-  lg: "[&>svg]:h-5 [&>svg]:w-5",
+  sm:
+    "[&>svg]:h-4 [&>svg]:w-4",
+  md:
+    "[&>svg]:h-5 [&>svg]:w-5",
+  lg:
+    "[&>svg]:h-5 [&>svg]:w-5",
 };
 
 const VivaceButton =
@@ -97,10 +100,10 @@ const VivaceButton =
             : undefined
         }
         className={[
-          "inline-flex items-center justify-center gap-2 border font-semibold transition",
+          "inline-flex touch-manipulation select-none items-center justify-center gap-2 border font-semibold transition",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
           "disabled:cursor-not-allowed disabled:opacity-60",
-          "active:scale-[0.99]",
+          "active:scale-[0.98] sm:active:scale-[0.99]",
           VARIANT_STYLES[variant],
           SIZE_STYLES[size],
           ICON_SIZE_STYLES[size],
@@ -127,7 +130,7 @@ const VivaceButton =
           </span>
         ) : null}
 
-        <span className="min-w-0">
+        <span className="min-w-0 truncate">
           {children}
         </span>
 

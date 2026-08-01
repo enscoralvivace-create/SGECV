@@ -67,9 +67,9 @@ export default function MemberAttendanceStatsPanel({
           .filter(Boolean)
           .join(" ")}
       >
-        <VivaceCard.Body>
-          <div className="flex items-start gap-4">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-rose-100 text-rose-700">
+        <VivaceCard.Body className="p-4 sm:p-6">
+          <div className="flex items-start gap-3 sm:gap-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-rose-100 text-rose-700 sm:h-11 sm:w-11">
               <TriangleAlert className="h-5 w-5" />
             </div>
 
@@ -85,7 +85,7 @@ export default function MemberAttendanceStatsPanel({
               <VivaceButton
                 variant="danger"
                 size="sm"
-                className="mt-4"
+                className="mt-4 w-full sm:w-auto"
                 leftIcon={
                   <RefreshCw className="h-4 w-4" />
                 }
@@ -109,7 +109,7 @@ export default function MemberAttendanceStatsPanel({
   return (
     <section
       className={[
-        "space-y-6",
+        "space-y-4 sm:space-y-6",
         className,
       ]
         .filter(Boolean)
@@ -117,14 +117,14 @@ export default function MemberAttendanceStatsPanel({
     >
       <VivaceCard>
         <VivaceCard.Body className="p-4 sm:p-5">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+          <div className="flex flex-col gap-4">
             <div className="flex items-start gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-950 text-white shadow-sm">
                 <CalendarRange className="h-4 w-4" />
               </div>
 
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-800">
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-emerald-800 sm:text-[11px] sm:tracking-[0.18em]">
                   Periodo de consulta
                 </p>
 
@@ -134,7 +134,7 @@ export default function MemberAttendanceStatsPanel({
               </div>
             </div>
 
-            <div className="grid flex-1 gap-3 md:grid-cols-2 xl:max-w-3xl">
+            <div className="grid gap-3 md:grid-cols-2">
               <VivaceInput
                 type="date"
                 label="Fecha inicial"
@@ -166,10 +166,11 @@ export default function MemberAttendanceStatsPanel({
               />
             </div>
 
-            <div className="flex flex-wrap gap-2 xl:justify-end">
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
               <VivaceButton
                 size="sm"
                 variant="primary"
+                className="w-full sm:w-auto"
                 leftIcon={
                   <RefreshCw className="h-4 w-4" />
                 }
@@ -183,6 +184,7 @@ export default function MemberAttendanceStatsPanel({
               <VivaceButton
                 size="sm"
                 variant="outline"
+                className="w-full sm:w-auto"
                 onClick={clearFilters}
               >
                 Limpiar
@@ -196,7 +198,7 @@ export default function MemberAttendanceStatsPanel({
         stats={stats}
       />
 
-      <div className="grid gap-6 xl:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 xl:grid-cols-2">
         <MemberAttendanceTrend
           trend={stats.trend}
         />

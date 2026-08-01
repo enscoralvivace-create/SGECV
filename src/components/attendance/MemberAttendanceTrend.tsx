@@ -136,34 +136,34 @@ export default function MemberAttendanceTrend({
         .filter(Boolean)
         .join(" ")}
     >
-      <VivaceCard.Header>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex items-start gap-4">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-950 text-white shadow-sm">
-              <TrendingUp className="h-5 w-5" />
+      <VivaceCard.Header className="p-4 sm:p-5">
+        <div className="flex items-start justify-between gap-3 sm:gap-4">
+          <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-950 text-white shadow-sm sm:h-11 sm:w-11 sm:rounded-2xl">
+              <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
 
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-800">
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-emerald-800 sm:text-xs sm:tracking-[0.2em]">
                 Evolución
               </p>
 
-              <h2 className="mt-1 text-xl font-bold text-slate-950">
+              <h2 className="mt-1 text-lg font-bold text-slate-950 sm:text-xl">
                 Tendencia mensual
               </h2>
 
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 hidden text-sm text-slate-500 sm:block">
                 Porcentaje de asistencia por periodo.
               </p>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-right">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-emerald-800">
+          <div className="shrink-0 rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-right sm:rounded-2xl sm:px-4 sm:py-3">
+            <p className="text-[9px] font-bold uppercase tracking-wide text-emerald-800 sm:text-[11px]">
               Promedio
             </p>
 
-            <p className="mt-1 text-2xl font-bold text-emerald-950">
+            <p className="mt-0.5 text-xl font-bold text-emerald-950 sm:mt-1 sm:text-2xl">
               {averagePercentage.toFixed(
                 1,
               )}
@@ -173,9 +173,9 @@ export default function MemberAttendanceTrend({
         </div>
       </VivaceCard.Header>
 
-      <VivaceCard.Body className="p-5">
-        <div className="grid min-h-[300px] grid-cols-[auto_1fr] gap-4">
-          <div className="flex flex-col justify-between pb-8 text-[11px] font-semibold text-slate-400">
+      <VivaceCard.Body className="p-3 sm:p-5">
+        <div className="grid min-h-[250px] grid-cols-[30px_1fr] gap-2 sm:min-h-[300px] sm:grid-cols-[auto_1fr] sm:gap-4">
+          <div className="flex flex-col justify-between pb-8 text-[9px] font-semibold text-slate-400 sm:text-[11px]">
             <span>100%</span>
             <span>75%</span>
             <span>50%</span>
@@ -183,7 +183,7 @@ export default function MemberAttendanceTrend({
             <span>0%</span>
           </div>
 
-          <div className="relative">
+          <div className="relative min-w-0">
             <div
               aria-hidden="true"
               className="absolute inset-0 flex flex-col justify-between pb-8"
@@ -200,7 +200,7 @@ export default function MemberAttendanceTrend({
               )}
             </div>
 
-            <div className="relative flex h-full items-end gap-3 overflow-x-auto pb-8">
+            <div className="relative flex h-full snap-x snap-mandatory items-end gap-2 overflow-x-auto overscroll-x-contain pb-8 pr-2 [scrollbar-width:thin] sm:gap-3">
               {trend.map(
                 (point) => {
                   const percentage =
@@ -210,20 +210,20 @@ export default function MemberAttendanceTrend({
 
                   const sessionWidth =
                     Math.max(
-                      54,
+                      42,
                       Math.round(
                         (
                           point.totalSessions /
                           maxSessions
                         ) *
-                          78,
+                          64,
                       ),
                     );
 
                   return (
                     <article
                       key={point.period}
-                      className="flex min-w-[82px] flex-1 flex-col items-center"
+                      className="flex min-w-[72px] snap-start flex-col items-center sm:min-w-[82px] sm:flex-1"
                     >
                       <VivaceBadge
                         tone={
@@ -239,7 +239,7 @@ export default function MemberAttendanceTrend({
                         %
                       </VivaceBadge>
 
-                      <div className="mt-3 flex h-[210px] items-end">
+                      <div className="mt-2 flex h-[160px] items-end sm:mt-3 sm:h-[210px]">
                         <div
                           role="progressbar"
                           aria-label={`Asistencia de ${point.label}`}
@@ -249,7 +249,7 @@ export default function MemberAttendanceTrend({
                             percentage
                           }
                           className={[
-                            "rounded-t-2xl shadow-sm transition-all",
+                            "rounded-t-xl shadow-sm transition-all sm:rounded-t-2xl",
                             getBarClass(
                               percentage,
                             ),
@@ -261,19 +261,18 @@ export default function MemberAttendanceTrend({
                         />
                       </div>
 
-                      <p className="mt-3 text-center text-sm font-bold capitalize text-slate-900">
+                      <p className="mt-2 max-w-[74px] truncate text-center text-xs font-bold capitalize text-slate-900 sm:mt-3 sm:max-w-none sm:text-sm">
                         {point.label}
                       </p>
 
-                      <p className="mt-1 text-center text-[11px] leading-4 text-slate-500">
+                      <p className="mt-1 text-center text-[9px] leading-4 text-slate-500 sm:text-[11px]">
                         {
                           point.attendedSessions
                         }{" "}
                         de{" "}
                         {
                           point.totalSessions
-                        }{" "}
-                        sesiones
+                        }
                       </p>
                     </article>
                   );

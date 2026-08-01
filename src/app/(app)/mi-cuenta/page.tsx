@@ -92,7 +92,7 @@ export default function MyAccountPage() {
 
   if (isLoading) {
     return (
-      <main className="p-4 sm:p-6 lg:p-8">
+      <main className="px-4 py-5 sm:px-6 sm:py-6 lg:p-8">
         <div className="mx-auto max-w-7xl">
           <VivaceLoading
             variant="page"
@@ -108,17 +108,17 @@ export default function MyAccountPage() {
     !profile
   ) {
     return (
-      <main className="p-4 sm:p-6 lg:p-8">
+      <main className="px-4 py-5 sm:px-6 sm:py-6 lg:p-8">
         <div className="mx-auto max-w-3xl">
           <VivaceCard className="border-rose-200 bg-rose-50/70">
-            <VivaceCard.Body>
-              <div className="flex items-start gap-4">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-rose-100 text-rose-700">
+            <VivaceCard.Body className="p-4 sm:p-6">
+              <div className="flex items-start gap-3 sm:gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-rose-100 text-rose-700 sm:h-11 sm:w-11">
                   <TriangleAlert className="h-5 w-5" />
                 </div>
 
                 <div className="min-w-0">
-                  <h1 className="text-xl font-bold text-rose-900">
+                  <h1 className="text-lg font-bold text-rose-900 sm:text-xl">
                     No fue posible cargar tu cuenta
                   </h1>
 
@@ -157,7 +157,7 @@ export default function MyAccountPage() {
     );
 
   return (
-    <main className="p-4 sm:p-6 lg:p-8">
+    <main className="px-4 py-5 sm:px-6 sm:py-6 lg:p-8">
       <div className="mx-auto max-w-7xl">
         <VivacePageHeader
           eyebrow="Portal personal"
@@ -167,11 +167,11 @@ export default function MyAccountPage() {
 
         <VivaceCard
           gradient
-          className="mb-6 overflow-hidden border-emerald-100"
+          className="mb-4 overflow-hidden border-emerald-100 sm:mb-6"
         >
-          <VivaceCard.Body>
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center">
+          <VivaceCard.Body className="p-4 sm:p-6">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                 <VivaceAvatar
                   name={profile.fullName}
                   size="xl"
@@ -183,11 +183,11 @@ export default function MyAccountPage() {
                 />
 
                 <div className="min-w-0">
-                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-800">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-800 sm:text-xs sm:tracking-[0.2em]">
                     Perfil personal
                   </p>
 
-                  <h2 className="mt-1 truncate text-3xl font-bold tracking-tight text-slate-950">
+                  <h2 className="mt-1 truncate text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
                     {profile.fullName}
                   </h2>
 
@@ -230,23 +230,26 @@ export default function MyAccountPage() {
 
               <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[420px]">
                 <div className="rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm">
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500 sm:text-xs">
                     <UserRound className="h-4 w-4 text-emerald-800" />
                     Identificador
                   </div>
 
-                  <p className="mt-2 font-bold text-slate-900">
+                  <p className="mt-2 truncate font-bold text-slate-900">
                     #{profile.id}
                   </p>
                 </div>
 
                 <div className="rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm">
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500 sm:text-xs">
                     <Mail className="h-4 w-4 text-emerald-800" />
                     Correo
                   </div>
 
-                  <p className="mt-2 break-all font-bold text-slate-900">
+                  <p
+                    className="mt-2 truncate font-bold text-slate-900"
+                    title={profile.email}
+                  >
                     {profile.email}
                   </p>
                 </div>

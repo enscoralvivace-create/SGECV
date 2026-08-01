@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-
 import {
   usePathname,
 } from "next/navigation";
@@ -24,6 +23,7 @@ import {
 } from "lucide-react";
 
 import {
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -96,6 +96,45 @@ export default function AppMobileNavigation() {
     setIsMenuOpen(false);
   }
 
+  useEffect(() => {
+    closeMenu();
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!isMenuOpen) {
+      return;
+    }
+
+    const previousOverflow =
+      document.body.style.overflow;
+
+    document.body.style.overflow =
+      "hidden";
+
+    const handleKeyDown = (
+      event: KeyboardEvent,
+    ) => {
+      if (event.key === "Escape") {
+        closeMenu();
+      }
+    };
+
+    window.addEventListener(
+      "keydown",
+      handleKeyDown,
+    );
+
+    return () => {
+      document.body.style.overflow =
+        previousOverflow;
+
+      window.removeEventListener(
+        "keydown",
+        handleKeyDown,
+      );
+    };
+  }, [isMenuOpen]);
+
   return (
     <>
       <header className="sticky top-0 z-40 flex items-center justify-between border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur lg:hidden">
@@ -133,25 +172,32 @@ export default function AppMobileNavigation() {
               (current) => !current,
             )
           }
+          aria-controls="mobile-navigation-panel"
           aria-label={
             isMenuOpen
               ? "Cerrar menú"
               : "Abrir menú"
           }
           aria-expanded={isMenuOpen}
-          className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm transition active:scale-95"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm transition active:scale-95"
         >
           {isMenuOpen ? (
-            <X className="h-5 w-5" />
+            <X
+              aria-hidden="true"
+              className="h-5 w-5"
+            />
           ) : (
-            <Menu className="h-5 w-5" />
+            <Menu
+              aria-hidden="true"
+              className="h-5 w-5"
+            />
           )}
         </button>
       </header>
 
       {isMenuOpen ? (
         <div
-          className="fixed inset-0 z-30 bg-slate-950/45 lg:hidden"
+          className="fixed inset-0 z-50 bg-slate-950/45 backdrop-blur-[2px] lg:hidden"
           onMouseDown={(event) => {
             if (
               event.target ===
@@ -162,20 +208,38 @@ export default function AppMobileNavigation() {
           }}
           role="presentation"
         >
-          <aside className="absolute right-0 top-[69px] flex max-h-[calc(100vh-69px)] w-[min(88vw,360px)] flex-col overflow-hidden border-l border-slate-200 bg-white shadow-2xl">
-            <div className="border-b border-slate-200 bg-emerald-950 px-5 py-5 text-white">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-200">
-                Menú principal
-              </p>
+          <aside
+            id="mobile-navigation-panel"
+            aria-label="Menú principal"
+            className="absolute inset-y-0 right-0 flex w-[min(88vw,360px)] flex-col overflow-hidden border-l border-slate-200 bg-white shadow-2xl"
+          >
+            <div className="flex items-center justify-between border-b border-emerald-900 bg-emerald-950 px-5 pb-5 pt-[max(1.25rem,var(--safe-top))] text-white">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-200">
+                  Menú principal
+                </p>
 
-              <p className="mt-1 text-lg font-bold">
-                Vivace Suite
-              </p>
+                <p className="mt-1 text-lg font-bold">
+                  Vivace Suite
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={closeMenu}
+                aria-label="Cerrar menú"
+                className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-white transition hover:bg-white/15 active:scale-95"
+              >
+                <X
+                  aria-hidden="true"
+                  className="h-5 w-5"
+                />
+              </button>
             </div>
 
             <nav
               aria-label="Navegación móvil"
-              className="flex-1 overflow-y-auto px-4 py-4"
+              className="flex-1 overflow-y-auto overscroll-contain px-4 py-4"
             >
               {isLoading ? (
                 <MobileNavigationLoading />
@@ -200,6 +264,12 @@ export default function AppMobileNavigation() {
                 <MobileNavigationEmpty />
               )}
             </nav>
+
+            <div className="border-t border-slate-200 px-5 pb-[max(1rem,var(--safe-bottom))] pt-4">
+              <p className="text-center text-xs leading-5 text-slate-500">
+                Ensamble Coral Vivace
+              </p>
+            </div>
           </aside>
         </div>
       ) : null}
@@ -209,7 +279,7 @@ export default function AppMobileNavigation() {
       mobileBarItems.length > 0 ? (
         <nav
           aria-label="Accesos rápidos"
-          className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-8px_30px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden"
+          className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 px-2 pb-[max(0.5rem,var(--safe-bottom))] pt-2 shadow-[0_-8px_30px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden"
         >
           <div className="mx-auto grid max-w-lg grid-cols-4 gap-1">
             {mobileBarItems.map(
@@ -259,7 +329,7 @@ function MobileMenuLink({
           : undefined
       }
       className={[
-        "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition active:scale-[0.99]",
+        "flex min-h-12 items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition active:scale-[0.99]",
         isActive
           ? "bg-emerald-950 text-white"
           : "text-slate-700 hover:bg-emerald-50 hover:text-emerald-950",
@@ -317,7 +387,7 @@ function MobileBarLink({
           : undefined
       }
       className={[
-        "flex min-w-0 flex-col items-center justify-center rounded-xl px-2 py-2 text-[11px] font-semibold transition active:scale-95",
+        "flex min-h-14 min-w-0 flex-col items-center justify-center rounded-xl px-2 py-2 text-[11px] font-semibold transition active:scale-95",
         isActive
           ? "bg-emerald-950 text-white"
           : "text-slate-500",

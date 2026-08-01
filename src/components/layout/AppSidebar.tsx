@@ -1,254 +1,250 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-interface NavigationItem {
-  label: string;
-  mobileLabel: string;
-  href: string;
-  icon: string;
-}
+import {
+  CalendarDays,
+  ChartNoAxesCombined,
+  CheckCircle2,
+  CircleDollarSign,
+  CircleUserRound,
+  House,
+  Music2,
+  Plane,
+  Settings,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 
-const navigationItems: NavigationItem[] = [
-  {
-    label: "Dashboard",
-    mobileLabel: "Inicio",
-    href: "/",
-    icon: "🏠",
-  },
-  {
-    label: "Integrantes",
-    mobileLabel: "Integrantes",
-    href: "/integrantes",
-    icon: "👥",
-  },
-  {
-    label: "Ensayos y eventos",
-    mobileLabel: "Eventos",
-    href: "/eventos",
-    icon: "📅",
-  },
-  {
-    label: "Asistencias",
-    mobileLabel: "Asistencia",
-    href: "/asistencias",
-    icon: "✅",
-  },
-  {
-    label: "Repertorio",
-    mobileLabel: "Repertorio",
-    href: "/repertorio",
-    icon: "🎵",
-  },
-  {
-    label: "Cuotas",
-    mobileLabel: "Cuotas",
-    href: "/cuotas",
-    icon: "💵",
-  },
-  {
-    label: "Viajes",
-    mobileLabel: "Viajes",
-    href: "/viajes",
-    icon: "✈️",
-  },
-  {
-    label: "Reportes",
-    mobileLabel: "Reportes",
-    href: "/reportes",
-    icon: "📊",
-  },
-];
+import {
+  useMemo,
+} from "react";
 
-function isNavigationItemActive(
-  pathname: string,
-  href: string,
-): boolean {
-  if (href === "/") {
-    return pathname === "/";
-  }
+import {
+  getDesktopNavigationItems,
+  isNavigationItemActive,
+  type NavigationIconName,
+  type NavigationItem,
+} from "@/config/navigation";
 
-  return (
-    pathname === href ||
-    pathname.startsWith(`${href}/`)
-  );
-}
+import useUserAccess from "@/hooks/useUserAccess";
+
+const NAVIGATION_ICONS:
+Record<NavigationIconName, LucideIcon> = {
+  home: House,
+  userCircle: CircleUserRound,
+  users: Users,
+  calendar: CalendarDays,
+  checkCircle: CheckCircle2,
+  music: Music2,
+  wallet: CircleDollarSign,
+  plane: Plane,
+  chart: ChartNoAxesCombined,
+  settings: Settings,
+};
 
 export default function AppSidebar() {
-  const pathname = usePathname();
+  const pathname =
+    usePathname();
+
+  const {
+    access,
+    isLoading,
+    error,
+  } = useUserAccess();
+
+  const permissions =
+    useMemo(
+      () =>
+        access?.permissions ?? [],
+      [access],
+    );
+
+  const navigationItems =
+    useMemo(
+      () =>
+        getDesktopNavigationItems(
+          permissions,
+        ),
+      [permissions],
+    );
 
   return (
-    <>
-      <aside className="hidden min-h-screen w-72 shrink-0 border-r border-slate-200 bg-white lg:flex lg:flex-col">
-        <div className="border-b border-slate-200 px-6 py-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-600">
+    <aside className="sticky top-0 hidden h-dvh w-72 shrink-0 flex-col border-r border-slate-200 bg-white lg:flex">
+      <Link
+        href="/"
+        className="flex items-center gap-3 border-b border-slate-200 px-5 py-5 transition hover:bg-emerald-50/50"
+      >
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-emerald-900/10 bg-emerald-50 p-1.5">
+          <Image
+            src="/images/logo-ecv-v2.png"
+            alt="Ensamble Coral Vivace"
+            width={48}
+            height={48}
+            priority
+            className="h-full w-full object-contain"
+          />
+        </div>
+
+        <div className="min-w-0">
+          <p className="truncate text-[10px] font-bold uppercase tracking-[0.16em] text-emerald-800">
             Ensamble Coral Vivace
           </p>
 
-          <h1 className="mt-2 text-2xl font-bold text-slate-900">
+          <p className="mt-0.5 truncate text-xl font-bold tracking-tight text-slate-950">
             Vivace Suite
-          </h1>
+          </p>
 
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-0.5 text-xs font-medium text-slate-500">
             Gestión coral
           </p>
         </div>
-
-        <nav
-          aria-label="Navegación principal"
-          className="flex-1 space-y-1 px-4 py-6"
-        >
-          {navigationItems.map(
-            (item) => {
-              const isActive =
-                isNavigationItemActive(
-                  pathname,
-                  item.href,
-                );
-
-              return (
-                <Link
-                  key={item.href}
-                  aria-current={
-                    isActive
-                      ? "page"
-                      : undefined
-                  }
-                  className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition ${
-                    isActive
-                      ? "bg-indigo-50 text-indigo-700"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                  }`}
-                  href={item.href}
-                >
-                  <span
-                    aria-hidden="true"
-                    className="text-lg"
-                  >
-                    {item.icon}
-                  </span>
-
-                  <span>{item.label}</span>
-                </Link>
-              );
-            },
-          )}
-        </nav>
-
-        <div className="border-t border-slate-200 p-4">
-          <Link
-            aria-current={
-              pathname.startsWith(
-                "/configuracion",
-              )
-                ? "page"
-                : undefined
-            }
-            className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition ${
-              pathname.startsWith(
-                "/configuracion",
-              )
-                ? "bg-indigo-50 text-indigo-700"
-                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-            }`}
-            href="/configuracion"
-          >
-            <span
-              aria-hidden="true"
-              className="text-lg"
-            >
-              ⚙️
-            </span>
-
-            <span>Configuración</span>
-          </Link>
-        </div>
-      </aside>
+      </Link>
 
       <nav
-        aria-label="Navegación móvil"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 pb-[var(--safe-bottom)] shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden"
+        aria-label="Navegación principal"
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5"
       >
-        <div className="flex overflow-x-auto overscroll-x-contain px-[var(--safe-left)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {navigationItems.map(
-            (item) => {
-              const isActive =
-                isNavigationItemActive(
-                  pathname,
-                  item.href,
-                );
-
-              return (
-                <Link
-                  key={item.href}
-                  aria-current={
-                    isActive
-                      ? "page"
-                      : undefined
-                  }
-                  className={`flex min-h-16 min-w-[76px] flex-1 flex-col items-center justify-center gap-1 px-2 py-2 text-center transition active:scale-95 ${
-                    isActive
-                      ? "text-indigo-700"
-                      : "text-slate-500"
-                  }`}
-                  href={item.href}
-                >
-                  <span
-                    aria-hidden="true"
-                    className={`flex h-8 w-12 items-center justify-center rounded-full text-lg transition ${
-                      isActive
-                        ? "bg-indigo-100"
-                        : "bg-transparent"
-                    }`}
-                  >
-                    {item.icon}
-                  </span>
-
-                  <span className="max-w-[72px] truncate text-[10px] font-semibold leading-none">
-                    {item.mobileLabel}
-                  </span>
-                </Link>
-              );
-            },
-          )}
-
-          <Link
-            aria-current={
-              pathname.startsWith(
-                "/configuracion",
-              )
-                ? "page"
-                : undefined
-            }
-            className={`flex min-h-16 min-w-[76px] flex-1 flex-col items-center justify-center gap-1 px-2 py-2 text-center transition active:scale-95 ${
-              pathname.startsWith(
-                "/configuracion",
-              )
-                ? "text-indigo-700"
-                : "text-slate-500"
-            }`}
-            href="/configuracion"
-          >
-            <span
-              aria-hidden="true"
-              className={`flex h-8 w-12 items-center justify-center rounded-full text-lg transition ${
-                pathname.startsWith(
-                  "/configuracion",
-                )
-                  ? "bg-indigo-100"
-                  : "bg-transparent"
-              }`}
-            >
-              ⚙️
-            </span>
-
-            <span className="max-w-[72px] truncate text-[10px] font-semibold leading-none">
-              Ajustes
-            </span>
-          </Link>
-        </div>
+        {isLoading ? (
+          <SidebarLoading />
+        ) : error ? (
+          <SidebarError
+            message={error}
+          />
+        ) : navigationItems.length > 0 ? (
+          <div className="space-y-1">
+            {navigationItems.map(
+              (item) => (
+                <SidebarLink
+                  key={item.id}
+                  item={item}
+                  pathname={pathname}
+                />
+              ),
+            )}
+          </div>
+        ) : (
+          <SidebarEmpty />
+        )}
       </nav>
-    </>
+
+      <div className="border-t border-slate-200 px-4 py-4">
+        <p className="text-center text-xs leading-5 text-slate-500">
+          Ensamble Coral Vivace
+        </p>
+      </div>
+    </aside>
+  );
+}
+
+interface SidebarLinkProps {
+  item: NavigationItem;
+  pathname: string;
+}
+
+function SidebarLink({
+  item,
+  pathname,
+}: SidebarLinkProps) {
+  const Icon =
+    NAVIGATION_ICONS[item.icon];
+
+  const isActive =
+    isNavigationItemActive(
+      pathname,
+      item.href,
+    );
+
+  return (
+    <Link
+      href={item.href}
+      aria-current={
+        isActive
+          ? "page"
+          : undefined
+      }
+      className={[
+        "group flex min-h-12 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition",
+        isActive
+          ? "bg-emerald-950 text-white shadow-sm"
+          : "text-slate-600 hover:bg-emerald-50 hover:text-emerald-950",
+      ].join(" ")}
+    >
+      <span
+        className={[
+          "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition",
+          isActive
+            ? "bg-white/10 text-emerald-100"
+            : "bg-slate-100 text-slate-500 group-hover:bg-white group-hover:text-emerald-800",
+        ].join(" ")}
+      >
+        <Icon
+          aria-hidden="true"
+          className="h-5 w-5"
+          strokeWidth={1.9}
+        />
+      </span>
+
+      <span className="min-w-0 flex-1 truncate">
+        {item.label}
+      </span>
+    </Link>
+  );
+}
+
+function SidebarLoading() {
+  return (
+    <div className="space-y-2">
+      {Array.from({
+        length: 7,
+      }).map((_, index) => (
+        <div
+          key={index}
+          className="flex animate-pulse items-center gap-3 rounded-xl px-3 py-2.5"
+        >
+          <div className="h-9 w-9 rounded-lg bg-slate-100" />
+          <div className="h-4 flex-1 rounded bg-slate-100" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+interface SidebarErrorProps {
+  message: string;
+}
+
+function SidebarError({
+  message,
+}: SidebarErrorProps) {
+  return (
+    <div
+      role="alert"
+      className="rounded-xl border border-rose-200 bg-rose-50 p-4"
+    >
+      <p className="text-sm font-semibold text-rose-800">
+        No fue posible cargar el menú
+      </p>
+
+      <p className="mt-2 text-xs leading-5 text-rose-700">
+        {message}
+      </p>
+    </div>
+  );
+}
+
+function SidebarEmpty() {
+  return (
+    <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4 text-center">
+      <p className="text-sm font-semibold text-slate-700">
+        Sin módulos disponibles
+      </p>
+
+      <p className="mt-2 text-xs leading-5 text-slate-500">
+        La cuenta actual no tiene permisos asignados.
+      </p>
+    </div>
   );
 }

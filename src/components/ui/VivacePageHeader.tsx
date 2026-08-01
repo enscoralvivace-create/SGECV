@@ -1,6 +1,8 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type {
+  ReactNode,
+} from "react";
 
 interface VivacePageHeaderProps {
   title: string;
@@ -16,27 +18,27 @@ export default function VivacePageHeader({
   actions,
 }: VivacePageHeaderProps) {
   return (
-    <header className="mb-8 flex flex-col gap-6 rounded-3xl border border-emerald-100 bg-gradient-to-br from-white via-white to-emerald-50 p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+    <header className="mb-4 overflow-hidden rounded-2xl border border-emerald-100 bg-gradient-to-br from-white via-white to-emerald-50 p-4 shadow-sm sm:mb-6 sm:rounded-3xl sm:p-6 lg:mb-8 lg:flex lg:items-center lg:justify-between lg:gap-6">
       <div className="min-w-0">
         {eyebrow ? (
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-emerald-700 sm:text-xs sm:tracking-[0.2em]">
             {eyebrow}
           </p>
         ) : null}
 
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+        <h1 className="mt-1.5 break-words text-2xl font-bold tracking-tight text-slate-900 sm:mt-2 sm:text-3xl">
           {title}
         </h1>
 
         {description ? (
-          <p className="mt-2 max-w-3xl text-sm text-slate-600">
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
             {description}
           </p>
         ) : null}
       </div>
 
       {actions ? (
-        <div className="flex shrink-0 flex-wrap items-center gap-3">
+        <div className="mt-4 grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-3 lg:mt-0 lg:shrink-0 lg:justify-end">
           {actions}
         </div>
       ) : null}

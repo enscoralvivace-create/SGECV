@@ -58,9 +58,9 @@ Record<VivaceBadgeTone, string> = {
 const SIZE_STYLES:
 Record<VivaceBadgeSize, string> = {
   sm:
-    "min-h-6 gap-1.5 rounded-full px-2.5 py-1 text-[11px]",
+    "min-h-6 gap-1.5 rounded-full px-2 py-1 text-[10px] sm:px-2.5 sm:text-[11px]",
   md:
-    "min-h-7 gap-2 rounded-full px-3 py-1 text-xs",
+    "min-h-7 gap-2 rounded-full px-2.5 py-1 text-[11px] sm:px-3 sm:text-xs",
 };
 
 export default function VivaceBadge({
@@ -75,7 +75,7 @@ export default function VivaceBadge({
   return (
     <span
       className={[
-        "inline-flex w-fit items-center border font-semibold",
+        "inline-flex max-w-full items-center border font-semibold leading-none",
         TONE_STYLES[tone],
         SIZE_STYLES[size],
         className,
@@ -103,7 +103,7 @@ export default function VivaceBadge({
         </span>
       ) : null}
 
-      <span className="min-w-0">
+      <span className="min-w-0 truncate">
         {children}
       </span>
     </span>
