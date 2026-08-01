@@ -12,6 +12,7 @@ import {
   ChartNoAxesCombined,
   CheckCircle2,
   CircleDollarSign,
+  CircleUserRound,
   House,
   Menu,
   Music2,
@@ -40,6 +41,7 @@ import useUserAccess from "@/hooks/useUserAccess";
 const NAVIGATION_ICONS:
 Record<NavigationIconName, LucideIcon> = {
   home: House,
+  userCircle: CircleUserRound,
   users: Users,
   calendar: CalendarDays,
   checkCircle: CheckCircle2,

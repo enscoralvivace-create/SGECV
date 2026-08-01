@@ -15,6 +15,7 @@ import VivaceInput from "@/components/ui/VivaceInput";
 import VivaceLoading from "@/components/ui/VivaceLoading";
 
 import useMemberAttendanceStats from "@/hooks/useMemberAttendanceStats";
+import { usePwaLifecycle } from "@/hooks/usePwaLifecycle";
 
 interface MemberAttendanceStatsPanelProps {
   memberId: number;
@@ -36,6 +37,15 @@ export default function MemberAttendanceStatsPanel({
   } = useMemberAttendanceStats(
     memberId,
   );
+
+  usePwaLifecycle({
+    onAppResumed: () => {
+      void reload();
+    },
+    onConnectionRestored: () => {
+      void reload();
+    },
+  });
 
   if (isLoading) {
     return (

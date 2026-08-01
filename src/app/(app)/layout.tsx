@@ -1,9 +1,5 @@
-import type {
-  ReactNode,
-} from "react";
+import type { ReactNode } from "react";
 
-import AppAccessGuard from "@/components/auth/AppAccessGuard";
-import AppMobileNavigation from "@/components/layout/AppMobileNavigation";
 import AppSidebar from "@/components/layout/AppSidebar";
 
 interface AppLayoutProps {
@@ -14,18 +10,12 @@ export default function AppLayout({
   children,
 }: AppLayoutProps) {
   return (
-    <AppAccessGuard>
-      <div className="min-h-screen bg-slate-50 lg:flex">
-        <AppSidebar />
+    <div className="min-safe-screen bg-slate-50 lg:flex">
+      <AppSidebar />
 
-        <div className="min-w-0 flex-1">
-          <AppMobileNavigation />
-
-          <div className="pb-24 lg:pb-0">
-            {children}
-          </div>
-        </div>
+      <div className="min-w-0 flex-1 pb-[calc(4rem+var(--safe-bottom))] lg:pb-0">
+        {children}
       </div>
-    </AppAccessGuard>
+    </div>
   );
 }

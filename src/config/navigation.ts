@@ -4,6 +4,7 @@ import type {
 
 export type NavigationItemId =
   | "dashboard"
+  | "myAccount"
   | "members"
   | "events"
   | "attendance"
@@ -15,6 +16,7 @@ export type NavigationItemId =
 
 export type NavigationIconName =
   | "home"
+  | "userCircle"
   | "users"
   | "calendar"
   | "checkCircle"
@@ -44,6 +46,17 @@ NavigationItem[] = [
     shortLabel: "Inicio",
     href: "/",
     icon: "home",
+    permission: "dashboard.view",
+    showInDesktop: true,
+    showInMobileMenu: true,
+    showInMobileBar: true,
+  },
+  {
+    id: "myAccount",
+    label: "Mi cuenta",
+    shortLabel: "Mi cuenta",
+    href: "/mi-cuenta",
+    icon: "userCircle",
     permission: "dashboard.view",
     showInDesktop: true,
     showInMobileMenu: true,
@@ -80,7 +93,7 @@ NavigationItem[] = [
     permission: "attendance.viewAll",
     showInDesktop: true,
     showInMobileMenu: true,
-    showInMobileBar: true,
+    showInMobileBar: false,
   },
   {
     id: "repertoire",

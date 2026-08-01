@@ -48,7 +48,7 @@ export default function DashboardPage() {
             gradient
             className="overflow-hidden"
           >
-            <VivaceCard.Body>
+            <div className="p-6">
               <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-start gap-4">
                   <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-950 text-white shadow-sm">
@@ -74,7 +74,7 @@ export default function DashboardPage() {
                   Próximamente
                 </div>
               </div>
-            </VivaceCard.Body>
+            </div>
           </VivaceCard>
         </section>
       </div>
