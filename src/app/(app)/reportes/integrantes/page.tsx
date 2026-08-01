@@ -1,11 +1,22 @@
 "use client";
 
-import Link from "next/link";
 import {
+  forwardRef,
   useEffect,
   useRef,
   useState,
 } from "react";
+
+import EmptyReportState from "@/components/reports/common/EmptyReportState";
+import ReportErrorState from "@/components/reports/common/ReportErrorState";
+import ReportExportButton from "@/components/reports/common/ReportExportButton";
+import ReportLoadingState from "@/components/reports/common/ReportLoadingState";
+import ReportPageHeader from "@/components/reports/common/ReportPageHeader";
+import ReportPrintHeader from "@/components/reports/common/ReportPrintHeader";
+import ReportSummaryCards, {
+  type ReportMetric,
+} from "@/components/reports/common/ReportSummaryCards";
+import ReportTableCard from "@/components/reports/common/ReportTableCard";
 
 import { exportMemberReportToPdf } from "@/services/reports/members/memberReportPdfService";
 import { getMemberReportData } from "@/services/reports/members/memberReportService";
@@ -73,7 +84,10 @@ export default function MemberReportPage() {
   }, []);
 
   async function handleExportPdf(): Promise<void> {
-    if (!reportRef.current || !reportData) {
+    if (
+      !reportRef.current ||
+      !reportData
+    ) {
       return;
     }
 
@@ -84,7 +98,9 @@ export default function MemberReportPage() {
       await exportMemberReportToPdf({
         element: reportRef.current,
       });
-    } catch (exportPdfError: unknown) {
+    } catch (
+      exportPdfError: unknown
+    ) {
       console.error(exportPdfError);
 
       setExportError(
@@ -99,179 +115,117 @@ export default function MemberReportPage() {
 
   return (
     <main className="space-y-8">
-      <section className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <Link
-            href="/reportes"
-            className="text-sm font-semibold text-emerald-800 transition hover:text-emerald-950"
-          >
-            ← Volver a Reportes
-          </Link>
+      <ReportPageHeader
+        eyebrow="Reporte administrativo"
+        title="Reporte de integrantes"
+        description="Consulta el estado general de los integrantes, su distribución por voces y la información registrada en Vivace Suite."
+        actions={
+          <ReportExportButton
+            isLoading={isLoading}
+            isExporting={isExporting}
+            isDisabled={!reportData}
+            onExport={() => {
+              void handleExportPdf();
+            }}
+          />
+        }
+      />
 
-          <p className="mt-6 text-sm font-medium text-slate-500">
-            Reporte administrativo
-          </p>
+      {exportError ? (
+        <ReportErrorState
+          title="No fue posible exportar el reporte"
+          message={exportError}
+        />
+      ) : null}
 
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">
-            Reporte de integrantes
-          </h1>
+      {isLoading ? (
+        <ReportLoadingState message="Cargando reporte de integrantes..." />
+      ) : null}
 
-          <p className="mt-2 max-w-3xl text-slate-600">
-            Consulta el estado general de los integrantes,
-            su distribución por voces y la información
-            registrada en Vivace Suite.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => {
-            void handleExportPdf();
-          }}
-          disabled={
-            isLoading ||
-            isExporting ||
-            !reportData
-          }
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-emerald-800 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-900 disabled:cursor-not-allowed disabled:bg-slate-300"
-        >
-          <DownloadIcon />
-
-          {isExporting
-            ? "Generando PDF..."
-            : "Exportar PDF"}
-        </button>
-      </section>
-
-      {exportError && (
-        <section className="rounded-2xl border border-rose-200 bg-rose-50 px-6 py-4">
-          <p className="text-sm font-medium text-rose-800">
-            {exportError}
-          </p>
-        </section>
-      )}
-
-      {isLoading && (
-        <LoadingState />
-      )}
-
-      {!isLoading && error && (
-        <ErrorState message={error} />
-      )}
+      {!isLoading && error ? (
+        <ReportErrorState message={error} />
+      ) : null}
 
       {!isLoading &&
-        !error &&
-        reportData && (
-          <div
-            ref={reportRef}
-            className="space-y-8 bg-slate-50"
-          >
-            <ReportPrintHeader
-              generatedAt={
-                reportData.document.metadata.generatedAt
-              }
-            />
-
-            <ReportContent
-              reportData={reportData}
-            />
-          </div>
-        )}
+      !error &&
+      reportData ? (
+        <MemberReportContent
+          ref={reportRef}
+          reportData={reportData}
+        />
+      ) : null}
     </main>
   );
 }
 
-interface ReportPrintHeaderProps {
-  generatedAt: string;
-}
-
-function ReportPrintHeader({
-  generatedAt,
-}: ReportPrintHeaderProps) {
-  return (
-    <section className="rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-4">
-          <img
-            src="/images/logo.png"
-            alt="Ensamble Coral Vivace"
-            className="h-14 w-auto object-contain"
-          />
-
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-800">
-              Ensamble Coral Vivace
-            </p>
-
-            <h2 className="mt-1 text-xl font-bold text-slate-900">
-              Reporte general de integrantes
-            </h2>
-
-            <p className="mt-1 text-sm text-slate-500">
-              Vivace Suite
-            </p>
-          </div>
-        </div>
-
-        <div className="text-left sm:text-right">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-            Generado
-          </p>
-
-          <p className="mt-1 text-sm font-medium text-slate-700">
-            {formatGeneratedAt(generatedAt)}
-          </p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-interface ReportContentProps {
+interface MemberReportContentProps {
   reportData: MemberReportData;
 }
 
-function ReportContent({
-  reportData,
-}: ReportContentProps) {
+const MemberReportContent = forwardRef<
+  HTMLDivElement,
+  MemberReportContentProps
+>(function MemberReportContent(
+  {
+    reportData,
+  },
+  ref,
+) {
   const {
-    summary,
-    members,
     document,
+    members,
+    summary,
   } = reportData;
 
+  const metrics: ReportMetric[] = [
+    {
+      label: "Integrantes registrados",
+      value: summary.totalMembers,
+      description:
+        "Total incluido en el reporte",
+    },
+    {
+      label: "Integrantes activos",
+      value: summary.activeMembers,
+      description: `${summary.activePercentage.toFixed(
+        2,
+      )}% del total`,
+    },
+    {
+      label: "Permisos temporales",
+      value:
+        summary.temporaryLeaveMembers,
+      description:
+        "Integrantes con permiso",
+    },
+    {
+      label: "Inactivos y bajas",
+      value:
+        summary.inactiveMembers +
+        summary.permanentlyInactiveMembers,
+      description:
+        "Registros no activos",
+    },
+  ];
+
   return (
-    <>
-      <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-        <SummaryCard
-          label="Integrantes registrados"
-          value={summary.totalMembers}
-          description="Total incluido en el reporte"
-        />
+    <div
+      ref={ref}
+      className="space-y-8 bg-slate-50"
+    >
+      <ReportPrintHeader
+        organization="Ensamble Coral Vivace"
+        reportTitle="Reporte general de integrantes"
+        subtitle="Vivace Suite"
+        generatedAt={
+          document.metadata.generatedAt
+        }
+      />
 
-        <SummaryCard
-          label="Integrantes activos"
-          value={summary.activeMembers}
-          description={`${summary.activePercentage.toFixed(
-            2,
-          )}% del total`}
-        />
-
-        <SummaryCard
-          label="Permisos temporales"
-          value={summary.temporaryLeaveMembers}
-          description="Integrantes con permiso"
-        />
-
-        <SummaryCard
-          label="Inactivos y bajas"
-          value={
-            summary.inactiveMembers +
-            summary.permanentlyInactiveMembers
-          }
-          description="Registros no activos"
-        />
-      </section>
+      <ReportSummaryCards
+        metrics={metrics}
+        columns={4}
+      />
 
       <section className="grid gap-6 xl:grid-cols-2">
         <DistributionCard
@@ -281,7 +235,8 @@ function ReportContent({
             (item) => ({
               label: item.voice,
               value: item.total,
-              percentage: item.percentage,
+              percentage:
+                item.percentage,
             }),
           )}
         />
@@ -293,73 +248,36 @@ function ReportContent({
             (item) => ({
               label: item.status,
               value: item.total,
-              percentage: item.percentage,
+              percentage:
+                item.percentage,
             }),
           )}
         />
       </section>
 
-      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-200 px-6 py-5">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2 className="text-xl font-semibold text-slate-900">
-                Listado general
-              </h2>
-
-              <p className="mt-1 text-sm text-slate-500">
-                {members.length}{" "}
-                {members.length === 1
-                  ? "integrante incluido"
-                  : "integrantes incluidos"}
-                .
-              </p>
-            </div>
-
-            <p className="text-xs font-medium text-slate-400">
-              Generado:{" "}
-              {formatGeneratedAt(
-                document.metadata.generatedAt,
-              )}
-            </p>
-          </div>
-        </div>
-
+      <ReportTableCard
+        title="Listado general"
+        description={`${members.length} ${
+          members.length === 1
+            ? "integrante incluido"
+            : "integrantes incluidos"
+        }.`}
+        footer={
+          <p className="text-xs font-medium text-slate-500">
+            Generado:{" "}
+            {formatGeneratedAt(
+              document.metadata.generatedAt,
+            )}
+          </p>
+        }
+      >
         <MemberReportTable
           members={members}
         />
-      </section>
-    </>
+      </ReportTableCard>
+    </div>
   );
-}
-
-interface SummaryCardProps {
-  label: string;
-  value: number;
-  description: string;
-}
-
-function SummaryCard({
-  label,
-  value,
-  description,
-}: SummaryCardProps) {
-  return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <p className="text-sm font-medium text-slate-500">
-        {label}
-      </p>
-
-      <p className="mt-2 text-3xl font-bold text-slate-900">
-        {value}
-      </p>
-
-      <p className="mt-2 text-sm text-slate-500">
-        {description}
-      </p>
-    </article>
-  );
-}
+});
 
 interface DistributionRow {
   label: string;
@@ -390,9 +308,7 @@ function DistributionCard({
 
       <div className="mt-6 space-y-4">
         {rows.length === 0 ? (
-          <p className="text-sm text-slate-500">
-            No hay información disponible.
-          </p>
+          <EmptyReportState message="El reporte se actualizará cuando existan registros." />
         ) : (
           rows.map((row) => (
             <div key={row.label}>
@@ -403,7 +319,10 @@ function DistributionCard({
 
                 <span className="text-slate-500">
                   {row.value} ·{" "}
-                  {row.percentage.toFixed(2)}%
+                  {row.percentage.toFixed(
+                    2,
+                  )}
+                  %
                 </span>
               </div>
 
@@ -435,15 +354,10 @@ function MemberReportTable({
 }: MemberReportTableProps) {
   if (members.length === 0) {
     return (
-      <div className="px-6 py-12 text-center">
-        <p className="font-medium text-slate-700">
-          No hay integrantes registrados.
-        </p>
-
-        <p className="mt-1 text-sm text-slate-500">
-          El reporte se actualizará cuando existan registros.
-        </p>
-      </div>
+      <EmptyReportState
+        title="No hay integrantes registrados"
+        message="El reporte se actualizará cuando existan registros."
+      />
     );
   }
 
@@ -484,9 +398,7 @@ function MemberReportTable({
               key={member.id}
               className="transition hover:bg-slate-50"
             >
-              <TableCell
-                className="font-semibold text-slate-900"
-              >
+              <TableCell className="font-semibold text-slate-900">
                 {member.fullName}
               </TableCell>
 
@@ -581,58 +493,6 @@ function StatusBadge({
     >
       {status}
     </span>
-  );
-}
-
-function LoadingState() {
-  return (
-    <section className="rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center shadow-sm">
-      <div className="mx-auto h-9 w-9 animate-spin rounded-full border-4 border-slate-200 border-t-emerald-700" />
-
-      <p className="mt-4 font-medium text-slate-700">
-        Cargando reporte de integrantes...
-      </p>
-    </section>
-  );
-}
-
-interface ErrorStateProps {
-  message: string;
-}
-
-function ErrorState({
-  message,
-}: ErrorStateProps) {
-  return (
-    <section className="rounded-2xl border border-rose-200 bg-rose-50 px-6 py-8">
-      <h2 className="font-semibold text-rose-900">
-        No fue posible cargar el reporte
-      </h2>
-
-      <p className="mt-2 text-sm text-rose-700">
-        {message}
-      </p>
-    </section>
-  );
-}
-
-function DownloadIcon() {
-  return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M12 3v12" />
-      <path d="m7 10 5 5 5-5" />
-      <path d="M5 21h14" />
-    </svg>
   );
 }
 

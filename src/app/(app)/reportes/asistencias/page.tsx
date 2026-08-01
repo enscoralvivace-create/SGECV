@@ -1,22 +1,27 @@
 "use client";
 
-import Link from "next/link";
 import {
   useEffect,
   useRef,
   useState,
 } from "react";
 
-import AttendanceExportButton from "@/components/reports/attendance/AttendanceExportButton";
+import ReportErrorState from "@/components/reports/common/ReportErrorState";
+import ReportExportButton from "@/components/reports/common/ReportExportButton";
+import ReportLoadingState from "@/components/reports/common/ReportLoadingState";
+import ReportPageHeader from "@/components/reports/common/ReportPageHeader";
+import ReportPrintHeader from "@/components/reports/common/ReportPrintHeader";
+import ReportSummaryCards, {
+  type ReportMetric,
+} from "@/components/reports/common/ReportSummaryCards";
+
 import AttendanceFilterPanel, {
   type AttendanceDateFilterState,
 } from "@/components/reports/attendance/AttendanceFilterPanel";
 import AttendanceMemberTable from "@/components/reports/attendance/AttendanceMemberTable";
 import AttendanceOverviewCard from "@/components/reports/attendance/AttendanceOverviewCard";
-import AttendancePrintHeader from "@/components/reports/attendance/AttendancePrintHeader";
 import AttendanceSessionTable from "@/components/reports/attendance/AttendanceSessionTable";
 import AttendanceStatusDistribution from "@/components/reports/attendance/AttendanceStatusDistribution";
-import AttendanceSummaryCards from "@/components/reports/attendance/AttendanceSummaryCards";
 
 import { exportAttendanceReportToPdf } from "@/services/reports/attendance/attendanceReportPdfService";
 import { getAttendanceReportData } from "@/services/reports/attendance/attendanceReportService";
@@ -168,39 +173,21 @@ export default function AttendanceReportPage() {
 
   return (
     <main className="space-y-8">
-      <section className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <Link
-            href="/reportes"
-            className="text-sm font-semibold text-emerald-800 transition hover:text-emerald-950"
-          >
-            ← Volver a Reportes
-          </Link>
-
-          <p className="mt-6 text-sm font-medium text-slate-500">
-            Reporte administrativo
-          </p>
-
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">
-            Reporte de asistencias
-          </h1>
-
-          <p className="mt-2 max-w-3xl text-slate-600">
-            Analiza la participación del ensamble,
-            la puntualidad y las incidencias registradas
-            durante el periodo seleccionado.
-          </p>
-        </div>
-
-        <AttendanceExportButton
-          isLoading={isLoading}
-          isExporting={isExporting}
-          isDisabled={!reportData}
-          onExport={() => {
-            void handleExportPdf();
-          }}
-        />
-      </section>
+      <ReportPageHeader
+        eyebrow="Reporte administrativo"
+        title="Reporte de asistencias"
+        description="Analiza la participación del ensamble, la puntualidad y las incidencias registradas durante el periodo seleccionado."
+        actions={
+          <ReportExportButton
+            isLoading={isLoading}
+            isExporting={isExporting}
+            isDisabled={!reportData}
+            onExport={() => {
+              void handleExportPdf();
+            }}
+          />
+        }
+      />
 
       <AttendanceFilterPanel
         filters={filters}
@@ -210,126 +197,131 @@ export default function AttendanceReportPage() {
         onClear={handleClearFilters}
       />
 
-      {exportError && (
-        <section className="rounded-2xl border border-rose-200 bg-rose-50 px-6 py-4">
-          <p className="text-sm font-medium text-rose-800">
-            {exportError}
-          </p>
-        </section>
-      )}
+      {exportError ? (
+        <ReportErrorState
+          title="No fue posible exportar el reporte"
+          message={exportError}
+        />
+      ) : null}
 
-      {isLoading && (
-        <LoadingState />
-      )}
+      {isLoading ? (
+        <ReportLoadingState message="Cargando reporte de asistencias..." />
+      ) : null}
 
-      {!isLoading &&
-        error && (
-          <ErrorState
-            message={error}
-          />
-        )}
+      {!isLoading && error ? (
+        <ReportErrorState message={error} />
+      ) : null}
 
       {!isLoading &&
-        !error &&
-        reportData && (
-          <div
-            ref={reportRef}
-            className="space-y-8 bg-slate-50"
-          >
-            <AttendancePrintHeader
-              generatedAt={
-                reportData.document
-                  .metadata.generatedAt
-              }
-              filters={
-                reportData.filters
-              }
-            />
-
-            <AttendanceSummaryCards
-              summary={
-                reportData.summary
-              }
-            />
-
-            <section className="grid gap-6 xl:grid-cols-2">
-              <AttendanceStatusDistribution
-                rows={
-                  reportData.summary
-                    .statuses
-                }
-              />
-
-              <AttendanceOverviewCard
-                presentCount={
-                  reportData.summary
-                    .presentCount
-                }
-                lateCount={
-                  reportData.summary
-                    .lateCount
-                }
-                justifiedCount={
-                  reportData.summary
-                    .justifiedCount
-                }
-                absentCount={
-                  reportData.summary
-                    .absentCount
-                }
-                totalRecords={
-                  reportData.summary
-                    .totalRecords
-                }
-              />
-            </section>
-
-            <AttendanceMemberTable
-              members={
-                reportData.members
-              }
-            />
-
-            <AttendanceSessionTable
-              sessions={
-                reportData.sessions
-              }
-            />
-          </div>
-        )}
+      !error &&
+      reportData ? (
+        <AttendanceReportContent
+          reportData={reportData}
+          reportRef={reportRef}
+        />
+      ) : null}
     </main>
   );
 }
 
-function LoadingState() {
-  return (
-    <section className="rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center shadow-sm">
-      <div className="mx-auto h-9 w-9 animate-spin rounded-full border-4 border-slate-200 border-t-emerald-700" />
-
-      <p className="mt-4 font-medium text-slate-700">
-        Cargando reporte de asistencias...
-      </p>
-    </section>
-  );
+interface AttendanceReportContentProps {
+  reportData: AttendanceReportData;
+  reportRef:
+    React.RefObject<HTMLDivElement | null>;
 }
 
-interface ErrorStateProps {
-  message: string;
-}
+function AttendanceReportContent({
+  reportData,
+  reportRef,
+}: AttendanceReportContentProps) {
+  const metrics: ReportMetric[] = [
+    {
+      label: "Sesiones registradas",
+      value:
+        reportData.summary.totalSessions,
+      description:
+        "Incluidas en el periodo",
+    },
+    {
+      label: "Asistencia general",
+      value: `${reportData.summary.attendancePercentage.toFixed(
+        2,
+      )}%`,
+      description:
+        "Presentes y retardos",
+    },
+    {
+      label: "Puntualidad",
+      value: `${reportData.summary.punctualityPercentage.toFixed(
+        2,
+      )}%`,
+      description:
+        "Presentes entre quienes asistieron",
+    },
+    {
+      label: "Faltas registradas",
+      value:
+        reportData.summary.absentCount,
+      description:
+        "Faltas no justificadas",
+    },
+  ];
 
-function ErrorState({
-  message,
-}: ErrorStateProps) {
   return (
-    <section className="rounded-2xl border border-rose-200 bg-rose-50 px-6 py-8">
-      <h2 className="font-semibold text-rose-900">
-        No fue posible cargar el reporte
-      </h2>
+    <div
+      ref={reportRef}
+      className="space-y-8 bg-slate-50"
+    >
+      <ReportPrintHeader
+        organization="Ensamble Coral Vivace"
+        reportTitle="Reporte general de asistencias"
+        subtitle={formatReportPeriod(
+          reportData.filters,
+        )}
+        generatedAt={
+          reportData.document.metadata.generatedAt
+        }
+      />
 
-      <p className="mt-2 text-sm text-rose-700">
-        {message}
-      </p>
-    </section>
+      <ReportSummaryCards
+        metrics={metrics}
+        columns={4}
+      />
+
+      <section className="grid gap-6 xl:grid-cols-2">
+        <AttendanceStatusDistribution
+          rows={
+            reportData.summary.statuses
+          }
+        />
+
+        <AttendanceOverviewCard
+          presentCount={
+            reportData.summary.presentCount
+          }
+          lateCount={
+            reportData.summary.lateCount
+          }
+          justifiedCount={
+            reportData.summary.justifiedCount
+          }
+          absentCount={
+            reportData.summary.absentCount
+          }
+          totalRecords={
+            reportData.summary.totalRecords
+          }
+        />
+      </section>
+
+      <AttendanceMemberTable
+        members={reportData.members}
+      />
+
+      <AttendanceSessionTable
+        sessions={reportData.sessions}
+      />
+    </div>
   );
 }
 
@@ -342,4 +334,57 @@ function toServiceFilters(
     endDate:
       filters.endDate || null,
   };
+}
+
+function formatReportPeriod(
+  filters: AttendanceReportFilters,
+): string {
+  if (
+    !filters.startDate &&
+    !filters.endDate
+  ) {
+    return "Historial completo";
+  }
+
+  if (
+    filters.startDate &&
+    filters.endDate
+  ) {
+    return `Del ${formatDateValue(
+      filters.startDate,
+    )} al ${formatDateValue(
+      filters.endDate,
+    )}`;
+  }
+
+  if (filters.startDate) {
+    return `Desde ${formatDateValue(
+      filters.startDate,
+    )}`;
+  }
+
+  return `Hasta ${formatDateValue(
+    filters.endDate ?? "",
+  )}`;
+}
+
+function formatDateValue(
+  value: string,
+): string {
+  const date = new Date(
+    `${value}T00:00:00`,
+  );
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat(
+    "es-MX",
+    {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    },
+  ).format(date);
 }
