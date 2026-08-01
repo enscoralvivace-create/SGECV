@@ -205,57 +205,57 @@ export default function AttendanceDashboard() {
     dashboardData.sessions[0] ?? null;
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-4 sm:space-y-7">
       {errorMessage && (
         <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
           {errorMessage}
         </div>
       )}
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <section className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+        <article className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm sm:p-5">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-slate-500">
               Integrantes activos
             </span>
 
-            <Users className="h-5 w-5 text-indigo-600" />
+            <Users className="h-5 w-5 text-emerald-700" />
           </div>
 
-          <p className="mt-3 text-3xl font-bold text-slate-950">
+          <p className="mt-2 text-2xl font-bold text-slate-950 sm:mt-3 sm:text-3xl">
             {dashboardData.activeMembers}
           </p>
         </article>
 
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <article className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm sm:p-5">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-slate-500">
               Sesiones registradas
             </span>
 
-            <Clock3 className="h-5 w-5 text-indigo-600" />
+            <Clock3 className="h-5 w-5 text-emerald-700" />
           </div>
 
-          <p className="mt-3 text-3xl font-bold text-slate-950">
+          <p className="mt-2 text-2xl font-bold text-slate-950 sm:mt-3 sm:text-3xl">
             {dashboardData.totalSessions}
           </p>
         </article>
 
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <article className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm sm:p-5">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-slate-500">
               Registros acumulados
             </span>
 
-            <UserRoundCheck className="h-5 w-5 text-indigo-600" />
+            <UserRoundCheck className="h-5 w-5 text-emerald-700" />
           </div>
 
-          <p className="mt-3 text-3xl font-bold text-slate-950">
+          <p className="mt-2 text-2xl font-bold text-slate-950 sm:mt-3 sm:text-3xl">
             {dashboardData.totalRecords}
           </p>
         </article>
 
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <article className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm sm:p-5">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-slate-500">
               Asistencia promedio
@@ -264,7 +264,7 @@ export default function AttendanceDashboard() {
             <CheckCircle2 className="h-5 w-5 text-emerald-600" />
           </div>
 
-          <p className="mt-3 text-3xl font-bold text-slate-950">
+          <p className="mt-2 text-2xl font-bold text-slate-950 sm:mt-3 sm:text-3xl">
             {dashboardData.averageAttendance}%
           </p>
         </article>
@@ -274,7 +274,7 @@ export default function AttendanceDashboard() {
         <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex flex-col justify-between gap-5 md:flex-row md:items-center">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-wide text-indigo-600">
+              <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">
                 Sesión más reciente
               </p>
 

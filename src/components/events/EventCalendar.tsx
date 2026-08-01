@@ -147,14 +147,14 @@ export default function EventCalendar({
   }
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
-      <header className="flex flex-col gap-4 border-b border-slate-200 p-5 sm:flex-row sm:items-center sm:justify-between">
+    <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <header className="flex flex-col gap-3 sm:gap-4 border-b border-slate-200 p-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm font-medium text-indigo-600">
             Calendario mensual
           </p>
 
-          <h2 className="mt-1 text-2xl font-bold text-slate-900">
+          <h2 className="mt-1 text-xl sm:text-2xl font-bold text-slate-900">
             {monthTitle}
           </h2>
         </div>
@@ -190,7 +190,7 @@ export default function EventCalendar({
 
       <div className="overflow-x-auto p-4 sm:p-5">
         <div className="min-w-[700px]">
-          <div className="grid grid-cols-7 border-b border-slate-200">
+          <div className="grid min-w-[560px] grid-cols-7 border-b border-slate-200">
             {WEEK_DAYS.map((day) => (
               <div
                 key={day}
@@ -201,7 +201,7 @@ export default function EventCalendar({
             ))}
           </div>
 
-          <div className="grid grid-cols-7">
+          <div className="grid min-w-[560px] grid-cols-7">
             {calendarDays.map((date, index) => {
               if (!date) {
                 return (

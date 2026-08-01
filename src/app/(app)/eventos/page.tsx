@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import EventCalendar from "@/components/events/EventCalendar";
 import EventForm from "@/components/events/EventForm";
+import VivacePageHeader from "@/components/ui/VivacePageHeader";
 
 import {
   createEvent,
@@ -171,47 +172,36 @@ export default function EventsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-slate-50 px-4 py-5 sm:px-6 sm:py-6 lg:p-8">
       <div className="mx-auto max-w-7xl">
-        {/* Encabezado */}
-        <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm font-medium uppercase tracking-wide text-indigo-600">
-              Vivace Suite
-            </p>
-
-            <h1 className="mt-1 text-3xl font-bold text-slate-900">
-              Ensayos y eventos
-            </h1>
-
-            <p className="mt-2 text-sm text-slate-600">
-              Administra conciertos, ensayos, reuniones, talleres y
-              actividades del ensamble.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={openCreateForm}
-            className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
-          >
-            + Nuevo evento
-          </button>
-        </header>
+        <VivacePageHeader
+          eyebrow="Agenda coral"
+          title="Ensayos y eventos"
+          description="Administra conciertos, ensayos, reuniones, talleres y actividades del ensamble."
+          actions={
+            <button
+              type="button"
+              onClick={openCreateForm}
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-emerald-950 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-900 active:scale-[0.98] sm:w-auto"
+            >
+              + Nuevo evento
+            </button>
+          }
+        />
 
         {/* Mensaje de error */}
         {errorMessage && (
           <div
             role="alert"
-            className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+            className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 sm:mb-6"
           >
             {errorMessage}
           </div>
         )}
 
         {/* Filtros */}
-        <section className="mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="grid gap-4 md:grid-cols-3">
+        <section className="mb-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:mb-6 sm:rounded-3xl sm:p-5">
+          <div className="grid gap-3 sm:gap-4 md:grid-cols-3">
             <div>
               <label
                 htmlFor="event-search"
@@ -228,7 +218,7 @@ export default function EventsPage() {
                   setSearchTerm(event.target.value)
                 }
                 placeholder="Nombre, lugar o descripción"
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                className="min-h-11 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-base text-slate-900 outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100 sm:text-sm"
               />
             </div>
 
@@ -248,7 +238,7 @@ export default function EventsPage() {
                     event.target.value as EventType | "Todos"
                   )
                 }
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                className="min-h-11 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-base text-slate-900 outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100 sm:text-sm"
               >
                 <option value="Todos">Todos los tipos</option>
 
@@ -276,7 +266,7 @@ export default function EventsPage() {
                     event.target.value as EventStatus | "Todos"
                   )
                 }
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                className="min-h-11 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-base text-slate-900 outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100 sm:text-sm"
               >
                 <option value="Todos">
                   Todos los estados
@@ -382,7 +372,7 @@ function EventCard({
     <article className="flex h-full flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-medium text-indigo-600">
+          <p className="text-sm font-medium text-emerald-700">
             {getEventTypeLabel(event.event_type)}
           </p>
 

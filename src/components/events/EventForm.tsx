@@ -120,7 +120,7 @@ export default function EventForm({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-4 py-6">
       <div className="max-h-[95vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
+        <div className="sticky top-0 z-10 flex items-start justify-between border-b border-slate-200 bg-white/95 px-4 py-4 backdrop-blur sm:px-6 sm:py-5">
           <div>
             <p className="text-sm font-medium text-indigo-600">
               Ensayos y eventos
@@ -141,7 +141,7 @@ export default function EventForm({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6">
+        <form onSubmit={handleSubmit} className="p-4 pb-[max(1rem,var(--safe-bottom))] sm:p-6">
           {formError && (
             <div
               role="alert"
@@ -151,7 +151,7 @@ export default function EventForm({
             </div>
           )}
 
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 sm:gap-5">
             <div className="sm:col-span-2">
               <label
                 htmlFor="event-title"

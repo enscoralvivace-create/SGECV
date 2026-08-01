@@ -143,7 +143,7 @@ export default function AttendanceQrCard({
       <VivaceLoading
         message="Preparando el código QR..."
         variant="card"
-        className="min-h-[320px]"
+        className="min-h-[260px] sm:min-h-[320px]"
       />
     );
   }
@@ -154,7 +154,7 @@ export default function AttendanceQrCard({
   ) {
     return (
       <VivaceCard className="border-rose-200 bg-rose-50/70">
-        <VivaceCard.Body>
+        <VivaceCard.Body className="p-4 sm:p-6">
           <div className="flex items-start gap-4">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-rose-100 text-rose-700">
               <TriangleAlert className="h-5 w-5" />
@@ -212,11 +212,11 @@ export default function AttendanceQrCard({
           </div>
         </div>
 
-        <div className="mt-6 flex justify-center">
-          <div className="rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm">
+        <div className="mt-5 flex justify-center sm:mt-6">
+          <div className="w-full max-w-[280px] rounded-2xl border border-emerald-100 bg-white p-3 shadow-sm sm:rounded-3xl sm:p-5 [&>svg]:h-auto [&>svg]:w-full">
             <QRCodeSVG
               value={qrUrl}
-              size={220}
+              size={240}
               level="M"
               marginSize={2}
               title="Código QR de asistencia"
@@ -224,7 +224,7 @@ export default function AttendanceQrCard({
           </div>
         </div>
 
-        <div className="mt-4 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+        <div className="mt-4 hidden rounded-2xl sm:block border border-slate-200 bg-white px-4 py-3">
           <p className="text-center text-[11px] font-semibold uppercase tracking-wide text-slate-400">
             Enlace de registro
           </p>
@@ -234,7 +234,7 @@ export default function AttendanceQrCard({
           </p>
         </div>
 
-        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-5 sm:gap-4">
           <VivaceStatCard
             title="Registrados"
             value={attendanceCount}
