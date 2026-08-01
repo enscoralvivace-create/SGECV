@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -124,29 +125,30 @@ export default function TripBudgetReceiptsModal({
     setError,
   ] = useState<string | null>(null);
 
-  async function loadReceipts(): Promise<void> {
-    try {
-      setLoading(true);
-      setError(null);
+  const loadReceipts =
+    useCallback(async (): Promise<void> => {
+      try {
+        setLoading(true);
+        setError(null);
 
-      const data =
-        await getTripBudgetReceipts(
-          budgetItemId,
+        const data =
+          await getTripBudgetReceipts(
+            budgetItemId,
+          );
+
+        setReceipts(data);
+      } catch (loadError) {
+        setError(
+          getErrorMessage(loadError),
         );
-
-      setReceipts(data);
-    } catch (loadError) {
-      setError(
-        getErrorMessage(loadError),
-      );
-    } finally {
-      setLoading(false);
-    }
-  }
+      } finally {
+        setLoading(false);
+      }
+    }, [budgetItemId]);
 
   useEffect(() => {
     void loadReceipts();
-  }, [budgetItemId]);
+  }, [loadReceipts]);
 
   async function handleFileChange(
     event: React.ChangeEvent<HTMLInputElement>,

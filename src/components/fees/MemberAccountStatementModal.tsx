@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useCallback,
   useEffect,
   useMemo,
   useState,
@@ -64,30 +65,33 @@ export default function MemberAccountStatementModal({
   const [loadError, setLoadError] =
     useState<string | null>(null);
 
+  const loadCharges =
+    useCallback(async (): Promise<void> => {
+      try {
+        setIsLoading(true);
+        setLoadError(null);
+
+        const memberCharges =
+          await getChargesByMember(
+            member.id,
+          );
+
+        setCharges(memberCharges);
+      } catch (error) {
+        setLoadError(
+          getErrorMessage(
+            error,
+            "No fue posible cargar el estado de cuenta.",
+          ),
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    }, [member.id]);
+
   useEffect(() => {
     void loadCharges();
-  }, [member.id]);
-
-  async function loadCharges() {
-    try {
-      setIsLoading(true);
-      setLoadError(null);
-
-      const memberCharges =
-        await getChargesByMember(member.id);
-
-      setCharges(memberCharges);
-    } catch (error) {
-      setLoadError(
-        getErrorMessage(
-          error,
-          "No fue posible cargar el estado de cuenta.",
-        ),
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }
+  }, [loadCharges]);
 
   const totals = useMemo(
     () =>

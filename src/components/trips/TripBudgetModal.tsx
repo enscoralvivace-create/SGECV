@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  useCallback,
   useEffect,
   useMemo,
   useState,
@@ -158,9 +159,9 @@ export default function TripBudgetModal({
     useState<TripBudgetItem[]>([]);
 
   const [
-  receiptCounts,
-  setReceiptCounts,
-] = useState<TripBudgetReceiptCount[]>([]);
+    receiptCounts,
+    setReceiptCounts,
+  ] = useState<TripBudgetReceiptCount[]>([]);
 
   const [loading, setLoading] =
     useState(true);
@@ -172,53 +173,54 @@ export default function TripBudgetModal({
     useState(false);
 
   const [editingItem, setEditingItem] =
-  useState<TripBudgetItem | null>(null);
+    useState<TripBudgetItem | null>(null);
 
   const [
-  receiptsItem,
-  setReceiptsItem,
-] = useState<TripBudgetItem | null>(null);
+    receiptsItem,
+    setReceiptsItem,
+  ] = useState<TripBudgetItem | null>(null);
 
   const [isDeleting, setIsDeleting] =
-  useState<string | null>(null);
+    useState<string | null>(null);
 
   const [error, setError] =
     useState("");
 
-  async function loadBudget() {
-    try {
-      setLoading(true);
-      setError("");
+  const loadBudget =
+    useCallback(async (): Promise<void> => {
+      try {
+        setLoading(true);
+        setError("");
 
-      const result =
-  await getTripBudgetItems(
-    tripId,
-  );
+        const result =
+          await getTripBudgetItems(
+            tripId,
+          );
 
-const counts =
-  await getTripBudgetReceiptCounts(
-    result.map(
-      (item) => item.id,
-    ),
-  );
+        const counts =
+          await getTripBudgetReceiptCounts(
+            result.map(
+              (item) => item.id,
+            ),
+          );
 
-setItems(result);
-setReceiptCounts(counts);
-    } catch (loadError: unknown) {
-      setError(
-        `No fue posible cargar el presupuesto: ${getErrorMessage(
-          loadError,
-          "Error desconocido.",
-        )}`,
-      );
-    } finally {
-      setLoading(false);
-    }
-  }
+        setItems(result);
+        setReceiptCounts(counts);
+      } catch (loadError: unknown) {
+        setError(
+          `No fue posible cargar el presupuesto: ${getErrorMessage(
+            loadError,
+            "Error desconocido.",
+          )}`,
+        );
+      } finally {
+        setLoading(false);
+      }
+    }, [tripId]);
 
   useEffect(() => {
     void loadBudget();
-  }, [tripId]);
+  }, [loadBudget]);
 
   const summary = useMemo(
     () =>

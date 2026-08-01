@@ -243,6 +243,8 @@ export default function TripBudgetReceiptPreviewModal({
           ) : isImage(receipt.mimeType) &&
             signedUrl ? (
             <div className="flex min-h-[420px] items-center justify-center rounded-xl border border-slate-200 bg-white p-4">
+              {/* La URL firmada es dinámica y temporal; se conserva img intencionalmente. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={signedUrl}
                 alt={`Comprobante ${receipt.fileName}`}
