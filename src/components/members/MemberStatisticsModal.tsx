@@ -271,7 +271,7 @@ export default function MemberStatisticsModal({
         </VivaceCard>
 
         <VivaceCard className="overflow-hidden">
-          <div className="flex overflow-x-auto border-b border-slate-200 bg-slate-50">
+          <div className="flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain border-b border-slate-200 bg-slate-50 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {MEMBER_SECTION_TABS.map(
               (tab) => {
                 const Icon =
@@ -285,7 +285,7 @@ export default function MemberStatisticsModal({
                       !tab.available
                     }
                     className={[
-                      "flex min-w-max items-center gap-2 border-b-2 px-5 py-4 text-sm font-semibold transition",
+                      "flex min-w-max snap-start items-center gap-2 border-b-2 px-4 py-3 text-xs font-semibold transition sm:px-5 sm:py-4 sm:text-sm",
                       tab.available
                         ? "border-emerald-900 bg-white text-emerald-950"
                         : "border-transparent text-slate-400",
@@ -313,7 +313,7 @@ export default function MemberStatisticsModal({
             )}
           </div>
 
-          <VivaceCard.Body className="bg-slate-50/40">
+          <VivaceCard.Body className="bg-slate-50/40 p-3 sm:p-5">
             <MemberAttendanceStatsPanel
               memberId={member.id}
             />

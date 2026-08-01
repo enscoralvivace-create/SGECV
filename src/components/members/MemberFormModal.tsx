@@ -33,11 +33,11 @@ export default function MemberFormModal({
   onSubmit,
 }: MemberFormModalProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4">
-      <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/60 p-0 sm:items-center sm:p-4">
+      <div className="max-h-[calc(100dvh-var(--safe-top))] w-full max-w-3xl overflow-y-auto rounded-t-3xl bg-white shadow-2xl sm:max-h-[92vh] sm:rounded-3xl">
+        <div className="sticky top-0 z-10 flex items-start justify-between border-b border-slate-200 bg-white/95 px-4 py-4 backdrop-blur sm:px-6 sm:py-5">
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">
+            <h2 className="text-xl font-bold text-slate-900 sm:text-2xl">
               {editingMember
                 ? "Editar integrante"
                 : "Nuevo integrante"}
@@ -54,7 +54,7 @@ export default function MemberFormModal({
             type="button"
             onClick={onClose}
             disabled={isSaving}
-            className="rounded-lg px-3 py-2 text-xl text-slate-500 transition hover:bg-slate-100 disabled:opacity-50"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-xl text-slate-500 transition hover:bg-slate-100 active:scale-95 disabled:opacity-50"
             aria-label="Cerrar formulario"
           >
             ✕
@@ -63,9 +63,9 @@ export default function MemberFormModal({
 
         <form
           onSubmit={onSubmit}
-          className="p-6"
+          className="p-4 pb-[max(1rem,var(--safe-bottom))] sm:p-6"
         >
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 sm:gap-5">
             <label className="block">
               <span className="mb-2 block font-semibold text-slate-700">
                 Nombre *
@@ -81,7 +81,7 @@ export default function MemberFormModal({
                     name: event.target.value,
                   }))
                 }
-                className="w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+                className="w-full min-h-11 rounded-xl border border-slate-300 px-4 py-2.5 text-base sm:text-sm text-slate-900 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
               />
             </label>
 
@@ -101,7 +101,7 @@ export default function MemberFormModal({
                       event.target.value,
                   }))
                 }
-                className="w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+                className="w-full min-h-11 rounded-xl border border-slate-300 px-4 py-2.5 text-base sm:text-sm text-slate-900 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
               />
             </label>
 
@@ -121,7 +121,7 @@ export default function MemberFormModal({
                         .value as MemberFormData["voice"],
                   }))
                 }
-                className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+                className="w-full min-h-11 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-base sm:text-sm text-slate-900 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
               >
                 <option value="">
                   Selecciona una opción
@@ -176,7 +176,7 @@ export default function MemberFormModal({
                         .value as MemberFormData["status"],
                   }))
                 }
-                className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+                className="w-full min-h-11 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-base sm:text-sm text-slate-900 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
               >
                 <option value="Activo">
                   Activo
@@ -210,7 +210,7 @@ export default function MemberFormModal({
                     phone: event.target.value,
                   }))
                 }
-                className="w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+                className="w-full min-h-11 rounded-xl border border-slate-300 px-4 py-2.5 text-base sm:text-sm text-slate-900 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
               />
             </label>
 
@@ -228,7 +228,7 @@ export default function MemberFormModal({
                     email: event.target.value,
                   }))
                 }
-                className="w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+                className="w-full min-h-11 rounded-xl border border-slate-300 px-4 py-2.5 text-base sm:text-sm text-slate-900 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
               />
             </label>
 
@@ -247,7 +247,7 @@ export default function MemberFormModal({
                       event.target.value,
                   }))
                 }
-                className="w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+                className="w-full min-h-11 rounded-xl border border-slate-300 px-4 py-2.5 text-base sm:text-sm text-slate-900 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
               />
             </label>
 
@@ -266,7 +266,7 @@ export default function MemberFormModal({
                       event.target.value,
                   }))
                 }
-                className="w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+                className="w-full min-h-11 rounded-xl border border-slate-300 px-4 py-2.5 text-base sm:text-sm text-slate-900 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
               />
             </label>
 
@@ -285,7 +285,7 @@ export default function MemberFormModal({
                       event.target.value,
                   }))
                 }
-                className="w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+                className="w-full min-h-11 rounded-xl border border-slate-300 px-4 py-2.5 text-base sm:text-sm text-slate-900 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
               />
             </label>
 
@@ -304,7 +304,7 @@ export default function MemberFormModal({
                       event.target.value,
                   }))
                 }
-                className="w-full rounded-lg border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+                className="w-full min-h-11 rounded-xl border border-slate-300 px-4 py-2.5 text-base sm:text-sm text-slate-900 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
               />
             </label>
 
@@ -323,7 +323,7 @@ export default function MemberFormModal({
                       event.target.value,
                   }))
                 }
-                className="w-full resize-none rounded-lg border border-slate-300 px-4 py-3 text-slate-900 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+                className="w-full resize-none min-h-11 rounded-xl border border-slate-300 px-4 py-2.5 text-base sm:text-sm text-slate-900 outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
               />
             </label>
           </div>

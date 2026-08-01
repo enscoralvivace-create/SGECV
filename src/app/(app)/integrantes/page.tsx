@@ -7,10 +7,10 @@ import {
   useMemo,
   useState,
 } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import Button from "@/components/common/Button";
+import VivacePageHeader from "@/components/ui/VivacePageHeader";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import MemberAccountStatementModal from "@/components/fees/MemberAccountStatementModal";
 import MemberFormModal from "@/components/members/MemberFormModal";
@@ -423,28 +423,14 @@ export default function MembersPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-100">
-      <header className="bg-emerald-900 px-6 py-6 text-white">
-        <div className="mx-auto max-w-7xl">
-          <Link
-            href="/"
-            className="text-sm font-semibold text-emerald-200 transition hover:text-white"
-          >
-            ← Volver al panel
-          </Link>
+    <main className="min-h-screen bg-slate-50 px-4 py-5 sm:px-6 sm:py-6 lg:p-8">
+      <section className="mx-auto max-w-7xl">
+        <VivacePageHeader
+          eyebrow="Gestión coral"
+          title="Integrantes"
+          description="Administra integrantes, solicitudes pendientes, perfiles, estadísticas y estados de cuenta."
+        />
 
-          <h1 className="mt-4 text-3xl font-bold">
-            Integrantes
-          </h1>
-
-          <p className="mt-2 text-emerald-100">
-            Administración de integrantes
-            del Ensamble Coral Vivace.
-          </p>
-        </div>
-      </header>
-
-      <section className="mx-auto max-w-7xl px-6 py-10">
         {!isLoading && (
           <PendingMembersCard
             members={pendingMembers}
@@ -454,15 +440,15 @@ export default function MembersPage() {
           />
         )}
 
-        <div className="h-8" />
+        <div className="h-4 sm:h-6" />
 
-        <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div className="mb-4 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:mb-6 sm:rounded-3xl sm:p-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">
+            <h2 className="text-xl font-bold text-slate-900 sm:text-2xl">
               Lista de integrantes
             </h2>
 
-            <p className="mt-1 text-slate-600">
+            <p className="mt-1 text-sm text-slate-600 sm:text-base">
               {managedMembers.length}{" "}
               {managedMembers.length === 1
                 ? "integrante registrado"
@@ -471,7 +457,7 @@ export default function MembersPage() {
             </p>
           </div>
 
-          <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto">
+          <div className="grid w-full gap-3 sm:grid-cols-[minmax(0,1fr)_auto] lg:w-auto">
             <input
               type="search"
               placeholder="Buscar por nombre, voz, correo o teléfono"
@@ -479,17 +465,17 @@ export default function MembersPage() {
               onChange={(event) =>
                 setSearch(event.target.value)
               }
-              className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100 sm:w-96"
+              className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100 sm:w-96 sm:text-sm"
             />
 
-            <Button onClick={openCreateForm}>
+            <Button onClick={openCreateForm} className="w-full sm:w-auto">
               + Nuevo integrante
             </Button>
           </div>
         </div>
 
         {message && (
-          <div className="mb-6 rounded-xl border border-slate-200 bg-white px-5 py-4 text-sm font-medium text-slate-700 shadow-sm">
+          <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900 shadow-sm sm:mb-6 sm:px-5 sm:py-4">
             {message}
           </div>
         )}

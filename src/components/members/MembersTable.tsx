@@ -2,6 +2,10 @@
 
 import {
   BarChart3,
+  CreditCard,
+  Pencil,
+  Power,
+  UserRound,
 } from "lucide-react";
 
 import StatusBadge from "@/components/common/StatusBadge";
@@ -45,6 +49,17 @@ function formatDate(
   return `${day}/${month}/${year}`;
 }
 
+function getFullName(
+  member: Member,
+): string {
+  return [
+    member.name,
+    member.last_name,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
 export default function MembersTable({
   members,
   search,
@@ -55,198 +70,344 @@ export default function MembersTable({
   onAccountStatement,
   onToggleStatus,
 }: MembersTableProps) {
+  if (isLoading) {
+    return (
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white px-4 py-14 text-center shadow-sm sm:rounded-3xl sm:px-6 sm:py-16">
+        <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-300 border-t-emerald-800" />
+
+        <p className="mt-4 font-medium text-slate-600">
+          Cargando integrantes...
+        </p>
+      </div>
+    );
+  }
+
+  if (members.length === 0) {
+    return (
+      <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-12 text-center shadow-sm sm:rounded-3xl">
+        <UserRound className="mx-auto h-10 w-10 text-slate-400" />
+
+        <p className="mt-4 font-semibold text-slate-800">
+          {search.trim()
+            ? "No se encontraron integrantes"
+            : "Todavía no hay integrantes registrados"}
+        </p>
+
+        <p className="mt-2 text-sm leading-6 text-slate-500">
+          {search.trim()
+            ? "Prueba con otro nombre, voz, correo o teléfono."
+            : "Los integrantes registrados aparecerán en esta sección."}
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-      {isLoading ? (
-        <div className="px-6 py-16 text-center">
-          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-300 border-t-emerald-800" />
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm sm:rounded-3xl">
+      <div className="space-y-3 p-3 md:hidden">
+        {members.map((member) => {
+          const isProcessing =
+            processingId === member.id;
 
-          <p className="mt-4 font-medium text-slate-600">
-            Cargando integrantes...
-          </p>
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1260px] text-left">
-            <thead className="bg-slate-50 text-sm uppercase text-slate-600">
-              <tr>
-                <th className="px-6 py-4">
-                  Nombre
-                </th>
+          const isDeactivated =
+            member.status.toLowerCase() ===
+            "baja definitiva";
 
-                <th className="px-6 py-4">
-                  Voz o función
-                </th>
+          return (
+            <article
+              key={member.id}
+              className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h3 className="truncate text-base font-bold text-slate-950">
+                    {getFullName(member)}
+                  </h3>
 
-                <th className="px-6 py-4">
-                  Teléfono
-                </th>
+                  <p className="mt-1 truncate text-sm font-medium text-emerald-800">
+                    {member.voice ||
+                      "Sin voz o función"}
+                  </p>
+                </div>
 
-                <th className="px-6 py-4">
-                  Correo
-                </th>
+                <StatusBadge
+                  status={member.status}
+                  className="shrink-0 text-xs"
+                />
+              </div>
 
-                <th className="px-6 py-4">
-                  Ingreso
-                </th>
+              <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                <div className="min-w-0 rounded-xl bg-slate-50 p-3">
+                  <dt className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
+                    Teléfono
+                  </dt>
 
-                <th className="px-6 py-4">
-                  Estado
-                </th>
+                  <dd className="mt-1 truncate font-medium text-slate-800">
+                    {member.phone ||
+                      "Sin registrar"}
+                  </dd>
+                </div>
 
-                <th className="px-6 py-4">
-                  Acciones
-                </th>
-              </tr>
-            </thead>
+                <div className="min-w-0 rounded-xl bg-slate-50 p-3">
+                  <dt className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
+                    Ingreso
+                  </dt>
 
-            <tbody className="divide-y divide-slate-200">
-              {members.map(
-                (member) => {
-                  const isProcessing =
-                    processingId ===
-                    member.id;
+                  <dd className="mt-1 truncate font-medium text-slate-800">
+                    {formatDate(
+                      member.join_date,
+                    )}
+                  </dd>
+                </div>
+              </dl>
 
-                  const isDeactivated =
-                    member.status.toLowerCase() ===
-                    "baja definitiva";
+              <p
+                className="mt-3 truncate text-sm text-slate-600"
+                title={
+                  member.email ??
+                  undefined
+                }
+              >
+                {member.email ||
+                  "Correo sin registrar"}
+              </p>
 
-                  const fullName = [
-                    member.name,
-                    member.last_name,
-                  ]
-                    .filter(Boolean)
-                    .join(" ");
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <ActionButton
+                  label="Estadísticas"
+                  icon={BarChart3}
+                  onClick={() =>
+                    onStatistics(member)
+                  }
+                  disabled={isProcessing}
+                  tone="violet"
+                />
 
-                  return (
-                    <tr
-                      key={member.id}
-                      className="transition hover:bg-slate-50"
-                    >
-                      <td className="px-6 py-4 font-semibold text-slate-900">
-                        {fullName}
-                      </td>
+                <ActionButton
+                  label="Editar"
+                  icon={Pencil}
+                  onClick={() =>
+                    onEdit(member)
+                  }
+                  disabled={isProcessing}
+                  tone="emerald"
+                />
 
-                      <td className="px-6 py-4 text-slate-600">
-                        {member.voice ||
-                          "Sin registrar"}
-                      </td>
+                <ActionButton
+                  label="Estado de cuenta"
+                  icon={CreditCard}
+                  onClick={() =>
+                    onAccountStatement(
+                      member,
+                    )
+                  }
+                  disabled={isProcessing}
+                  tone="sky"
+                />
 
-                      <td className="px-6 py-4 text-slate-600">
-                        {member.phone ||
-                          "Sin registrar"}
-                      </td>
+                <ActionButton
+                  label={
+                    isProcessing
+                      ? "Procesando..."
+                      : isDeactivated
+                        ? "Reactivar"
+                        : "Dar de baja"
+                  }
+                  icon={Power}
+                  onClick={() =>
+                    onToggleStatus(member)
+                  }
+                  disabled={isProcessing}
+                  tone="amber"
+                />
+              </div>
+            </article>
+          );
+        })}
+      </div>
 
-                      <td className="px-6 py-4 text-slate-600">
-                        {member.email ||
-                          "Sin registrar"}
-                      </td>
+      <div className="hidden overflow-x-auto md:block">
+        <table className="w-full min-w-[1160px] text-left">
+          <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-600">
+            <tr>
+              <th className="px-5 py-4">
+                Nombre
+              </th>
+              <th className="px-5 py-4">
+                Voz o función
+              </th>
+              <th className="px-5 py-4">
+                Teléfono
+              </th>
+              <th className="px-5 py-4">
+                Correo
+              </th>
+              <th className="px-5 py-4">
+                Ingreso
+              </th>
+              <th className="px-5 py-4">
+                Estado
+              </th>
+              <th className="px-5 py-4">
+                Acciones
+              </th>
+            </tr>
+          </thead>
 
-                      <td className="px-6 py-4 text-slate-600">
-                        {formatDate(
-                          member.join_date,
-                        )}
-                      </td>
+          <tbody className="divide-y divide-slate-200">
+            {members.map((member) => {
+              const isProcessing =
+                processingId === member.id;
 
-                      <td className="px-6 py-4">
-                        <StatusBadge
-                          status={
-                            member.status
-                          }
-                          className="text-sm"
-                        />
-                      </td>
+              const isDeactivated =
+                member.status.toLowerCase() ===
+                "baja definitiva";
 
-                      <td className="px-6 py-4">
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              onStatistics(
-                                member,
-                              )
-                            }
-                            disabled={
-                              isProcessing
-                            }
-                            className="inline-flex items-center gap-1.5 font-semibold text-violet-700 transition hover:text-violet-900 disabled:cursor-not-allowed disabled:opacity-50"
-                          >
-                            <BarChart3 className="h-4 w-4" />
+              return (
+                <tr
+                  key={member.id}
+                  className="transition hover:bg-emerald-50/30"
+                >
+                  <td className="px-5 py-4 font-semibold text-slate-900">
+                    {getFullName(member)}
+                  </td>
 
-                            Estadísticas
-                          </button>
+                  <td className="px-5 py-4 text-slate-600">
+                    {member.voice ||
+                      "Sin registrar"}
+                  </td>
 
-                          <button
-                            type="button"
-                            onClick={() =>
-                              onEdit(
-                                member,
-                              )
-                            }
-                            disabled={
-                              isProcessing
-                            }
-                            className="font-semibold text-emerald-700 transition hover:text-emerald-900 disabled:cursor-not-allowed disabled:opacity-50"
-                          >
-                            Editar
-                          </button>
+                  <td className="px-5 py-4 text-slate-600">
+                    {member.phone ||
+                      "Sin registrar"}
+                  </td>
 
-                          <button
-                            type="button"
-                            onClick={() =>
-                              onAccountStatement(
-                                member,
-                              )
-                            }
-                            disabled={
-                              isProcessing
-                            }
-                            className="font-semibold text-sky-700 transition hover:text-sky-900 disabled:cursor-not-allowed disabled:opacity-50"
-                          >
-                            Estado de cuenta
-                          </button>
+                  <td className="max-w-[240px] truncate px-5 py-4 text-slate-600">
+                    {member.email ||
+                      "Sin registrar"}
+                  </td>
 
-                          <button
-                            type="button"
-                            onClick={() =>
-                              onToggleStatus(
-                                member,
-                              )
-                            }
-                            disabled={
-                              isProcessing
-                            }
-                            className="font-semibold text-amber-700 transition hover:text-amber-900 disabled:cursor-not-allowed disabled:opacity-50"
-                          >
-                            {isProcessing
-                              ? "Procesando..."
-                              : isDeactivated
-                                ? "Reactivar"
-                                : "Dar de baja"}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                },
-              )}
+                  <td className="px-5 py-4 text-slate-600">
+                    {formatDate(
+                      member.join_date,
+                    )}
+                  </td>
 
-              {members.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={7}
-                    className="px-6 py-14 text-center text-slate-500"
-                  >
-                    {search.trim()
-                      ? "No se encontraron integrantes con esa búsqueda."
-                      : "Todavía no hay integrantes registrados."}
+                  <td className="px-5 py-4">
+                    <StatusBadge
+                      status={member.status}
+                      className="text-sm"
+                    />
+                  </td>
+
+                  <td className="px-5 py-4">
+                    <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onStatistics(member)
+                        }
+                        disabled={isProcessing}
+                        className="font-semibold text-violet-700 transition hover:text-violet-900 disabled:opacity-50"
+                      >
+                        Estadísticas
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onEdit(member)
+                        }
+                        disabled={isProcessing}
+                        className="font-semibold text-emerald-700 transition hover:text-emerald-900 disabled:opacity-50"
+                      >
+                        Editar
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onAccountStatement(
+                            member,
+                          )
+                        }
+                        disabled={isProcessing}
+                        className="font-semibold text-sky-700 transition hover:text-sky-900 disabled:opacity-50"
+                      >
+                        Estado de cuenta
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onToggleStatus(member)
+                        }
+                        disabled={isProcessing}
+                        className="font-semibold text-amber-700 transition hover:text-amber-900 disabled:opacity-50"
+                      >
+                        {isProcessing
+                          ? "Procesando..."
+                          : isDeactivated
+                            ? "Reactivar"
+                            : "Dar de baja"}
+                      </button>
+                    </div>
                   </td>
                 </tr>
-              ) : null}
-            </tbody>
-          </table>
-        </div>
-      )}
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
+  );
+}
+
+interface ActionButtonProps {
+  label: string;
+  icon: typeof BarChart3;
+  onClick: () => void;
+  disabled: boolean;
+  tone:
+    | "violet"
+    | "emerald"
+    | "sky"
+    | "amber";
+}
+
+const ACTION_TONES:
+Record<ActionButtonProps["tone"], string> = {
+  violet:
+    "border-violet-200 bg-violet-50 text-violet-800",
+  emerald:
+    "border-emerald-200 bg-emerald-50 text-emerald-800",
+  sky:
+    "border-sky-200 bg-sky-50 text-sky-800",
+  amber:
+    "border-amber-200 bg-amber-50 text-amber-800",
+};
+
+function ActionButton({
+  label,
+  icon: Icon,
+  onClick,
+  disabled,
+  tone,
+}: ActionButtonProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={[
+        "inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50",
+        ACTION_TONES[tone],
+      ].join(" ")}
+    >
+      <Icon className="h-4 w-4" />
+      <span className="truncate">
+        {label}
+      </span>
+    </button>
   );
 }
