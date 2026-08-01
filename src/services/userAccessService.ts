@@ -1,16 +1,24 @@
 import { supabase } from "@/lib/supabase";
 
 import {
+  applyPermissionOverrides,
   getPermissionsForRoles,
+  isAppPermission,
   type AppRole,
+  type PermissionOverride,
   type UserAccessProfile,
 } from "@/types/accessControl";
 
-interface LegacyMemberAccessRow {
+interface MemberAccessRow {
   id: number;
   auth_user_id: string;
   role: string | null;
   status: string | null;
+}
+
+interface PermissionOverrideRow {
+  permission: string;
+  is_granted: boolean;
 }
 
 function normalizeRole(
@@ -52,6 +60,32 @@ function isActiveStatus(
   );
 }
 
+function normalizeOverrides(
+  rows:
+    PermissionOverrideRow[] |
+    null,
+): PermissionOverride[] {
+  if (!rows) {
+    return [];
+  }
+
+  return rows.flatMap(
+    (row) =>
+      isAppPermission(
+        row.permission,
+      )
+        ? [
+            {
+              permission:
+                row.permission,
+              isGranted:
+                row.is_granted,
+            },
+          ]
+        : [],
+  );
+}
+
 export async function getCurrentUserAccess(): Promise<
   UserAccessProfile | null
 > {
@@ -89,27 +123,46 @@ export async function getCurrentUserAccess(): Promise<
     return null;
   }
 
-  const {
-    data,
-    error,
-  } = await supabase
-    .from("members")
-    .select(
-      "id, auth_user_id, role, status",
-    )
-    .eq(
-      "auth_user_id",
-      user.id,
-    )
-    .maybeSingle();
+  const [
+    memberResult,
+    overridesResult,
+  ] = await Promise.all([
+    supabase
+      .from("members")
+      .select(
+        "id, auth_user_id, role, status",
+      )
+      .eq(
+        "auth_user_id",
+        user.id,
+      )
+      .maybeSingle(),
+    supabase
+      .from(
+        "member_permission_overrides",
+      )
+      .select(
+        "permission, is_granted",
+      )
+      .eq(
+        "auth_user_id",
+        user.id,
+      ),
+  ]);
 
-  if (error) {
+  if (memberResult.error) {
     throw new Error(
-      `No fue posible consultar los permisos del usuario: ${error.message}`,
+      `No fue posible consultar los permisos del usuario: ${memberResult.error.message}`,
     );
   }
 
-  if (!data) {
+  if (overridesResult.error) {
+    throw new Error(
+      `No fue posible consultar los permisos individuales: ${overridesResult.error.message}`,
+    );
+  }
+
+  if (!memberResult.data) {
     return {
       authUserId: user.id,
       memberId: null,
@@ -120,15 +173,29 @@ export async function getCurrentUserAccess(): Promise<
   }
 
   const row =
-    data as LegacyMemberAccessRow;
+    memberResult.data as MemberAccessRow;
 
-  const normalizedRole =
-    normalizeRole(row.role);
+  const role =
+    normalizeRole(
+      row.role,
+    );
 
   const roles: AppRole[] =
-    normalizedRole
-      ? [normalizedRole]
+    role
+      ? [role]
       : [];
+
+  const basePermissions =
+    getPermissionsForRoles(
+      roles,
+    );
+
+  const overrides =
+    normalizeOverrides(
+      overridesResult.data as
+        | PermissionOverrideRow[]
+        | null,
+    );
 
   return {
     authUserId:
@@ -137,8 +204,9 @@ export async function getCurrentUserAccess(): Promise<
       Number(row.id),
     roles,
     permissions:
-      getPermissionsForRoles(
-        roles,
+      applyPermissionOverrides(
+        basePermissions,
+        overrides,
       ),
     isActive:
       isActiveStatus(

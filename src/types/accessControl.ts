@@ -31,6 +31,11 @@ export type AppPermission =
   | "progress.manage"
   | "roles.manage";
 
+export interface PermissionOverride {
+  permission: AppPermission;
+  isGranted: boolean;
+}
+
 export interface UserAccessProfile {
   authUserId: string;
   memberId: number | null;
@@ -80,6 +85,8 @@ Record<AppRole, AppPermission[]> = {
     "dashboard.view",
     "events.view",
     "attendance.viewOwn",
+    "attendance.viewAll",
+    "attendance.manage",
     "repertoire.view",
     "fees.viewOwn",
     "trips.viewOwn",
@@ -106,6 +113,7 @@ Record<AppRole, AppPermission[]> = {
     "attendance.viewOwn",
     "progress.viewOwn",
     "fees.viewOwn",
+    "repertoire.view",
   ],
 };
 
@@ -119,6 +127,44 @@ export function getPermissionsForRoles(
           ROLE_PERMISSIONS[role],
       ),
     ),
+  );
+}
+
+export function applyPermissionOverrides(
+  permissions: AppPermission[],
+  overrides: PermissionOverride[],
+): AppPermission[] {
+  const result =
+    new Set(permissions);
+
+  overrides.forEach(
+    ({
+      permission,
+      isGranted,
+    }) => {
+      if (isGranted) {
+        result.add(permission);
+      } else {
+        result.delete(permission);
+      }
+    },
+  );
+
+  return Array.from(result);
+}
+
+export function isAppPermission(
+  value: string,
+): value is AppPermission {
+  const permissions =
+    new Set<AppPermission>(
+      Object.values(
+        ROLE_PERMISSIONS,
+      ).flat(),
+    );
+
+  return permissions.has(
+    value as AppPermission,
   );
 }
 
