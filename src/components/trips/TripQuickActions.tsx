@@ -35,11 +35,11 @@ function QuickActionButton({
       disabled={isDisabled}
       onClick={onClick}
       className="
-        group flex min-h-28
+        group flex min-h-24 sm:min-h-28
         items-start gap-4
         rounded-xl border
         border-slate-200 bg-white
-        p-4 text-left
+        p-3 text-left sm:p-4
         shadow-sm
         transition
         hover:border-slate-300

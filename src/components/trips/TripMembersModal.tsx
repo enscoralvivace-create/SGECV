@@ -53,8 +53,8 @@ export default function TripMembersModal({
     processingId !== null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 py-8">
-      <div className="flex max-h-full w-full max-w-7xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/60 p-0 sm:items-center sm:px-4 sm:py-8">
+      <div className="flex max-h-full w-full max-w-7xl flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl">
         <header className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5 sm:px-8">
           <div>
             <h2 className="text-2xl font-bold text-slate-900">

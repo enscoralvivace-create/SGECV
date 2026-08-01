@@ -348,7 +348,7 @@ export default function TripParticipantsCard({
           </div>
         </div>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto overscroll-x-contain">
           <table
             className="
               min-w-full

@@ -204,7 +204,7 @@ export default function TripFinancialReportModal({
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/70 px-4 py-6 print:static print:block print:bg-white print:p-0">
-      <div className="flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl print:max-h-none print:max-w-none print:overflow-visible print:rounded-none print:shadow-none">
+      <div className="flex max-h-[calc(100dvh-var(--safe-top))] w-full max-w-6xl flex-col overflow-hidden rounded-t-3xl sm:max-h-[92vh] sm:rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl print:max-h-none print:max-w-none print:overflow-visible print:rounded-none print:shadow-none">
         <header className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5 print:hidden">
           <div>
             <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">

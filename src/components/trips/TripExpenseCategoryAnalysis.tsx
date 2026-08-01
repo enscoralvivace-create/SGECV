@@ -164,7 +164,7 @@ export default function TripExpenseCategoryAnalysis({
             lg:grid-cols-[minmax(0,1fr)_280px]
           "
         >
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto overscroll-x-contain">
             <table
               className="
                 min-w-full

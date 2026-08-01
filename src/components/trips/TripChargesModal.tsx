@@ -304,8 +304,8 @@ setSuccessMessage(
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4">
-      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/50 p-0 sm:items-center sm:p-4">
+      <div className="max-h-[calc(100dvh-var(--safe-top))] w-full max-w-2xl overflow-y-auto rounded-t-3xl sm:max-h-[calc(100dvh-var(--safe-top))] sm:max-h-[90vh] sm:rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl">
         <header className="sticky top-0 z-10 flex items-start justify-between border-b border-slate-200 bg-white px-6 py-5">
           <div>
             <p className="text-sm font-medium text-slate-500">
@@ -403,7 +403,7 @@ setSuccessMessage(
                 )}
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
                 <div>
                   <label
                     htmlFor="trip-charge-amount"

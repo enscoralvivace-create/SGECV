@@ -266,7 +266,7 @@ export default function TripDetailPage() {
 
   if (loading) {
     return (
-      <main className="space-y-6">
+      <main className="min-h-screen space-y-4 bg-slate-50 px-4 py-5 sm:space-y-6 sm:px-6 sm:py-6 lg:p-8">
         <div
           className="
             flex min-h-72 items-center
@@ -317,7 +317,7 @@ export default function TripDetailPage() {
 
   if (error || !trip) {
     return (
-      <main className="space-y-6">
+      <main className="min-h-screen space-y-4 bg-slate-50 px-4 py-5 sm:space-y-6 sm:px-6 sm:py-6 lg:p-8">
         <div
           className="
             flex min-h-72 items-center
@@ -401,7 +401,7 @@ export default function TripDetailPage() {
   }
 
   return (
-    <main className="space-y-8">
+    <main className="min-h-screen space-y-4 bg-slate-50 px-4 py-5 sm:space-y-8 sm:px-6 sm:py-6 lg:p-8">
       <TripDetailHeader trip={trip} />
 
       {successMessage ? (

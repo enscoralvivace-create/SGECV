@@ -189,7 +189,7 @@ export default function TripExpenseModal({
     >
       <div
         className="
-          max-h-[90vh]
+          max-h-[calc(100dvh-var(--safe-top))] sm:max-h-[90vh]
           w-full
           max-w-2xl
           overflow-y-auto

@@ -120,9 +120,9 @@ export default function TripBudgetFormModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/60 p-0 sm:items-center sm:p-4">
       <div className="w-full max-w-2xl overflow-hidden rounded-2xl bg-white text-slate-900 shadow-2xl">
-        <div className="border-b border-slate-200 px-6 py-5">
+        <div className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 px-4 py-4 backdrop-blur sm:px-6 sm:py-5">
           <h2 className="text-xl font-bold text-slate-900">
             {isEditing
               ? "Editar concepto de presupuesto"

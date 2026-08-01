@@ -33,7 +33,7 @@ export default function TripExpensesTable({
           Aún no se han registrado gastos.
         </div>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto overscroll-x-contain">
           <table className="min-w-full divide-y divide-slate-200">
             <thead className="bg-slate-50">
               <tr>

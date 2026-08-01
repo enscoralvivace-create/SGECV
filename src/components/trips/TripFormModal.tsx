@@ -70,8 +70,8 @@ export default function TripFormModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 py-8">
-      <div className="max-h-full w-full max-w-3xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/60 p-0 sm:items-center sm:px-4 sm:py-8">
+      <div className="max-h-full w-full max-w-3xl overflow-y-auto rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl">
         <div className="border-b border-slate-200 px-6 py-5 sm:px-8">
           <h2 className="text-2xl font-bold text-slate-900">
             {editingTrip
@@ -89,7 +89,7 @@ export default function TripFormModal({
           onSubmit={onSubmit}
           className="space-y-6 px-6 py-6 sm:px-8"
         >
-          <div className="grid gap-5 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2 md:gap-5">
             <label className="block">
               <span className="mb-2 block text-sm font-semibold text-slate-700">
                 Nombre del viaje *

@@ -94,31 +94,31 @@ export default function TripsTable({
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto overscroll-x-contain">
           <table className="w-full min-w-[1100px] text-left">
             <thead className="bg-slate-50 text-sm uppercase text-slate-600">
               <tr>
-                <th className="px-6 py-4">
+                <th className="px-4 py-3 sm:px-6 sm:py-4">
                   Viaje
                 </th>
 
-                <th className="px-6 py-4">
+                <th className="px-4 py-3 sm:px-6 sm:py-4">
                   Destino
                 </th>
 
-                <th className="px-6 py-4">
+                <th className="px-4 py-3 sm:px-6 sm:py-4">
                   Fechas
                 </th>
 
-                <th className="px-6 py-4">
+                <th className="px-4 py-3 sm:px-6 sm:py-4">
                   Presupuesto
                 </th>
 
-                <th className="px-6 py-4">
+                <th className="px-4 py-3 sm:px-6 sm:py-4">
                   Estado
                 </th>
 
-                <th className="px-6 py-4">
+                <th className="px-4 py-3 sm:px-6 sm:py-4">
                   Acciones
                 </th>
               </tr>
@@ -134,7 +134,7 @@ export default function TripsTable({
                     key={trip.id}
                     className="transition hover:bg-slate-50"
                   >
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-3 sm:px-6 sm:py-4">
                       <p className="font-semibold text-slate-900">
                         {trip.name}
                       </p>
@@ -176,7 +176,7 @@ export default function TripsTable({
                       )}
                     </td>
 
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-3 sm:px-6 sm:py-4">
                       <StatusBadge
                         status={getStatusLabel(
                           trip.status,
@@ -185,7 +185,7 @@ export default function TripsTable({
                       />
                     </td>
 
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-3 sm:px-6 sm:py-4">
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                         <button
                           type="button"

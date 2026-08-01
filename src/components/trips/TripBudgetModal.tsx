@@ -341,8 +341,8 @@ async function handleDelete(
 }
   return (
     <>
-      <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/60 p-4">
-        <div className="flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white text-slate-900 shadow-2xl">
+      <div className="fixed inset-0 z-40 flex items-end justify-center bg-slate-950/60 p-0 sm:items-center sm:p-4">
+        <div className="flex max-h-[calc(100dvh-var(--safe-top))] w-full max-w-6xl flex-col overflow-hidden rounded-t-3xl sm:max-h-[92vh] sm:rounded-3xl bg-white text-slate-900 shadow-2xl">
           <div className="border-b border-slate-200 bg-white px-6 py-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>

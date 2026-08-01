@@ -43,14 +43,14 @@ export default function TripBudgetFinancialOverview({
 
   return (
     <section className="px-6 pt-6">
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="grid gap-6 lg:grid-cols-3">
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-sm">
+        <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
           <div>
             <p className="text-sm text-slate-500">
               Presupuesto estimado
             </p>
 
-            <p className="mt-2 text-3xl font-bold">
+            <p className="mt-2 text-2xl font-bold sm:text-3xl">
               {formatCurrency(
                 estimatedTotal,
               )}
@@ -62,7 +62,7 @@ export default function TripBudgetFinancialOverview({
               Gasto real
             </p>
 
-            <p className="mt-2 text-3xl font-bold">
+            <p className="mt-2 text-2xl font-bold sm:text-3xl">
               {formatCurrency(
                 actualTotal,
               )}
@@ -75,7 +75,7 @@ export default function TripBudgetFinancialOverview({
             </p>
 
             <p
-              className={`mt-2 text-3xl font-bold ${differenceClasses}`}
+              className={`mt-2 text-2xl font-bold sm:text-3xl ${differenceClasses}`}
             >
               {formatCurrency(
                 difference,

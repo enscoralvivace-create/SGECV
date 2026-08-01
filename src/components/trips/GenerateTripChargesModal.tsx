@@ -194,7 +194,7 @@ export default function GenerateTripChargesModal({
     >
       <div
         className="
-          max-h-[90vh] w-full
+          max-h-[calc(100dvh-var(--safe-top))] sm:max-h-[90vh] w-full
           max-w-2xl overflow-y-auto
           rounded-2xl bg-white
           shadow-2xl

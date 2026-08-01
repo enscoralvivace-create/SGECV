@@ -176,7 +176,7 @@ export default function TripBudgetReceiptPreviewModal({
         }
       }}
     >
-      <div className="flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+      <div className="flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl">
         <header className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5">
           <div className="min-w-0">
             <p className="text-sm font-semibold uppercase tracking-wide text-violet-700">

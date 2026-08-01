@@ -265,7 +265,7 @@ export default function TripBudgetReceiptsModal({
         }
       }}
     >
-      <div className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+      <div className="flex max-h-[calc(100dvh-var(--safe-top))] sm:max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl">
         <header className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5">
           <div>
             <p className="text-sm font-semibold uppercase tracking-wide text-blue-700">

@@ -147,7 +147,7 @@ export default function TripMembersTable({
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto overscroll-x-contain">
             <table className="w-full min-w-[1200px] text-left">
               <thead className="bg-slate-50 text-sm uppercase text-slate-600">
                 <tr>
