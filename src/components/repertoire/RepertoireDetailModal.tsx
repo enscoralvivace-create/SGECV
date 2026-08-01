@@ -75,10 +75,10 @@ const completed = preparationItems.filter(({ value }) =>
 );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6">
-      <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-6">
+      <div className="max-h-[calc(100dvh-var(--safe-top))] w-full max-w-3xl overflow-y-auto rounded-t-3xl bg-white shadow-2xl sm:max-h-[90vh] sm:rounded-3xl">
 
-        <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 px-8 py-6 backdrop-blur">
+        <div className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 px-4 py-4 backdrop-blur sm:px-8 sm:py-6">
 
   <div className="flex items-start justify-between gap-6">
 
@@ -431,7 +431,7 @@ function ContentSection({
 
   return (
     <section className="overflow-hidden rounded-2xl border border-slate-200">
-      <div className="border-b bg-slate-50 px-6 py-5">
+      <div className="border-b bg-slate-50 px-4 py-4 sm:px-6 sm:py-5">
 
   <h3 className="flex items-center gap-3 text-lg font-bold text-slate-900">
 

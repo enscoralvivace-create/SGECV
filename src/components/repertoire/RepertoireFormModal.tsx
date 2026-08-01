@@ -50,9 +50,9 @@ export default function RepertoireFormModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 py-8">
-      <div className="max-h-full w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/60 p-0 sm:items-center sm:px-4 sm:py-8">
+      <div className="max-h-[calc(100dvh-var(--safe-top))] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-white shadow-2xl sm:max-h-[92vh] sm:rounded-3xl">
+        <div className="sticky top-0 z-20 flex items-start justify-between border-b border-slate-200 bg-white/95 px-4 py-4 backdrop-blur sm:px-6 sm:py-5">
           <div>
             <p className="text-sm font-semibold text-emerald-700">
               Repertorio
@@ -70,14 +70,14 @@ export default function RepertoireFormModal({
             onClick={onClose}
             disabled={isSaving}
             aria-label="Cerrar"
-            className="rounded-lg px-3 py-2 text-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
           >
             ×
           </button>
         </div>
 
         <form onSubmit={onSubmit}>
-          <div className="grid gap-5 px-6 py-6 sm:grid-cols-2">
+          <div className="grid gap-4 px-4 py-4 pb-[max(1rem,var(--safe-bottom))] sm:grid-cols-2 sm:gap-5 sm:px-6 sm:py-6">
             <div className="sm:col-span-2">
               <label
                 htmlFor="repertoire-title"
@@ -98,7 +98,7 @@ export default function RepertoireFormModal({
                 }}
                 disabled={isSaving}
                 placeholder="Ej. Gloria"
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100 disabled:bg-slate-100"
+                className="min-h-11 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-base sm:text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100 disabled:bg-slate-100"
               />
             </div>
 
@@ -122,7 +122,7 @@ export default function RepertoireFormModal({
                 }}
                 disabled={isSaving}
                 placeholder="Ej. Antonio Vivaldi"
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100 disabled:bg-slate-100"
+                className="min-h-11 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-base sm:text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100 disabled:bg-slate-100"
               />
             </div>
 
@@ -146,7 +146,7 @@ export default function RepertoireFormModal({
                 }}
                 disabled={isSaving}
                 placeholder="Sin especificar"
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100 disabled:bg-slate-100"
+                className="min-h-11 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-base sm:text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100 disabled:bg-slate-100"
               />
             </div>
 
@@ -170,7 +170,7 @@ export default function RepertoireFormModal({
                 }}
                 disabled={isSaving}
                 placeholder="Ej. Re mayor"
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100 disabled:bg-slate-100"
+                className="min-h-11 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-base sm:text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100 disabled:bg-slate-100"
               />
             </div>
 
@@ -196,7 +196,7 @@ export default function RepertoireFormModal({
                 }}
                 disabled={isSaving}
                 placeholder="Ej. 12"
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100 disabled:bg-slate-100"
+                className="min-h-11 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-base sm:text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100 disabled:bg-slate-100"
               />
             </div>
 

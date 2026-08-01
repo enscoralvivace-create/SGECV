@@ -127,9 +127,9 @@ export default function RepertoireResourcesModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 py-8">
-      <div className="max-h-full w-full max-w-3xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
-        <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/60 p-0 sm:items-center sm:px-4 sm:py-8">
+      <div className="max-h-[calc(100dvh-var(--safe-top))] w-full max-w-3xl overflow-y-auto rounded-t-3xl bg-white shadow-2xl sm:max-h-[92vh] sm:rounded-3xl">
+        <div className="sticky top-0 z-20 flex items-start justify-between border-b border-slate-200 bg-white/95 px-4 py-4 backdrop-blur sm:px-6 sm:py-5">
           <div>
             <p className="text-sm font-semibold text-sky-700">
               Biblioteca de recursos
@@ -150,14 +150,14 @@ export default function RepertoireResourcesModal({
             onClick={onClose}
             disabled={isSaving}
             aria-label="Cerrar"
-            className="rounded-lg px-3 py-2 text-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
           >
             ×
           </button>
         </div>
 
         {!isEditing && (
-          <div className="space-y-6 px-6 py-6">
+          <div className="space-y-4 px-4 py-4 pb-[max(1rem,var(--safe-bottom))] sm:space-y-6 sm:px-6 sm:py-6">
             <section className="rounded-xl border border-slate-200 bg-slate-50 p-5">
               <div>
                 <h3 className="text-lg font-bold text-slate-900">
@@ -170,7 +170,7 @@ export default function RepertoireResourcesModal({
                 </p>
               </div>
 
-              <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="mt-4 grid gap-3 sm:mt-5 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
                 <ResourceLink
                   title="📄 Partitura"
                   url={resourcesForm.scoreUrl}
@@ -222,7 +222,7 @@ export default function RepertoireResourcesModal({
         )}
 
         {isEditing && (
-          <div className="space-y-6 px-6 py-6">
+          <div className="space-y-4 px-4 py-4 pb-[max(1rem,var(--safe-bottom))] sm:space-y-6 sm:px-6 sm:py-6">
             <section className="space-y-5">
               <div>
                 <h3 className="text-lg font-bold text-slate-900">
@@ -256,7 +256,7 @@ export default function RepertoireResourcesModal({
                     );
                   }}
                   placeholder="https://drive.google.com/..."
-                  className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-600 focus:ring-2 focus:ring-sky-100 disabled:cursor-not-allowed disabled:bg-slate-100"
+                  className="min-h-11 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-base sm:text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-600 focus:ring-2 focus:ring-sky-100 disabled:cursor-not-allowed disabled:bg-slate-100"
                 />
               </div>
 
@@ -280,7 +280,7 @@ export default function RepertoireResourcesModal({
                     );
                   }}
                   placeholder="https://youtube.com/..."
-                  className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-600 focus:ring-2 focus:ring-sky-100 disabled:cursor-not-allowed disabled:bg-slate-100"
+                  className="min-h-11 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-base sm:text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-600 focus:ring-2 focus:ring-sky-100 disabled:cursor-not-allowed disabled:bg-slate-100"
                 />
               </div>
 
@@ -304,7 +304,7 @@ export default function RepertoireResourcesModal({
                     );
                   }}
                   placeholder="https://youtube.com/..."
-                  className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-600 focus:ring-2 focus:ring-sky-100 disabled:cursor-not-allowed disabled:bg-slate-100"
+                  className="min-h-11 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-base sm:text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-600 focus:ring-2 focus:ring-sky-100 disabled:cursor-not-allowed disabled:bg-slate-100"
                 />
               </div>
             </section>

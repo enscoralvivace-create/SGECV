@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {
   type FormEvent,
   useMemo,
@@ -11,6 +10,7 @@ import Button from "@/components/common/Button";
 import RepertoireFormModal from "@/components/repertoire/RepertoireFormModal";
 import RepertoireResourcesModal from "@/components/repertoire/RepertoireResourcesModal";
 import RepertoireTable from "@/components/repertoire/RepertoireTable";
+import VivacePageHeader from "@/components/ui/VivacePageHeader";
 
 import { useRepertoire } from "@/hooks/useRepertoire";
 
@@ -356,35 +356,26 @@ function closeDetail(): void {
   }
 
   return (
-    <main className="min-h-screen bg-slate-100">
-      <header className="bg-emerald-900 px-6 py-6 text-white">
-        <div className="mx-auto max-w-7xl">
-          <Link
-            href="/"
-            className="text-sm font-semibold text-emerald-200 transition hover:text-white"
-          >
-            ← Volver al panel
-          </Link>
+    <main className="min-h-screen bg-slate-50 px-4 py-5 sm:px-6 sm:py-6 lg:p-8">
+      <section className="mx-auto max-w-7xl">
+        <VivacePageHeader
+          eyebrow="Biblioteca coral"
+          title="Repertorio"
+          description="Administra obras, estados, materiales de estudio y recursos musicales del Ensamble Coral Vivace."
+          actions={
+            <Button onClick={openCreateForm}>
+              + Nueva obra
+            </Button>
+          }
+        />
 
-          <h1 className="mt-4 text-3xl font-bold">
-            Repertorio
-          </h1>
-
-          <p className="mt-2 text-emerald-100">
-            Administración de las obras del
-            Ensamble Coral Vivace.
-          </p>
-        </div>
-      </header>
-
-      <section className="mx-auto max-w-7xl px-6 py-10">
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mb-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:mb-6 sm:rounded-3xl sm:p-6">
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">
+            <h2 className="text-xl font-bold text-slate-900 sm:text-2xl">
               Lista de obras
             </h2>
 
-            <p className="mt-1 text-slate-600">
+            <p className="mt-1 text-sm text-slate-600 sm:text-base">
               {repertoire.length}{" "}
               {repertoire.length === 1
                 ? "obra registrada"
@@ -393,15 +384,13 @@ function closeDetail(): void {
             </p>
           </div>
 
-          <Button onClick={openCreateForm}>
-            + Nueva obra
-          </Button>
+          
         </div>
 
         {!loading &&
           !error &&
           repertoire.length > 0 && (
-            <div className="mb-6 space-y-4">
+            <div className="mb-4 space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:mb-6 sm:rounded-3xl sm:p-6">
               <div>
                 <label
                   htmlFor="repertoire-search"
@@ -425,12 +414,12 @@ function closeDetail(): void {
                       );
                     }}
                     placeholder="Buscar por título, compositor, arreglista o tonalidad"
-                    className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-11 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100"
+                    className="min-h-11 w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-11 pr-4 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100 sm:text-sm"
                   />
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-2">
+              <div className="flex snap-x snap-mandatory gap-2 overflow-x-auto overscroll-x-contain pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 {repertoireFilters.map(
                   (filter) => {
                     const isSelected =
@@ -446,7 +435,7 @@ function closeDetail(): void {
                             filter,
                           );
                         }}
-                        className={`rounded-lg border px-4 py-2 text-sm font-semibold transition ${
+                        className={`min-h-10 shrink-0 snap-start rounded-xl border px-4 py-2 text-sm font-semibold transition active:scale-[0.98] ${
                           isSelected
                             ? "border-emerald-700 bg-emerald-700 text-white"
                             : "border-slate-300 bg-white text-slate-700 hover:border-emerald-600 hover:text-emerald-700"
@@ -475,13 +464,13 @@ function closeDetail(): void {
           )}
 
         {message && (
-          <div className="mb-6 rounded-xl border border-slate-200 bg-white px-5 py-4 text-sm font-medium text-slate-700 shadow-sm">
+          <div className="mb-6 rounded-2xl border border-slate-200 bg-white px-4 py-3 sm:px-5 sm:py-4 text-sm font-medium text-slate-700 shadow-sm">
             {message}
           </div>
         )}
 
         {error && (
-          <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-medium text-red-700">
+          <div className="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 sm:px-5 sm:py-4 text-sm font-medium text-red-700">
             <p>
               No fue posible cargar el
               repertorio: {error}
@@ -500,7 +489,7 @@ function closeDetail(): void {
         )}
 
         {loading && (
-          <div className="rounded-xl border border-slate-200 bg-white px-6 py-12 text-center text-slate-600 shadow-sm">
+          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-12 sm:rounded-3xl sm:px-6 text-center text-slate-600 shadow-sm">
             Cargando repertorio...
           </div>
         )}
@@ -508,7 +497,7 @@ function closeDetail(): void {
         {!loading &&
           !error &&
           repertoire.length === 0 && (
-            <div className="rounded-xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center shadow-sm">
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-12 sm:rounded-3xl sm:px-6 sm:py-14 text-center shadow-sm">
               <h3 className="text-lg font-bold text-slate-900">
                 Todavía no hay obras registradas
               </h3>
@@ -525,7 +514,7 @@ function closeDetail(): void {
           repertoire.length > 0 &&
           filteredRepertoire.length ===
             0 && (
-            <div className="rounded-xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center shadow-sm">
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-12 sm:rounded-3xl sm:px-6 sm:py-14 text-center shadow-sm">
               <h3 className="text-lg font-bold text-slate-900">
                 No se encontraron obras
               </h3>

@@ -12,12 +12,6 @@ interface RepertoireTableProps {
   onDetail: (item: RepertoireItem) => void;
 }
 
-interface ResourceIndicatorProps {
-  icon: string;
-  label: string;
-  available: boolean;
-}
-
 interface ResourceProgress {
   completed: number;
   total: number;
@@ -27,11 +21,9 @@ interface ResourceProgress {
 function formatDuration(
   durationMinutes: number | null,
 ): string {
-  if (durationMinutes === null) {
-    return "Sin duración";
-  }
-
-  return `${durationMinutes} min`;
+  return durationMinutes === null
+    ? "Sin duración"
+    : `${durationMinutes} min`;
 }
 
 function getStatusClasses(
@@ -40,13 +32,10 @@ function getStatusClasses(
   switch (status) {
     case "Activo":
       return "bg-emerald-100 text-emerald-800";
-
     case "En estudio":
       return "bg-amber-100 text-amber-800";
-
     case "Archivado":
       return "bg-slate-200 text-slate-700";
-
     default:
       return "bg-slate-100 text-slate-700";
   }
@@ -70,21 +59,16 @@ function getResourceProgress(
     item.director_notes,
   ];
 
-  const completed = resources.filter((resource) =>
-    hasContent(resource),
+  const completed = resources.filter(
+    hasContent,
   ).length;
-
-  const total = resources.length;
-
-  const percentage =
-    total > 0
-      ? Math.round((completed / total) * 100)
-      : 0;
 
   return {
     completed,
-    total,
-    percentage,
+    total: resources.length,
+    percentage: Math.round(
+      (completed / resources.length) * 100,
+    ),
   };
 }
 
@@ -92,7 +76,7 @@ function getProgressBarClasses(
   percentage: number,
 ): string {
   if (percentage <= 33) {
-    return "bg-red-500";
+    return "bg-rose-500";
   }
 
   if (percentage <= 66) {
@@ -102,27 +86,38 @@ function getProgressBarClasses(
   return "bg-emerald-600";
 }
 
-function ResourceIndicator({
-  icon,
-  label,
-  available,
-}: ResourceIndicatorProps) {
-  const availabilityText = available
-    ? "Disponible"
-    : "No disponible";
+function ResourceProgressView({
+  item,
+}: {
+  item: RepertoireItem;
+}) {
+  const progress =
+    getResourceProgress(item);
 
   return (
-    <span
-      title={`${label}: ${availabilityText}`}
-      aria-label={`${label}: ${availabilityText}`}
-      className={`inline-flex h-8 w-8 items-center justify-center rounded-lg border text-sm ${
-        available
-          ? "border-emerald-200 bg-emerald-50"
-          : "border-slate-200 bg-slate-100 grayscale opacity-45"
-      }`}
-    >
-      {icon}
-    </span>
+    <div className="space-y-2">
+      <div className="flex items-center justify-between gap-3 text-xs font-semibold">
+        <span className="text-slate-600">
+          {progress.completed} de{" "}
+          {progress.total} recursos
+        </span>
+
+        <span className="text-slate-500">
+          {progress.percentage}%
+        </span>
+      </div>
+
+      <div className="h-2 overflow-hidden rounded-full bg-slate-200">
+        <div
+          className={`h-full rounded-full ${getProgressBarClasses(
+            progress.percentage,
+          )}`}
+          style={{
+            width: `${progress.percentage}%`,
+          }}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -135,233 +130,246 @@ export default function RepertoireTable({
   onDetail,
 }: RepertoireTableProps) {
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-slate-200">
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm sm:rounded-3xl">
+      <div className="space-y-3 p-3 md:hidden">
+        {repertoire.map((item) => (
+          <article
+            key={item.id}
+            className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h3 className="truncate text-base font-bold text-slate-950">
+                  {item.title}
+                </h3>
+
+                <p className="mt-1 truncate text-sm text-slate-600">
+                  {item.composer ??
+                    "Compositor sin especificar"}
+                </p>
+              </div>
+
+              <span
+                className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold ${getStatusClasses(
+                  item.status,
+                )}`}
+              >
+                {item.status}
+              </span>
+            </div>
+
+            <dl className="mt-4 grid grid-cols-2 gap-3">
+              <div className="rounded-xl bg-slate-50 p-3">
+                <dt className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
+                  Tonalidad
+                </dt>
+                <dd className="mt-1 truncate text-sm font-semibold text-slate-800">
+                  {item.key ??
+                    "Sin especificar"}
+                </dd>
+              </div>
+
+              <div className="rounded-xl bg-slate-50 p-3">
+                <dt className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
+                  Duración
+                </dt>
+                <dd className="mt-1 truncate text-sm font-semibold text-slate-800">
+                  {formatDuration(
+                    item.duration_minutes,
+                  )}
+                </dd>
+              </div>
+            </dl>
+
+            <div className="mt-4">
+              <ResourceProgressView
+                item={item}
+              />
+            </div>
+
+            {item.notes ? (
+              <p className="mt-3 line-clamp-2 text-sm leading-6 text-slate-500">
+                {item.notes}
+              </p>
+            ) : null}
+
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <ActionButton
+                label="Ver"
+                onClick={() =>
+                  onDetail(item)
+                }
+              />
+
+              <ActionButton
+                label="Editar"
+                onClick={() =>
+                  onEdit(item)
+                }
+              />
+
+              <ActionButton
+                label="Recursos"
+                onClick={() =>
+                  onResources(item)
+                }
+              />
+
+              <ActionButton
+                label={
+                  item.status === "Archivado"
+                    ? "Reactivar"
+                    : "Archivar"
+                }
+                onClick={() =>
+                  item.status === "Archivado"
+                    ? onReactivate(item)
+                    : onArchive(item)
+                }
+              />
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <div className="hidden overflow-x-auto md:block">
+        <table className="w-full min-w-[1100px] divide-y divide-slate-200">
           <thead className="bg-slate-50">
             <tr>
-              <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wide text-slate-600">
-                Obra
-              </th>
-
-              <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wide text-slate-600">
-                Compositor
-              </th>
-
-              <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wide text-slate-600">
-                Arreglista
-              </th>
-
-              <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wide text-slate-600">
-                Tonalidad
-              </th>
-
-              <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wide text-slate-600">
-                Duración
-              </th>
-
-              <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wide text-slate-600">
-                Estado
-              </th>
-
-              <th className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wide text-slate-600">
-                Recursos
-              </th>
-
-              <th className="px-5 py-4 text-right text-xs font-bold uppercase tracking-wide text-slate-600">
-                Acciones
-              </th>
+              {[
+                "Obra",
+                "Compositor",
+                "Arreglista",
+                "Tonalidad",
+                "Duración",
+                "Estado",
+                "Recursos",
+                "Acciones",
+              ].map((label) => (
+                <th
+                  key={label}
+                  className="px-5 py-4 text-left text-xs font-bold uppercase tracking-wide text-slate-600 last:text-right"
+                >
+                  {label}
+                </th>
+              ))}
             </tr>
           </thead>
 
           <tbody className="divide-y divide-slate-100">
-            {repertoire.map((item) => {
-              const progress =
-                getResourceProgress(item);
+            {repertoire.map((item) => (
+              <tr
+                key={item.id}
+                className="transition hover:bg-emerald-50/30"
+              >
+                <td className="px-5 py-4">
+                  <p className="font-semibold text-slate-900">
+                    {item.title}
+                  </p>
 
-              return (
-                <tr
-                  key={item.id}
-                  className="transition hover:bg-slate-50"
-                >
-                  <td className="px-5 py-4">
-                    <p className="font-semibold text-slate-900">
-                      {item.title}
+                  {item.notes ? (
+                    <p className="mt-1 max-w-sm truncate text-sm text-slate-500">
+                      {item.notes}
                     </p>
+                  ) : null}
+                </td>
 
-                    {item.notes && (
-                      <p className="mt-1 max-w-md text-sm text-slate-500">
-                        {item.notes}
-                      </p>
-                    )}
-                  </td>
+                <td className="px-5 py-4 text-sm text-slate-700">
+                  {item.composer ??
+                    "Sin especificar"}
+                </td>
 
-                  <td className="px-5 py-4 text-sm text-slate-700">
-                    {item.composer ??
-                      "Sin especificar"}
-                  </td>
+                <td className="px-5 py-4 text-sm text-slate-700">
+                  {item.arranger ??
+                    "Sin especificar"}
+                </td>
 
-                  <td className="px-5 py-4 text-sm text-slate-700">
-                    {item.arranger ??
-                      "Sin especificar"}
-                  </td>
+                <td className="px-5 py-4 text-sm text-slate-700">
+                  {item.key ??
+                    "Sin especificar"}
+                </td>
 
-                  <td className="px-5 py-4 text-sm text-slate-700">
-                    {item.key ?? "Sin especificar"}
-                  </td>
+                <td className="px-5 py-4 text-sm text-slate-700">
+                  {formatDuration(
+                    item.duration_minutes,
+                  )}
+                </td>
 
-                  <td className="px-5 py-4 text-sm text-slate-700">
-                    {formatDuration(
-                      item.duration_minutes,
-                    )}
-                  </td>
+                <td className="px-5 py-4">
+                  <span
+                    className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${getStatusClasses(
+                      item.status,
+                    )}`}
+                  >
+                    {item.status}
+                  </span>
+                </td>
 
-                  <td className="px-5 py-4">
-                    <span
-                      className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${getStatusClasses(
-                        item.status,
-                      )}`}
-                    >
-                      {item.status}
-                    </span>
-                  </td>
+                <td className="min-w-56 px-5 py-4">
+                  <ResourceProgressView
+                    item={item}
+                  />
+                </td>
 
-                  <td className="px-5 py-4">
-                    <div className="min-w-52 space-y-3">
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-sm font-semibold text-slate-700">
-                          {progress.completed} de{" "}
-                          {progress.total}
-                        </span>
-
-                        <span className="text-xs font-bold text-slate-500">
-                          {progress.percentage}%
-                        </span>
-                      </div>
-
-                      <div className="h-2 overflow-hidden rounded-full bg-slate-200">
-                        <div
-                          className={`h-full rounded-full transition-all ${getProgressBarClasses(
-                            progress.percentage,
-                          )}`}
-                          style={{
-                            width: `${progress.percentage}%`,
-                          }}
-                        />
-                      </div>
-
-                      <div className="flex flex-wrap gap-2">
-                        <ResourceIndicator
-                          icon="📄"
-                          label="Partitura"
-                          available={hasContent(
-                            item.score_url,
-                          )}
-                        />
-
-                        <ResourceIndicator
-                          icon="🎧"
-                          label="Audio"
-                          available={hasContent(
-                            item.audio_url,
-                          )}
-                        />
-
-                        <ResourceIndicator
-                          icon="🎥"
-                          label="Video"
-                          available={hasContent(
-                            item.video_url,
-                          )}
-                        />
-
-                        <ResourceIndicator
-                          icon="🌎"
-                          label="Traducción"
-                          available={hasContent(
-                            item.translation,
-                          )}
-                        />
-
-                        <ResourceIndicator
-                          icon="🗣️"
-                          label="Pronunciación"
-                          available={hasContent(
-                            item.pronunciation,
-                          )}
-                        />
-
-                        <ResourceIndicator
-                          icon="📝"
-                          label="Notas del director"
-                          available={hasContent(
-                            item.director_notes,
-                          )}
-                        />
-                      </div>
-                    </div>
-                  </td>
-
-                  <td className="px-5 py-4">
-                    <div className="flex justify-end gap-2">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          onDetail(item)
-                        }
-                        className="rounded-lg border border-indigo-300 bg-white px-4 py-2 text-sm font-semibold text-indigo-700 transition hover:border-indigo-700 hover:text-indigo-900"
-                      >
-                        👁 Ver
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => onEdit(item)}
-                        className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-emerald-700 hover:text-emerald-800"
-                      >
-                        Editar
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          onResources(item)
-                        }
-                        className="rounded-lg border border-sky-300 bg-white px-4 py-2 text-sm font-semibold text-sky-700 transition hover:border-sky-700 hover:text-sky-900"
-                      >
-                        📚 Recursos
-                      </button>
-
-                      {item.status ===
-                      "Archivado" ? (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            onReactivate(item)
-                          }
-                          className="rounded-lg border border-emerald-300 bg-white px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:border-emerald-700 hover:text-emerald-900"
-                        >
-                          🔄 Reactivar
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            onArchive(item)
-                          }
-                          className="rounded-lg border border-amber-300 bg-white px-4 py-2 text-sm font-semibold text-amber-700 transition hover:border-amber-700 hover:text-amber-900"
-                        >
-                          📦 Archivar
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
+                <td className="px-5 py-4">
+                  <div className="flex justify-end gap-2">
+                    <ActionButton
+                      label="Ver"
+                      onClick={() =>
+                        onDetail(item)
+                      }
+                    />
+                    <ActionButton
+                      label="Editar"
+                      onClick={() =>
+                        onEdit(item)
+                      }
+                    />
+                    <ActionButton
+                      label="Recursos"
+                      onClick={() =>
+                        onResources(item)
+                      }
+                    />
+                    <ActionButton
+                      label={
+                        item.status ===
+                        "Archivado"
+                          ? "Reactivar"
+                          : "Archivar"
+                      }
+                      onClick={() =>
+                        item.status ===
+                        "Archivado"
+                          ? onReactivate(item)
+                          : onArchive(item)
+                      }
+                    />
+                  </div>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
     </div>
+  );
+}
+
+function ActionButton({
+  label,
+  onClick,
+}: {
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex min-h-10 items-center justify-center rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-emerald-700 hover:text-emerald-900 active:scale-[0.98]"
+    >
+      {label}
+    </button>
   );
 }
