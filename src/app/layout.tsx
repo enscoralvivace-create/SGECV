@@ -66,10 +66,18 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col">
+        <a
+          href="#contenido-principal"
+          className="fixed left-4 top-4 z-[200] -translate-y-24 rounded-xl bg-emerald-950 px-4 py-3 text-sm font-semibold text-white shadow-xl transition focus:translate-y-0"
+        >
+          Saltar al contenido principal
+        </a>
         <ServiceWorkerRegistration />
         <PwaDisplayModeSync />
 
-        {children}
+        <div id="contenido-principal" tabIndex={-1}>
+          {children}
+        </div>
 
         <PwaConnectionStatus />
         <PwaInstallPrompt />

@@ -19,9 +19,9 @@ export default function AppLayout({
       <div className="min-w-0 flex-1">
         <AppMobileNavigation />
 
-        <div className="min-h-dvh pb-[calc(5rem+var(--safe-bottom))] lg:min-h-screen lg:pb-0">
+        <main className="min-h-dvh min-w-0 overflow-x-hidden pb-[calc(5rem+var(--safe-bottom))] lg:min-h-screen lg:pb-0">
           {children}
-        </div>
+        </main>
       </div>
     </div>
   );

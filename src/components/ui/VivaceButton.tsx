@@ -103,7 +103,7 @@ const VivaceButton =
           "inline-flex touch-manipulation select-none items-center justify-center gap-2 border font-semibold transition",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
           "disabled:cursor-not-allowed disabled:opacity-60",
-          "active:scale-[0.98] sm:active:scale-[0.99]",
+          "active:scale-[0.98] motion-reduce:active:scale-100 sm:active:scale-[0.99]",
           VARIANT_STYLES[variant],
           SIZE_STYLES[size],
           ICON_SIZE_STYLES[size],

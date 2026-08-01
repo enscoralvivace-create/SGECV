@@ -179,7 +179,7 @@ export default function AppMobileNavigation() {
               : "Abrir menú"
           }
           aria-expanded={isMenuOpen}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm transition active:scale-95"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm transition motion-reduce:transition-none active:scale-95 motion-reduce:active:scale-100"
         >
           {isMenuOpen ? (
             <X
@@ -329,7 +329,7 @@ function MobileMenuLink({
           : undefined
       }
       className={[
-        "flex min-h-12 items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition active:scale-[0.99]",
+        "flex min-h-12 items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition motion-reduce:transition-none active:scale-[0.99] motion-reduce:active:scale-100",
         isActive
           ? "bg-emerald-950 text-white"
           : "text-slate-700 hover:bg-emerald-50 hover:text-emerald-950",
@@ -387,7 +387,7 @@ function MobileBarLink({
           : undefined
       }
       className={[
-        "flex min-h-14 min-w-0 flex-col items-center justify-center rounded-xl px-2 py-2 text-[11px] font-semibold transition active:scale-95",
+        "flex min-h-14 min-w-0 flex-col items-center justify-center rounded-xl px-2 py-2 text-[11px] font-semibold transition motion-reduce:transition-none active:scale-95 motion-reduce:active:scale-100",
         isActive
           ? "bg-emerald-950 text-white"
           : "text-slate-500",

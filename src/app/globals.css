@@ -102,3 +102,107 @@ textarea {
     );
   }
 }
+
+/* Vivace Suite v0.9.9 — accesibilidad y estabilidad visual */
+:root {
+  --focus-ring: #047857;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+}
+
+html {
+  min-height: 100%;
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100%;
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--focus-ring) 70%, transparent);
+  outline-offset: 3px;
+}
+
+button,
+a,
+input,
+select,
+textarea,
+[role="button"] {
+  touch-action: manipulation;
+}
+
+::selection {
+  background: #d1fae5;
+  color: #022c22;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :focus-visible {
+    outline-width: 4px;
+  }
+}
+
+@layer utilities {
+  .safe-top {
+    padding-top: var(--safe-top);
+  }
+
+  .safe-right {
+    padding-right: var(--safe-right);
+  }
+
+  .safe-bottom {
+    padding-bottom: var(--safe-bottom);
+  }
+
+  .safe-left {
+    padding-left: var(--safe-left);
+  }
+
+  .safe-x {
+    padding-left: var(--safe-left);
+    padding-right: var(--safe-right);
+  }
+
+  .safe-y {
+    padding-top: var(--safe-top);
+    padding-bottom: var(--safe-bottom);
+  }
+
+  .min-safe-screen {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  .scrollbar-hidden {
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+  }
+
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
