@@ -2,7 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+
+import {
+  usePathname,
+  useRouter,
+} from "next/navigation";
 
 import {
   CalendarDays,
@@ -11,6 +15,8 @@ import {
   CircleDollarSign,
   CircleUserRound,
   House,
+  LoaderCircle,
+  LogOut,
   Music2,
   Plane,
   Settings,
@@ -20,6 +26,7 @@ import {
 
 import {
   useMemo,
+  useState,
 } from "react";
 
 import {
@@ -30,6 +37,8 @@ import {
 } from "@/config/navigation";
 
 import useUserAccess from "@/hooks/useUserAccess";
+
+import { supabase } from "@/lib/supabase";
 
 const NAVIGATION_ICONS:
 Record<NavigationIconName, LucideIcon> = {
@@ -49,11 +58,24 @@ export default function AppSidebar() {
   const pathname =
     usePathname();
 
+  const router =
+    useRouter();
+
   const {
     access,
     isLoading,
     error,
   } = useUserAccess();
+
+  const [
+    isSigningOut,
+    setIsSigningOut,
+  ] = useState(false);
+
+  const [
+    signOutError,
+    setSignOutError,
+  ] = useState("");
 
   const permissions =
     useMemo(
@@ -70,6 +92,43 @@ export default function AppSidebar() {
         ),
       [permissions],
     );
+
+  async function handleSignOut(): Promise<void> {
+    if (isSigningOut) {
+      return;
+    }
+
+    try {
+      setIsSigningOut(true);
+      setSignOutError("");
+
+      const {
+        error: logoutError,
+      } =
+        await supabase.auth.signOut();
+
+      if (logoutError) {
+        throw logoutError;
+      }
+
+      router.replace("/login");
+      router.refresh();
+    } catch (
+      logoutError: unknown
+    ) {
+      console.error(
+        logoutError,
+      );
+
+      setSignOutError(
+        logoutError instanceof Error
+          ? logoutError.message
+          : "No fue posible cerrar la sesión.",
+      );
+    } finally {
+      setIsSigningOut(false);
+    }
+  }
 
   return (
     <aside className="sticky top-0 hidden h-dvh w-72 shrink-0 flex-col border-r border-slate-200 bg-white lg:flex">
@@ -130,8 +189,46 @@ export default function AppSidebar() {
         )}
       </nav>
 
-      <div className="border-t border-slate-200 px-4 py-4">
-        <p className="text-center text-xs leading-5 text-slate-500">
+      <div className="border-t border-slate-200 p-4">
+        {signOutError ? (
+          <div
+            role="alert"
+            className="mb-3 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2"
+          >
+            <p className="text-xs leading-5 text-rose-700">
+              {signOutError}
+            </p>
+          </div>
+        ) : null}
+
+        <button
+          type="button"
+          disabled={isSigningOut}
+          onClick={() => {
+            void handleSignOut();
+          }}
+          className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isSigningOut ? (
+            <LoaderCircle
+              aria-hidden="true"
+              className="h-4 w-4 animate-spin"
+            />
+          ) : (
+            <LogOut
+              aria-hidden="true"
+              className="h-4 w-4"
+            />
+          )}
+
+          <span>
+            {isSigningOut
+              ? "Cerrando sesión..."
+              : "Cerrar sesión"}
+          </span>
+        </button>
+
+        <p className="mt-3 text-center text-xs leading-5 text-slate-500">
           Ensamble Coral Vivace
         </p>
       </div>
@@ -205,6 +302,7 @@ function SidebarLoading() {
           className="flex animate-pulse items-center gap-3 rounded-xl px-3 py-2.5"
         >
           <div className="h-9 w-9 rounded-lg bg-slate-100" />
+
           <div className="h-4 flex-1 rounded bg-slate-100" />
         </div>
       ))}

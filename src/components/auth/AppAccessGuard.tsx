@@ -3,29 +3,90 @@
 import Link from "next/link";
 
 import {
-  useEffect,
-  type ReactNode,
+  ShieldAlert,
+} from "lucide-react";
+
+import type {
+  ReactNode,
 } from "react";
 
 import {
-  ShieldAlert,
-  UserRoundX,
-} from "lucide-react";
-
-import {
   usePathname,
-  useRouter,
 } from "next/navigation";
 
 import {
   ALL_NAVIGATION_ITEMS,
   isNavigationItemActive,
+  type NavigationItem,
 } from "@/config/navigation";
 
 import useUserAccess from "@/hooks/useUserAccess";
 
+import VivaceButton from "@/components/ui/VivaceButton";
+import VivaceCard from "@/components/ui/VivaceCard";
+import VivaceLoading from "@/components/ui/VivaceLoading";
+
+import type {
+  AppPermission,
+} from "@/types/accessControl";
+
 interface AppAccessGuardProps {
   children: ReactNode;
+}
+
+function hasNavigationPermission(
+  item: NavigationItem,
+  permissions: AppPermission[],
+): boolean {
+  const match =
+    item.permissionMatch ??
+    "all";
+
+  if (
+    item.permissions.length === 0
+  ) {
+    return true;
+  }
+
+  if (match === "any") {
+    return item.permissions.some(
+      (permission) =>
+        permissions.includes(
+          permission,
+        ),
+    );
+  }
+
+  return item.permissions.every(
+    (permission) =>
+      permissions.includes(
+        permission,
+      ),
+  );
+}
+
+function findCurrentRoute(
+  pathname: string,
+): NavigationItem | null {
+  const matchingItems =
+    ALL_NAVIGATION_ITEMS
+      .filter(
+        (item) =>
+          isNavigationItemActive(
+            pathname,
+            item.href,
+          ),
+      )
+      .sort(
+        (first, second) =>
+          second.href.length -
+          first.href.length,
+      );
+
+  return (
+    matchingItems[0] ??
+    null
+  );
 }
 
 export default function AppAccessGuard({
@@ -34,9 +95,6 @@ export default function AppAccessGuard({
   const pathname =
     usePathname();
 
-  const router =
-    useRouter();
-
   const {
     access,
     isLoading,
@@ -44,163 +102,107 @@ export default function AppAccessGuard({
     reload,
   } = useUserAccess();
 
-  useEffect(() => {
-    if (
-      !isLoading &&
-      !error &&
-      !access
-    ) {
-      router.replace("/login");
-    }
-  }, [
-    access,
-    error,
-    isLoading,
-    router,
-  ]);
-
   if (isLoading) {
-    return <AccessLoadingState />;
+    return (
+      <VivaceLoading
+        variant="page"
+        message="Verificando acceso..."
+      />
+    );
   }
 
-  if (error) {
+  if (
+    error ||
+    !access ||
+    !access.isActive
+  ) {
     return (
-      <AccessErrorState
-        message={error}
-        onRetry={() => {
+      <AccessRestrictedView
+        description={
+          error ||
+          "Tu cuenta no está activa o no tiene un perfil vinculado."
+        }
+        onReload={() => {
           void reload();
         }}
       />
     );
   }
 
-  if (!access) {
-    return <AccessLoadingState />;
-  }
-
-  if (!access.isActive) {
-    return <InactiveAccountState />;
-  }
-
-  const routeItem =
-    ALL_NAVIGATION_ITEMS.find(
-      (item) =>
-        isNavigationItemActive(
-          pathname,
-          item.href,
-        ),
+  const currentRoute =
+    findCurrentRoute(
+      pathname,
     );
 
-  const canAccessRoute =
-    !routeItem ||
-    access.permissions.includes(
-      routeItem.permission,
-    );
-
-  if (!canAccessRoute) {
-    return <AccessDeniedState />;
+  if (!currentRoute) {
+    return <>{children}</>;
   }
 
-  return children;
+  const isAllowed =
+    hasNavigationPermission(
+      currentRoute,
+      access.permissions,
+    );
+
+  if (!isAllowed) {
+    return (
+      <AccessRestrictedView
+        description="Tu cuenta no tiene permiso para consultar este módulo."
+        onReload={() => {
+          void reload();
+        }}
+      />
+    );
+  }
+
+  return <>{children}</>;
 }
 
-function AccessLoadingState() {
+interface AccessRestrictedViewProps {
+  description: string;
+  onReload: () => void;
+}
+
+function AccessRestrictedView({
+  description,
+  onReload,
+}: AccessRestrictedViewProps) {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-6 py-12">
-      <div className="w-full max-w-sm rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-        <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-emerald-800" />
+    <main className="flex min-h-dvh items-center justify-center bg-slate-50 px-4 py-8">
+      <VivaceCard className="w-full max-w-md">
+        <VivaceCard.Body className="p-6 text-center sm:p-8">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-800">
+            <ShieldAlert
+              aria-hidden="true"
+              className="h-7 w-7"
+            />
+          </div>
 
-        <p className="mt-5 text-sm font-semibold text-slate-700">
-          Verificando acceso...
-        </p>
-      </div>
-    </main>
-  );
-}
+          <h1 className="mt-5 text-2xl font-bold tracking-tight text-slate-950">
+            Acceso restringido
+          </h1>
 
-interface AccessErrorStateProps {
-  message: string;
-  onRetry: () => void;
-}
+          <p className="mt-3 text-sm leading-6 text-slate-600">
+            {description}
+          </p>
 
-function AccessErrorState({
-  message,
-  onRetry,
-}: AccessErrorStateProps) {
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-6 py-12">
-      <div
-        role="alert"
-        className="w-full max-w-md rounded-3xl border border-rose-200 bg-white p-8 text-center shadow-sm"
-      >
-        <ShieldAlert className="mx-auto h-12 w-12 text-rose-600" />
+          <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+            <VivaceButton
+              variant="outline"
+              onClick={onReload}
+            >
+              Revisar permisos
+            </VivaceButton>
 
-        <h1 className="mt-5 text-2xl font-bold text-slate-950">
-          No fue posible verificar el acceso
-        </h1>
-
-        <p className="mt-3 text-sm leading-6 text-slate-600">
-          {message}
-        </p>
-
-        <button
-          type="button"
-          onClick={onRetry}
-          className="mt-7 inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-950"
-        >
-          Intentar nuevamente
-        </button>
-      </div>
-    </main>
-  );
-}
-
-function InactiveAccountState() {
-  return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-6 py-12">
-      <div className="w-full max-w-md rounded-3xl border border-amber-200 bg-white p-8 text-center shadow-sm">
-        <UserRoundX className="mx-auto h-12 w-12 text-amber-600" />
-
-        <h1 className="mt-5 text-2xl font-bold text-slate-950">
-          Cuenta pendiente de activación
-        </h1>
-
-        <p className="mt-3 text-sm leading-6 text-slate-600">
-          La administración debe activar tu perfil antes de que puedas utilizar Vivace Suite.
-        </p>
-
-        <Link
-          href="/login"
-          className="mt-7 inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-        >
-          Volver al inicio de sesión
-        </Link>
-      </div>
-    </main>
-  );
-}
-
-function AccessDeniedState() {
-  return (
-    <main className="flex min-h-[75vh] items-center justify-center px-6 py-12">
-      <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-        <ShieldAlert className="mx-auto h-12 w-12 text-emerald-800" />
-
-        <h1 className="mt-5 text-2xl font-bold text-slate-950">
-          Acceso restringido
-        </h1>
-
-        <p className="mt-3 text-sm leading-6 text-slate-600">
-          Tu cuenta no tiene permiso para consultar este módulo.
-        </p>
-
-        <Link
-          href="/"
-          className="mt-7 inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-950"
-        >
-          Ir al inicio
-        </Link>
-      </div>
+            <Link
+              href="/mi-cuenta"
+              className="inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-950 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-900"
+            >
+              Ir a mi cuenta
+            </Link>
+          </div>
+        </VivaceCard.Body>
+      </VivaceCard>
     </main>
   );
 }

@@ -11,6 +11,9 @@ import {
   createPayment,
   getPaymentsByCharge,
 } from "@/services/paymentService";
+import AccessDenied from "@/components/auth/AccessDenied";
+import VivaceLoading from "@/components/ui/VivaceLoading";
+import type { FeeAccessState } from "@/types/feeAccess";
 
 type PaymentMethod =
   | "cash"
@@ -25,7 +28,13 @@ interface PaymentCharge {
   amount: number;
 }
 
-interface RegisterPaymentModalProps {
+interface RegisterPaymentModalProps
+  extends Pick<
+    FeeAccessState,
+    | "isLoadingAccess"
+    | "accessError"
+    | "canManageFees"
+  > {
   charge: PaymentCharge;
   onClose: () => void;
   onPaymentCreated: () => void;
@@ -79,6 +88,9 @@ export default function RegisterPaymentModal({
   charge,
   onClose,
   onPaymentCreated,
+  isLoadingAccess,
+  accessError,
+  canManageFees,
 }: RegisterPaymentModalProps) {
   const [formData, setFormData] =
     useState<PaymentFormState>(INITIAL_FORM_STATE);
@@ -103,6 +115,10 @@ export default function RegisterPaymentModal({
   );
 
   useEffect(() => {
+    if (isLoadingAccess || !canManageFees) {
+      return;
+    }
+
     async function loadPayments() {
       try {
         setIsLoadingPayments(true);
@@ -145,7 +161,12 @@ export default function RegisterPaymentModal({
     }
 
     void loadPayments();
-  }, [charge.id, charge.amount]);
+  }, [
+    canManageFees,
+    charge.id,
+    charge.amount,
+    isLoadingAccess,
+  ]);
 
   function handleTextFieldChange(
     field: "amount" | "reference" | "notes",
@@ -178,6 +199,13 @@ export default function RegisterPaymentModal({
     event: FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault();
+
+    if (isLoadingAccess || !canManageFees) {
+      setSubmitError(
+        "No cuentas con permisos para registrar pagos.",
+      );
+      return;
+    }
 
     const paymentAmount = Number(formData.amount);
 
@@ -224,6 +252,46 @@ export default function RegisterPaymentModal({
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  if (isLoadingAccess) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4">
+        <div className="w-full max-w-xl rounded-3xl bg-white shadow-2xl">
+          <VivaceLoading
+            message="Verificando permisos..."
+            className="min-h-64 border-0 shadow-none"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  if (!canManageFees) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4">
+        <div className="w-full max-w-xl rounded-3xl bg-white shadow-2xl">
+          <AccessDenied
+            title="Acceso denegado"
+            description={
+              accessError ||
+              "No cuentas con permisos para registrar pagos."
+            }
+            showBackButton={false}
+            className="min-h-64"
+          />
+          <div className="flex justify-end border-t border-slate-200 p-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -381,6 +449,8 @@ export default function RegisterPaymentModal({
                 )
               }
               disabled={
+                isLoadingAccess ||
+                !canManageFees ||
                 isLoadingPayments ||
                 isSubmitting ||
                 Boolean(loadError) ||

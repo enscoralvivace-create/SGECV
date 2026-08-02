@@ -72,7 +72,13 @@ function SessionStatusBadge({
   );
 }
 
-export default function AttendanceDashboard() {
+interface AttendanceDashboardProps {
+  canManage: boolean;
+}
+
+export default function AttendanceDashboard({
+  canManage,
+}: AttendanceDashboardProps) {
   const [dashboardData, setDashboardData] =
     useState<AttendanceDashboardData | null>(null);
 
@@ -111,6 +117,10 @@ export default function AttendanceDashboard() {
   async function handleSessionStatusChange(
     summary: AttendanceSessionSummary,
   ) {
+    if (!canManage) {
+      return;
+    }
+
     const newStatus = !summary.session.is_active;
 
     setProcessingSessionId(summary.session.id);
@@ -304,32 +314,34 @@ export default function AttendanceDashboard() {
                 }
               />
 
-              <button
-                type="button"
-                disabled={
-                  processingSessionId ===
-                  latestSession.session.id
-                }
-                onClick={() =>
-                  void handleSessionStatusChange(
-                    latestSession,
-                  )
-                }
-                className="flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {processingSessionId ===
-                latestSession.session.id ? (
-                  <LoaderCircle className="h-4 w-4 animate-spin" />
-                ) : latestSession.session.is_active ? (
-                  <Lock className="h-4 w-4" />
-                ) : (
-                  <LockOpen className="h-4 w-4" />
-                )}
+              {canManage ? (
+                <button
+                  type="button"
+                  disabled={
+                    processingSessionId ===
+                    latestSession.session.id
+                  }
+                  onClick={() =>
+                    void handleSessionStatusChange(
+                      latestSession,
+                    )
+                  }
+                  className="flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {processingSessionId ===
+                  latestSession.session.id ? (
+                    <LoaderCircle className="h-4 w-4 animate-spin" />
+                  ) : latestSession.session.is_active ? (
+                    <Lock className="h-4 w-4" />
+                  ) : (
+                    <LockOpen className="h-4 w-4" />
+                  )}
 
-                {latestSession.session.is_active
-                  ? "Cerrar sesión"
-                  : "Abrir sesión"}
-              </button>
+                  {latestSession.session.is_active
+                    ? "Cerrar sesión"
+                    : "Abrir sesión"}
+                </button>
+              ) : null}
             </div>
           </div>
 

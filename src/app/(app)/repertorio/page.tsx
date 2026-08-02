@@ -13,6 +13,7 @@ import RepertoireTable from "@/components/repertoire/RepertoireTable";
 import VivacePageHeader from "@/components/ui/VivacePageHeader";
 
 import { useRepertoire } from "@/hooks/useRepertoire";
+import useUserAccess from "@/hooks/useUserAccess";
 
 import {
   updateRepertoireResources,
@@ -39,6 +40,15 @@ const repertoireFilters: RepertoireFilter[] = [
 ];
 
 export default function RepertoirePage() {
+  const {
+    hasPermission,
+  } = useUserAccess();
+
+  const canManageRepertoire =
+    hasPermission(
+      "repertoire.manage",
+    );
+
   const {
   repertoire = [],
   loading,
@@ -118,6 +128,10 @@ export default function RepertoirePage() {
   function openResources(
     item: RepertoireItem,
   ): void {
+    if (!canManageRepertoire) {
+      return;
+    }
+
     setMessage("");
     setResourcesItem(item);
   }
@@ -142,6 +156,14 @@ function closeDetail(): void {
   async function handleSaveResources(
     resources: RepertoireResourcesData,
   ): Promise<boolean> {
+    if (!canManageRepertoire) {
+      setMessage(
+        "No tienes permiso para administrar recursos.",
+      );
+
+      return false;
+    }
+
     if (!resourcesItem) {
       setMessage(
         "No se encontró la obra seleccionada.",
@@ -195,6 +217,10 @@ function closeDetail(): void {
   }
 
   function openCreateForm(): void {
+    if (!canManageRepertoire) {
+      return;
+    }
+
     setEditingItem(null);
     setForm(emptyRepertoireForm);
     setMessage("");
@@ -204,6 +230,10 @@ function closeDetail(): void {
   function openEditForm(
     item: RepertoireItem,
   ): void {
+    if (!canManageRepertoire) {
+      return;
+    }
+
     setEditingItem(item);
 
     setForm({
@@ -244,6 +274,14 @@ function closeDetail(): void {
     event: FormEvent<HTMLFormElement>,
   ): Promise<void> {
     event.preventDefault();
+
+    if (!canManageRepertoire) {
+      setMessage(
+        "No tienes permiso para administrar el repertorio.",
+      );
+
+      return;
+    }
 
     if (!form.title.trim()) {
       setMessage(
@@ -306,6 +344,10 @@ function closeDetail(): void {
   async function handleArchive(
     item: RepertoireItem,
   ): Promise<void> {
+    if (!canManageRepertoire) {
+      return;
+    }
+
     const confirmed = window.confirm(
       `¿Deseas archivar la obra "${item.title}"?`,
     );
@@ -332,6 +374,10 @@ function closeDetail(): void {
   async function handleReactivate(
     item: RepertoireItem,
   ): Promise<void> {
+    if (!canManageRepertoire) {
+      return;
+    }
+
     const confirmed = window.confirm(
       `¿Deseas reactivar la obra "${item.title}"?`,
     );
@@ -361,11 +407,21 @@ function closeDetail(): void {
         <VivacePageHeader
           eyebrow="Biblioteca coral"
           title="Repertorio"
-          description="Administra obras, estados, materiales de estudio y recursos musicales del Ensamble Coral Vivace."
+          description={
+            canManageRepertoire
+              ? "Administra obras, estados, materiales de estudio y recursos musicales del Ensamble Coral Vivace."
+              : "Consulta obras, materiales de estudio y recursos musicales del Ensamble Coral Vivace."
+          }
           actions={
-            <Button onClick={openCreateForm}>
-              + Nueva obra
-            </Button>
+            canManageRepertoire ? (
+              <Button
+                onClick={
+                  openCreateForm
+                }
+              >
+                + Nueva obra
+              </Button>
+            ) : null
           }
         />
 
@@ -532,6 +588,7 @@ function closeDetail(): void {
           filteredRepertoire.length > 0 && (
            <RepertoireTable
   repertoire={filteredRepertoire}
+  canManage={canManageRepertoire}
   onEdit={openEditForm}
   onArchive={handleArchive}
   onReactivate={handleReactivate}
@@ -541,7 +598,8 @@ function closeDetail(): void {
           )}
       </section>
 
-      {isFormOpen && (
+      {isFormOpen &&
+      canManageRepertoire ? (
         <RepertoireFormModal
           form={form}
           setForm={setForm}
@@ -552,22 +610,24 @@ function closeDetail(): void {
             void handleSubmit(event);
           }}
         />
-      )}
+      ) : null}
 
-      {resourcesItem && (
+      {resourcesItem &&
+      canManageRepertoire ? (
         <RepertoireResourcesModal
           item={resourcesItem}
           isSaving={isSavingResources}
           onClose={closeResources}
           onSave={handleSaveResources}
         />
-      )}
-      {detailItem && (
+      ) : null}
+
+      {detailItem ? (
   <RepertoireDetailModal
     item={detailItem}
     onClose={closeDetail}
   />
-)}
+) : null}
     </main>
   );
 }

@@ -6,6 +6,7 @@ import {
   ReceiptText,
   UserPlus,
 } from "lucide-react";
+import useUserAccess from "@/hooks/useUserAccess";
 
 interface TripQuickActionsProps {
   onAddParticipant?: () => void;
@@ -94,6 +95,13 @@ export default function TripQuickActions({
   onRegisterPayment,
   onEditTrip,
 }: TripQuickActionsProps) {
+  const {
+    isLoading: isLoadingAccess,
+    hasPermission,
+  } = useUserAccess();
+
+  const canManageFees = hasPermission("fees.manage");
+
   return (
     <section
       className="
@@ -162,6 +170,7 @@ export default function TripQuickActions({
           onClick={onAssignCharge}
         />
 
+        {!isLoadingAccess && canManageFees ? (
         <QuickActionButton
           label="Registrar pago"
           description={
@@ -177,6 +186,7 @@ export default function TripQuickActions({
           }
           onClick={onRegisterPayment}
         />
+        ) : null}
 
         <QuickActionButton
   label="Editar viaje"

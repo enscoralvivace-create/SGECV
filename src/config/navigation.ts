@@ -32,7 +32,8 @@ export interface NavigationItem {
   shortLabel: string;
   href: string;
   icon: NavigationIconName;
-  permission: AppPermission;
+  permissions: AppPermission[];
+  permissionMatch?: "all" | "any";
   showInDesktop: boolean;
   showInMobileMenu: boolean;
   showInMobileBar: boolean;
@@ -46,7 +47,9 @@ NavigationItem[] = [
     shortLabel: "Inicio",
     href: "/",
     icon: "home",
-    permission: "dashboard.view",
+    permissions: [
+      "dashboard.view",
+    ],
     showInDesktop: true,
     showInMobileMenu: true,
     showInMobileBar: true,
@@ -57,7 +60,9 @@ NavigationItem[] = [
     shortLabel: "Mi cuenta",
     href: "/mi-cuenta",
     icon: "userCircle",
-    permission: "dashboard.view",
+    permissions: [
+      "dashboard.view",
+    ],
     showInDesktop: true,
     showInMobileMenu: true,
     showInMobileBar: true,
@@ -68,7 +73,11 @@ NavigationItem[] = [
     shortLabel: "Personas",
     href: "/integrantes",
     icon: "users",
-    permission: "members.manage",
+    permissions: [
+      "members.view",
+      "members.manage",
+    ],
+    permissionMatch: "any",
     showInDesktop: true,
     showInMobileMenu: true,
     showInMobileBar: false,
@@ -79,7 +88,11 @@ NavigationItem[] = [
     shortLabel: "Agenda",
     href: "/eventos",
     icon: "calendar",
-    permission: "events.manage",
+    permissions: [
+      "events.view",
+      "events.manage",
+    ],
+    permissionMatch: "any",
     showInDesktop: true,
     showInMobileMenu: true,
     showInMobileBar: true,
@@ -90,7 +103,11 @@ NavigationItem[] = [
     shortLabel: "Asistencia",
     href: "/asistencias",
     icon: "checkCircle",
-    permission: "attendance.viewAll",
+    permissions: [
+      "attendance.viewAll",
+      "attendance.manage",
+    ],
+    permissionMatch: "any",
     showInDesktop: true,
     showInMobileMenu: true,
     showInMobileBar: false,
@@ -101,7 +118,11 @@ NavigationItem[] = [
     shortLabel: "Repertorio",
     href: "/repertorio",
     icon: "music",
-    permission: "repertoire.view",
+    permissions: [
+      "repertoire.view",
+      "repertoire.manage",
+    ],
+    permissionMatch: "any",
     showInDesktop: true,
     showInMobileMenu: true,
     showInMobileBar: true,
@@ -112,7 +133,12 @@ NavigationItem[] = [
     shortLabel: "Pagos",
     href: "/cuotas",
     icon: "wallet",
-    permission: "fees.viewAll",
+    permissions: [
+      "fees.viewOwn",
+      "fees.viewAll",
+      "fees.manage",
+    ],
+    permissionMatch: "any",
     showInDesktop: true,
     showInMobileMenu: true,
     showInMobileBar: false,
@@ -123,7 +149,12 @@ NavigationItem[] = [
     shortLabel: "Viajes",
     href: "/viajes",
     icon: "plane",
-    permission: "trips.viewAll",
+    permissions: [
+      "trips.viewOwn",
+      "trips.viewAll",
+      "trips.manage",
+    ],
+    permissionMatch: "any",
     showInDesktop: true,
     showInMobileMenu: true,
     showInMobileBar: false,
@@ -134,7 +165,9 @@ NavigationItem[] = [
     shortLabel: "Reportes",
     href: "/reportes",
     icon: "chart",
-    permission: "reports.view",
+    permissions: [
+      "reports.view",
+    ],
     showInDesktop: true,
     showInMobileMenu: true,
     showInMobileBar: false,
@@ -149,7 +182,9 @@ NavigationItem[] = [
     shortLabel: "Permisos",
     href: "/configuracion",
     icon: "settings",
-    permission: "roles.manage",
+    permissions: [
+      "roles.manage",
+    ],
     showInDesktop: true,
     showInMobileMenu: true,
     showInMobileBar: false,
@@ -162,14 +197,40 @@ NavigationItem[] = [
   ...SECONDARY_NAVIGATION_ITEMS,
 ];
 
+function hasNavigationPermission(
+  item: NavigationItem,
+  permissions: AppPermission[],
+): boolean {
+  const match =
+    item.permissionMatch ??
+    "all";
+
+  if (match === "any") {
+    return item.permissions.some(
+      (permission) =>
+        permissions.includes(
+          permission,
+        ),
+    );
+  }
+
+  return item.permissions.every(
+    (permission) =>
+      permissions.includes(
+        permission,
+      ),
+  );
+}
+
 export function filterNavigationItems(
   items: NavigationItem[],
   permissions: AppPermission[],
 ): NavigationItem[] {
   return items.filter(
     (item) =>
-      permissions.includes(
-        item.permission,
+      hasNavigationPermission(
+        item,
+        permissions,
       ),
   );
 }

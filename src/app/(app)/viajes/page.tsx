@@ -16,6 +16,7 @@ import TripsTable from "@/components/trips/TripsTable";
 import TripBudgetModal from "@/components/trips/TripBudgetModal";
 
 import { useTrips } from "@/hooks/useTrips";
+import useUserAccess from "@/hooks/useUserAccess";
 
 import {
   emptyTripForm,
@@ -97,6 +98,14 @@ function getErrorMessage(
 }
 
 export default function TripsPage() {
+  const {
+    isLoading: isLoadingAccess,
+    hasPermission,
+  } = useUserAccess();
+
+  const canManageFees = hasPermission("fees.manage");
+  const canViewAllFees = hasPermission("fees.viewAll");
+
   const {
     trips,
     loading,
@@ -420,15 +429,22 @@ export default function TripsPage() {
             setSelectedTripForMembers(trip)
           }
           onManageCharges={(trip) =>
-            setSelectedTripForCharges(trip)
+            !isLoadingAccess && canManageFees
+              ? setSelectedTripForCharges(trip)
+              : undefined
           }
+          canManageFees={canManageFees}
+          canViewAllFees={canViewAllFees}
+          isLoadingAccess={isLoadingAccess}
           onManageBudget={(trip) =>
   setSelectedTripForBudget(trip)
 }
           onViewFinancialSummary={(trip) =>
-            setSelectedTripForFinancialSummary(
-              trip,
-            )
+            !isLoadingAccess && canViewAllFees
+              ? setSelectedTripForFinancialSummary(
+                  trip,
+                )
+              : undefined
           }
           onChangeStatus={(
             trip,

@@ -9,19 +9,23 @@ import {
 
 import PaymentHistoryModal from "@/components/payments/PaymentHistoryModal";
 import RegisterPaymentModal from "@/components/payments/RegisterPaymentModal";
+import AccessDenied from "@/components/auth/AccessDenied";
+import VivaceLoading from "@/components/ui/VivaceLoading";
 import StatusBadge from "@/components/ui/StatusBadge";
 import {
   getChargesByMember,
   type ChargeListItem,
   type ChargeStatus,
 } from "@/services/chargeService";
+import type { FeeAccessState } from "@/types/feeAccess";
 
 interface AccountStatementMember {
   id: number;
   name: string;
 }
 
-interface MemberAccountStatementModalProps {
+interface MemberAccountStatementModalProps
+  extends FeeAccessState {
   member: AccountStatementMember;
   onClose: () => void;
 }
@@ -49,7 +53,19 @@ const billingPeriodFormatter = new Intl.DateTimeFormat(
 export default function MemberAccountStatementModal({
   member,
   onClose,
+  isLoadingAccess,
+  accessError,
+  canManageFees,
+  canViewAllFees,
+  canViewOwnFees,
+  accessMemberId,
 }: MemberAccountStatementModalProps) {
+  const canViewMember =
+    canViewAllFees ||
+    (canViewOwnFees &&
+      accessMemberId !== null &&
+      accessMemberId === member.id);
+
   const [charges, setCharges] = useState<
     ChargeListItem[]
   >([]);
@@ -67,6 +83,10 @@ export default function MemberAccountStatementModal({
 
   const loadCharges =
     useCallback(async (): Promise<void> => {
+      if (isLoadingAccess || !canViewMember) {
+        return;
+      }
+
       try {
         setIsLoading(true);
         setLoadError(null);
@@ -87,11 +107,13 @@ export default function MemberAccountStatementModal({
       } finally {
         setIsLoading(false);
       }
-    }, [member.id]);
+    }, [canViewMember, isLoadingAccess, member.id]);
 
   useEffect(() => {
-    void loadCharges();
-  }, [loadCharges]);
+    if (!isLoadingAccess && canViewMember) {
+      void loadCharges();
+    }
+  }, [canViewMember, isLoadingAccess, loadCharges]);
 
   const totals = useMemo(
     () =>
@@ -125,6 +147,48 @@ export default function MemberAccountStatementModal({
   function handlePaymentCreated() {
     setPaymentCharge(null);
     void loadCharges();
+  }
+
+  if (isLoadingAccess) {
+    return (
+      <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/60 p-4">
+        <div className="w-full max-w-3xl rounded-2xl bg-white shadow-2xl">
+          <VivaceLoading message="Verificando permisos..." />
+        </div>
+      </div>
+    );
+  }
+
+  if (!canViewMember) {
+    const missingLink =
+      canViewOwnFees && accessMemberId === null;
+
+    return (
+      <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/60 p-4">
+        <div className="w-full max-w-3xl rounded-2xl bg-white shadow-2xl">
+          <AccessDenied
+            title={
+              missingLink
+                ? "Cuenta sin integrante vinculado"
+                : "Acceso denegado"
+            }
+            description={
+              missingLink
+                ? "Tu usuario no está vinculado a un integrante. Contacta a un administrador para consultar tu estado de cuenta."
+                : accessError ||
+                  "No tienes permisos para consultar el estado de cuenta de este integrante."
+            }
+            showBackButton={false}
+            className="min-h-64"
+          />
+          <div className="flex justify-end border-t border-slate-200 p-4">
+            <button type="button" onClick={onClose} className="rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700">
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -234,6 +298,8 @@ export default function MemberAccountStatementModal({
                     onRegisterPayment={
                       setPaymentCharge
                     }
+                    canManageFees={canManageFees}
+                    isLoadingAccess={isLoadingAccess}
                   />
                 )}
               </div>
@@ -267,6 +333,10 @@ export default function MemberAccountStatementModal({
           onRegisterPayment={
             handleRegisterPaymentFromHistory
           }
+          canManageFees={canManageFees}
+          isLoadingAccess={isLoadingAccess}
+          canViewPayments={canViewMember}
+          accessError={accessError}
         />
       )}
 
@@ -281,6 +351,9 @@ export default function MemberAccountStatementModal({
           }}
           onClose={() => setPaymentCharge(null)}
           onPaymentCreated={handlePaymentCreated}
+          canManageFees={canManageFees}
+          isLoadingAccess={isLoadingAccess}
+          accessError={accessError}
         />
       )}
     </>
@@ -319,12 +392,16 @@ interface ChargesListProps {
   onRegisterPayment: (
     charge: ChargeListItem,
   ) => void;
+  canManageFees: boolean;
+  isLoadingAccess: boolean;
 }
 
 function ChargesList({
   charges,
   onViewHistory,
   onRegisterPayment,
+  canManageFees,
+  isLoadingAccess,
 }: ChargesListProps) {
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200">
@@ -340,8 +417,10 @@ function ChargesList({
       <div className="divide-y divide-slate-200">
         {charges.map((charge) => {
           const canRegisterPayment =
-            charge.status === "pending" ||
-            charge.status === "partial";
+            !isLoadingAccess &&
+            canManageFees &&
+            (charge.status === "pending" ||
+              charge.status === "partial");
 
           return (
             <article

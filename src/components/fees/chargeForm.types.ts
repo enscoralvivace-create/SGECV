@@ -1,5 +1,6 @@
 import type { FeeType } from "@/services/feeService";
 import type { Member } from "@/types/member";
+import type { FeeAccessState } from "@/types/feeAccess";
 
 export type ChargeScope = "individual" | "group";
 
@@ -21,9 +22,17 @@ export const INITIAL_CHARGE_FORM_DATA: ChargeFormData = {
   notes: "",
 };
 
-export interface ChargeScopeSelectorProps {
+export interface ChargeScopeSelectorProps
+  extends ChargeAccessProps {
   onSelect: (scope: ChargeScope) => void;
 }
+
+export type ChargeAccessProps = Pick<
+  FeeAccessState,
+  | "canManageFees"
+  | "isLoadingAccess"
+  | "accessError"
+>;
 
 export interface ChargeFormProps {
   chargeScope: ChargeScope;

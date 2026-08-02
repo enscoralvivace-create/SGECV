@@ -7,8 +7,11 @@ import {
 } from "react";
 
 import Button from "@/components/common/Button";
+import AccessDenied from "@/components/auth/AccessDenied";
+import VivaceLoading from "@/components/ui/VivaceLoading";
 import TripFinancialReportModal from "@/components/trips/TripFinancialReportModal";
 import RegisterPaymentModal from "@/components/payments/RegisterPaymentModal";
+import useUserAccess from "@/hooks/useUserAccess";
 
 import {
   getTripFinancialSummary,
@@ -87,6 +90,15 @@ export default function TripFinancialSummaryModal({
   tripName,
   onClose,
 }: TripFinancialSummaryModalProps) {
+  const {
+    isLoading: isLoadingAccess,
+    error: accessError,
+    hasPermission,
+  } = useUserAccess();
+
+  const canManageFees = hasPermission("fees.manage");
+  const canViewAllFees = hasPermission("fees.viewAll");
+
   const [
     summary,
     setSummary,
@@ -114,6 +126,10 @@ export default function TripFinancialSummaryModal({
 
   const loadSummary = useCallback(
     async () => {
+      if (isLoadingAccess || !canViewAllFees) {
+        return;
+      }
+
       try {
         setIsLoading(true);
         setError("");
@@ -134,12 +150,14 @@ export default function TripFinancialSummaryModal({
         setIsLoading(false);
       }
     },
-    [tripId],
+    [canViewAllFees, isLoadingAccess, tripId],
   );
 
   useEffect(() => {
-    void loadSummary();
-  }, [loadSummary]);
+    if (!isLoadingAccess && canViewAllFees) {
+      void loadSummary();
+    }
+  }, [canViewAllFees, isLoadingAccess, loadSummary]);
 
   function handlePaymentCreated() {
     setSelectedCharge(null);
@@ -148,6 +166,39 @@ export default function TripFinancialSummaryModal({
 
   const recoveryPercentage =
     summary?.recoveryPercentage ?? 0;
+
+  if (isLoadingAccess) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4">
+        <div className="w-full max-w-4xl rounded-3xl bg-white shadow-2xl">
+          <VivaceLoading message="Verificando permisos..." />
+        </div>
+      </div>
+    );
+  }
+
+  if (!canViewAllFees) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4">
+        <div className="w-full max-w-4xl rounded-3xl bg-white shadow-2xl">
+          <AccessDenied
+            title="Acceso denegado"
+            description={
+              accessError ||
+              "No cuentas con permisos para consultar información financiera de otros integrantes."
+            }
+            showBackButton={false}
+            className="min-h-64"
+          />
+          <div className="flex justify-end border-t border-slate-200 p-4">
+            <button type="button" onClick={onClose} className="rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700">
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -342,10 +393,12 @@ export default function TripFinancialSummaryModal({
                                   member: TripMemberFinancialSummary,
                                 ) => {
                                   const canRegisterPayment =
-                                    member.status ===
+                                    !isLoadingAccess &&
+                                    canManageFees &&
+                                    (member.status ===
                                       "pending" ||
-                                    member.status ===
-                                      "partial";
+                                      member.status ===
+                                        "partial");
 
                                   return (
                                     <tr
@@ -473,6 +526,9 @@ export default function TripFinancialSummaryModal({
           onPaymentCreated={
             handlePaymentCreated
           }
+          canManageFees={canManageFees}
+          isLoadingAccess={isLoadingAccess}
+          accessError={accessError}
         />
       )}
       {isReportOpen && summary && (

@@ -12,13 +12,16 @@ import {
 } from "lucide-react";
 
 import type { FeeType } from "@/services/feeService";
+import AccessDenied from "@/components/auth/AccessDenied";
+import VivaceLoading from "@/components/ui/VivaceLoading";
 
 import {
   INITIAL_CHARGE_FORM_DATA,
+  type ChargeAccessProps,
   type ChargeFormData,
 } from "./chargeForm.types";
 
-interface GroupChargeFormProps {
+interface GroupChargeFormProps extends ChargeAccessProps {
   activeMembersCount: number;
   isLoadingMembers: boolean;
   membersError: string | null;
@@ -38,6 +41,9 @@ export default function GroupChargeForm({
   feeTypesError,
   onBack,
   onClose,
+  canManageFees,
+  isLoadingAccess,
+  accessError,
 }: GroupChargeFormProps) {
   const [formData, setFormData] =
     useState<ChargeFormData>(
@@ -64,6 +70,10 @@ export default function GroupChargeForm({
   ) {
     event.preventDefault();
 
+    if (isLoadingAccess || !canManageFees) {
+      return;
+    }
+
     /*
      * Más adelante conectaremos aquí la creación
      * de un cargo para cada integrante activo.
@@ -79,6 +89,29 @@ export default function GroupChargeForm({
     isLoadingFeeTypes ||
     Boolean(feeTypesError) ||
     feeTypes.length === 0;
+
+  if (isLoadingAccess) {
+    return (
+      <VivaceLoading
+        message="Verificando permisos..."
+        className="min-h-64 rounded-none border-0 shadow-none"
+      />
+    );
+  }
+
+  if (!canManageFees) {
+    return (
+      <AccessDenied
+        title="Acceso denegado"
+        description={
+          accessError ||
+          "No cuentas con permisos para crear cargos."
+        }
+        showBackButton={false}
+        className="min-h-64"
+      />
+    );
+  }
 
   return (
     <form
@@ -237,6 +270,8 @@ export default function GroupChargeForm({
         <button
           type="submit"
           disabled={
+            isLoadingAccess ||
+            !canManageFees ||
             membersUnavailable ||
             feeTypesUnavailable
           }

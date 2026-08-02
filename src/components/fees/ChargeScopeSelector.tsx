@@ -6,7 +6,41 @@ import type { ChargeScopeSelectorProps } from "./chargeForm.types";
 
 export default function ChargeScopeSelector({
   onSelect,
+  canManageFees,
+  isLoadingAccess,
 }: ChargeScopeSelectorProps) {
+  if (isLoadingAccess) {
+    return (
+      <section className="space-y-5 p-6">
+        <div>
+          <h3 className="text-lg font-semibold text-slate-900">
+            ¿Qué deseas crear?
+          </h3>
+
+          <p className="mt-1 text-sm text-slate-600">
+            Verificando permisos...
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  if (!canManageFees) {
+    return (
+      <section className="space-y-5 p-6">
+        <div>
+          <h3 className="text-lg font-semibold text-slate-900">
+            Acceso denegado
+          </h3>
+
+          <p className="mt-2 text-sm leading-6 text-slate-600">
+            No cuentas con permisos para crear cargos.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="space-y-5 p-6">
       <div>

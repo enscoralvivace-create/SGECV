@@ -12,6 +12,9 @@ interface TripsTableProps {
   search: string;
   isLoading: boolean;
   processingId: string | null;
+  canManageFees: boolean;
+  canViewAllFees: boolean;
+  isLoadingAccess: boolean;
   onEdit: (trip: Trip) => void;
   onManageMembers: (trip: Trip) => void;
   onManageCharges: (trip: Trip) => void;
@@ -76,6 +79,9 @@ export default function TripsTable({
   search,
   isLoading,
   processingId,
+  canManageFees,
+  canViewAllFees,
+  isLoadingAccess,
   onEdit,
   onManageMembers,
   onManageCharges,
@@ -209,6 +215,7 @@ export default function TripsTable({
                           Participantes
                         </button>
 
+                        {!isLoadingAccess && canManageFees ? (
                         <button
                           type="button"
                           onClick={() =>
@@ -224,6 +231,7 @@ export default function TripsTable({
                           Cargos
 
                         </button>
+                        ) : null}
                         
 <button
   type="button"
@@ -236,6 +244,7 @@ export default function TripsTable({
   Presupuesto
 </button>
 
+                        {!isLoadingAccess && canViewAllFees ? (
                         <button
                           type="button"
                           onClick={() =>
@@ -248,6 +257,7 @@ export default function TripsTable({
                         >
                           Resumen
                         </button>
+                        ) : null}
 
                         {trip.status ===
                           "planning" && (

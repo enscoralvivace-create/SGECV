@@ -16,14 +16,17 @@ import {
   createCharge,
   type FeeType,
 } from "@/services/feeService";
+import AccessDenied from "@/components/auth/AccessDenied";
+import VivaceLoading from "@/components/ui/VivaceLoading";
 import type { Member } from "@/types/member";
 
 import {
   INITIAL_CHARGE_FORM_DATA,
+  type ChargeAccessProps,
   type ChargeFormData,
 } from "./chargeForm.types";
 
-interface IndividualChargeFormProps {
+interface IndividualChargeFormProps extends ChargeAccessProps {
   activeMembers: Member[];
   isLoadingMembers: boolean;
   membersError: string | null;
@@ -45,6 +48,9 @@ export default function IndividualChargeForm({
   onBack,
   onClose,
   onChargeCreated,
+  canManageFees,
+  isLoadingAccess,
+  accessError,
 }: IndividualChargeFormProps) {
   const [formData, setFormData] =
     useState<ChargeFormData>(
@@ -87,6 +93,13 @@ export default function IndividualChargeForm({
     event: FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault();
+
+    if (isLoadingAccess || !canManageFees) {
+      setSubmitError(
+        "No cuentas con permisos para crear cargos.",
+      );
+      return;
+    }
 
     if (isSubmitting) {
       return;
@@ -165,9 +178,34 @@ onClose();
     feeTypes.length === 0;
 
   const formUnavailable =
+    isLoadingAccess ||
+    !canManageFees ||
     membersUnavailable ||
     feeTypesUnavailable ||
     isSubmitting;
+
+  if (isLoadingAccess) {
+    return (
+      <VivaceLoading
+        message="Verificando permisos..."
+        className="min-h-64 rounded-none border-0 shadow-none"
+      />
+    );
+  }
+
+  if (!canManageFees) {
+    return (
+      <AccessDenied
+        title="Acceso denegado"
+        description={
+          accessError ||
+          "No cuentas con permisos para crear cargos."
+        }
+        showBackButton={false}
+        className="min-h-64"
+      />
+    );
+  }
 
   return (
     <form

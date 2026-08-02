@@ -8,6 +8,7 @@ import {
 } from "react";
 
 import NewChargeModal from "@/components/fees/NewChargeModal";
+import MemberAccountStatementModal from "@/components/fees/MemberAccountStatementModal";
 import PaymentHistoryModal from "@/components/payments/PaymentHistoryModal";
 import RegisterPaymentModal from "@/components/payments/RegisterPaymentModal";
 import DataTable, {
@@ -17,6 +18,7 @@ import EmptyState from "@/components/ui/EmptyState";
 import StatCard from "@/components/ui/StatCard";
 import StatusBadge from "@/components/ui/StatusBadge";
 import VivacePageHeader from "@/components/ui/VivacePageHeader";
+import useUserAccess from "@/hooks/useUserAccess";
 import {
   getChargeSummary,
   getRecentCharges,
@@ -54,7 +56,22 @@ const billingPeriodFormatter = new Intl.DateTimeFormat(
 );
 
 export default function CuotasPage() {
+  const {
+    access,
+    isLoading: isLoadingAccess,
+    error: accessError,
+    hasPermission,
+  } = useUserAccess();
+
+  const canManageFees = hasPermission("fees.manage");
+  const canViewAllFees = hasPermission("fees.viewAll");
+  const canViewOwnFees = hasPermission("fees.viewOwn");
+  const accessMemberId = access?.memberId ?? null;
+
   const [isNewChargeModalOpen, setIsNewChargeModalOpen] =
+    useState(false);
+
+  const [isOwnAccountOpen, setIsOwnAccountOpen] =
     useState(false);
 
   const [selectedCharge, setSelectedCharge] =
@@ -92,6 +109,10 @@ export default function CuotasPage() {
   );
 
   const loadFinancialData = useCallback(async () => {
+    if (isLoadingAccess || !canViewAllFees) {
+      return;
+    }
+
     try {
       setIsLoading(true);
       setLoadError(null);
@@ -114,11 +135,17 @@ export default function CuotasPage() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [canViewAllFees, isLoadingAccess]);
 
   useEffect(() => {
-    void loadFinancialData();
-  }, [loadFinancialData]);
+    if (!isLoadingAccess && canViewAllFees) {
+      void loadFinancialData();
+    } else if (!isLoadingAccess) {
+      setCharges([]);
+      setSummary(INITIAL_SUMMARY);
+      setIsLoading(false);
+    }
+  }, [canViewAllFees, isLoadingAccess, loadFinancialData]);
 
   const columns = useMemo<
     DataTableColumn<ChargeListItem>[]
@@ -221,11 +248,13 @@ export default function CuotasPage() {
             onRegisterPayment={() =>
               setSelectedCharge(charge)
             }
+            canManageFees={canManageFees}
+            isLoadingAccess={isLoadingAccess}
           />
         ),
       },
     ],
-    [],
+    [canManageFees, isLoadingAccess],
   );
 
   function handleChargeCreated() {
@@ -256,18 +285,47 @@ export default function CuotasPage() {
           title="Cuotas"
           description="Consulta cargos, pagos, saldos pendientes e ingresos recientes."
           actions={
-            <button
-              type="button"
-              onClick={() =>
-                setIsNewChargeModalOpen(true)
-              }
-              className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-emerald-950 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-900 active:scale-[0.98] sm:w-auto"
-            >
-              + Nuevo cargo
-            </button>
+            !isLoadingAccess ? (
+              <div className="flex flex-col gap-3 sm:flex-row">
+                {canViewOwnFees ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setIsOwnAccountOpen(true)
+                    }
+                    disabled={accessMemberId === null}
+                    className="inline-flex min-h-11 items-center justify-center rounded-xl border border-emerald-950 px-5 py-2.5 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Mi estado de cuenta
+                  </button>
+                ) : null}
+
+                {canManageFees ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setIsNewChargeModalOpen(true)
+                    }
+                    className="inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-950 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-900 active:scale-[0.98]"
+                  >
+                    + Nuevo cargo
+                  </button>
+                ) : null}
+              </div>
+            ) : null
           }
         />
 
+      {!isLoadingAccess &&
+      canViewOwnFees &&
+      accessMemberId === null ? (
+        <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
+          Tu usuario no está vinculado a un integrante. Contacta a un administrador para consultar tu estado de cuenta.
+        </div>
+      ) : null}
+
+      {canViewAllFees ? (
+        <>
       <section className="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4">
         <StatCard
           title="Pendientes"
@@ -299,7 +357,20 @@ export default function CuotasPage() {
           description="Pagos recibidos durante el mes actual"
         />
       </section>
+        </>
+      ) : !isLoadingAccess ? (
+        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-slate-900">
+            Estado de cuenta personal
+          </h2>
+          <p className="mt-2 text-sm text-slate-600">
+            Consulta tus cargos, pagos y saldo pendiente desde el acceso “Mi estado de cuenta”.
+          </p>
+        </section>
+      ) : null}
 
+      {canViewAllFees ? (
+        <>
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-slate-200 p-5">
           <div>
@@ -342,15 +413,17 @@ export default function CuotasPage() {
                   title="Aún no existen cargos"
                   description="Crea el primer cargo para comenzar a administrar las cuotas del coro."
                   action={
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setIsNewChargeModalOpen(true)
-                      }
-                      className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
-                    >
-                      Crear primer cargo
-                    </button>
+                    !isLoadingAccess && canManageFees ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setIsNewChargeModalOpen(true)
+                        }
+                        className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
+                      >
+                        Crear primer cargo
+                      </button>
+                    ) : null
                   }
                 />
               </div>
@@ -400,6 +473,8 @@ export default function CuotasPage() {
           </div>
         </div>
       </section>
+        </>
+      ) : null}
 
       {isNewChargeModalOpen && (
         <NewChargeModal
@@ -429,6 +504,10 @@ export default function CuotasPage() {
           onRegisterPayment={
             handleRegisterPaymentFromHistory
           }
+          canManageFees={canManageFees}
+          isLoadingAccess={isLoadingAccess}
+          canViewPayments={canViewAllFees}
+          accessError={accessError}
         />
       )}
 
@@ -443,6 +522,25 @@ export default function CuotasPage() {
           }}
           onClose={() => setSelectedCharge(null)}
           onPaymentCreated={handlePaymentCreated}
+          canManageFees={canManageFees}
+          isLoadingAccess={isLoadingAccess}
+          accessError={accessError}
+        />
+      )}
+
+      {isOwnAccountOpen && accessMemberId !== null && (
+        <MemberAccountStatementModal
+          member={{
+            id: accessMemberId,
+            name: "Mi estado de cuenta",
+          }}
+          onClose={() => setIsOwnAccountOpen(false)}
+          isLoadingAccess={isLoadingAccess}
+          accessError={accessError}
+          canManageFees={canManageFees}
+          canViewAllFees={canViewAllFees}
+          canViewOwnFees={canViewOwnFees}
+          accessMemberId={accessMemberId}
         />
       )}
           </div>
@@ -454,16 +552,22 @@ interface ChargeActionsProps {
   charge: ChargeListItem;
   onViewHistory: () => void;
   onRegisterPayment: () => void;
+  canManageFees: boolean;
+  isLoadingAccess: boolean;
 }
 
 function ChargeActions({
   charge,
   onViewHistory,
   onRegisterPayment,
+  canManageFees,
+  isLoadingAccess,
 }: ChargeActionsProps) {
   const canRegisterPayment =
-    charge.status === "pending" ||
-    charge.status === "partial";
+    !isLoadingAccess &&
+    canManageFees &&
+    (charge.status === "pending" ||
+      charge.status === "partial");
 
   return (
     <div className="flex flex-wrap gap-2">

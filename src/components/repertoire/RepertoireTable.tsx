@@ -5,6 +5,7 @@ import type {
 
 interface RepertoireTableProps {
   repertoire: RepertoireItem[];
+  canManage: boolean;
   onEdit: (item: RepertoireItem) => void;
   onArchive: (item: RepertoireItem) => void;
   onReactivate: (item: RepertoireItem) => void;
@@ -123,6 +124,7 @@ function ResourceProgressView({
 
 export default function RepertoireTable({
   repertoire,
+  canManage,
   onEdit,
   onArchive,
   onReactivate,
@@ -201,32 +203,40 @@ export default function RepertoireTable({
                 }
               />
 
-              <ActionButton
-                label="Editar"
-                onClick={() =>
-                  onEdit(item)
-                }
-              />
+              {canManage ? (
+                <>
+                  <ActionButton
+                    label="Editar"
+                    onClick={() =>
+                      onEdit(item)
+                    }
+                  />
 
-              <ActionButton
-                label="Recursos"
-                onClick={() =>
-                  onResources(item)
-                }
-              />
+                  <ActionButton
+                    label="Recursos"
+                    onClick={() =>
+                      onResources(item)
+                    }
+                  />
 
-              <ActionButton
-                label={
-                  item.status === "Archivado"
-                    ? "Reactivar"
-                    : "Archivar"
-                }
-                onClick={() =>
-                  item.status === "Archivado"
-                    ? onReactivate(item)
-                    : onArchive(item)
-                }
-              />
+                  <ActionButton
+                    label={
+                      item.status === "Archivado"
+                        ? "Reactivar"
+                        : "Archivar"
+                    }
+                    onClick={() =>
+                      item.status === "Archivado"
+                        ? onReactivate(item)
+                        : onArchive(item)
+                    }
+                  />
+                </>
+              ) : (
+                <div className="col-span-1 flex min-h-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-400">
+                  Solo consulta
+                </div>
+              )}
             </div>
           </article>
         ))}
@@ -319,32 +329,43 @@ export default function RepertoireTable({
                         onDetail(item)
                       }
                     />
-                    <ActionButton
-                      label="Editar"
-                      onClick={() =>
-                        onEdit(item)
-                      }
-                    />
-                    <ActionButton
-                      label="Recursos"
-                      onClick={() =>
-                        onResources(item)
-                      }
-                    />
-                    <ActionButton
-                      label={
-                        item.status ===
-                        "Archivado"
-                          ? "Reactivar"
-                          : "Archivar"
-                      }
-                      onClick={() =>
-                        item.status ===
-                        "Archivado"
-                          ? onReactivate(item)
-                          : onArchive(item)
-                      }
-                    />
+
+                    {canManage ? (
+                      <>
+                        <ActionButton
+                          label="Editar"
+                          onClick={() =>
+                            onEdit(item)
+                          }
+                        />
+
+                        <ActionButton
+                          label="Recursos"
+                          onClick={() =>
+                            onResources(item)
+                          }
+                        />
+
+                        <ActionButton
+                          label={
+                            item.status ===
+                            "Archivado"
+                              ? "Reactivar"
+                              : "Archivar"
+                          }
+                          onClick={() =>
+                            item.status ===
+                            "Archivado"
+                              ? onReactivate(item)
+                              : onArchive(item)
+                          }
+                        />
+                      </>
+                    ) : (
+                      <span className="inline-flex min-h-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-400">
+                        Solo consulta
+                      </span>
+                    )}
                   </div>
                 </td>
               </tr>

@@ -3,6 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { X } from "lucide-react";
 
+import AccessDenied from "@/components/auth/AccessDenied";
+import VivaceLoading from "@/components/ui/VivaceLoading";
+import useUserAccess from "@/hooks/useUserAccess";
 import {
   getActiveFeeTypes,
   type FeeType,
@@ -24,6 +27,15 @@ export default function NewChargeModal({
   onClose,
   onChargeCreated,
 }: NewChargeModalProps) {
+  const {
+    isLoading: isLoadingAccess,
+    error: accessError,
+    hasPermission,
+    reload: reloadAccess,
+  } = useUserAccess();
+
+  const canManageFees = hasPermission("fees.manage");
+
   const [chargeScope, setChargeScope] =
     useState<ChargeScope | null>(null);
 
@@ -40,6 +52,10 @@ export default function NewChargeModal({
     useState<string | null>(null);
 
   useEffect(() => {
+    if (isLoadingAccess || !canManageFees) {
+      return;
+    }
+
     let isMounted = true;
 
     async function loadMembers() {
@@ -98,7 +114,13 @@ export default function NewChargeModal({
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [canManageFees, isLoadingAccess]);
+
+  useEffect(() => {
+    if (!isLoadingAccess && !canManageFees) {
+      setChargeScope(null);
+    }
+  }, [canManageFees, isLoadingAccess]);
 
   const activeMembers = useMemo(
     () =>
@@ -144,13 +166,33 @@ export default function NewChargeModal({
           </button>
         </header>
 
-        {chargeScope === null && (
+        {isLoadingAccess ? (
+          <VivaceLoading
+            message="Verificando permisos..."
+            className="min-h-64 rounded-none border-0 shadow-none"
+          />
+        ) : !canManageFees ? (
+          <AccessDenied
+            title="Acceso denegado"
+            description={
+              accessError ||
+              "No cuentas con permisos para crear cargos."
+            }
+            showBackButton={false}
+            showReloadButton
+            onReload={() => {
+              void reloadAccess();
+            }}
+            className="min-h-64"
+          />
+        ) : chargeScope === null ? (
           <ChargeScopeSelector
             onSelect={setChargeScope}
+            canManageFees={canManageFees}
+            isLoadingAccess={isLoadingAccess}
+            accessError={accessError}
           />
-        )}
-
-        {chargeScope === "individual" && (
+        ) : chargeScope === "individual" ? (
           <IndividualChargeForm
             activeMembers={activeMembers}
             isLoadingMembers={isLoadingMembers}
@@ -161,10 +203,11 @@ export default function NewChargeModal({
             onBack={handleBack}
             onClose={onClose}
             onChargeCreated={onChargeCreated}
+            canManageFees={canManageFees}
+            isLoadingAccess={isLoadingAccess}
+            accessError={accessError}
           />
-        )}
-
-        {chargeScope === "group" && (
+        ) : (
           <GroupChargeForm
             activeMembersCount={activeMembers.length}
             isLoadingMembers={isLoadingMembers}
@@ -174,6 +217,9 @@ export default function NewChargeModal({
             feeTypesError={feeTypesError}
             onBack={handleBack}
             onClose={onClose}
+            canManageFees={canManageFees}
+            isLoadingAccess={isLoadingAccess}
+            accessError={accessError}
           />
         )}
       </div>

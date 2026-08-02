@@ -9,6 +9,9 @@ import {
   LoaderCircle,
   X,
 } from "lucide-react";
+import AccessDenied from "@/components/auth/AccessDenied";
+import VivaceLoading from "@/components/ui/VivaceLoading";
+import useUserAccess from "@/hooks/useUserAccess";
 
 import {
   getActiveFeeTypes,
@@ -36,6 +39,14 @@ export default function TripChargesModal({
   onClose,
   onChargesCreated,
 }: TripChargesModalProps) {
+  const {
+    isLoading: isLoadingAccess,
+    error: accessError,
+    hasPermission,
+  } = useUserAccess();
+
+  const canManageFees = hasPermission("fees.manage");
+
   const [tripMembers, setTripMembers] =
     useState<TripMemberListItem[]>([]);
   const [feeTypes, setFeeTypes] =
@@ -62,6 +73,10 @@ export default function TripChargesModal({
     useState<string | null>(null);
 
   useEffect(() => {
+    if (isLoadingAccess || !canManageFees) {
+      return;
+    }
+
     let isMounted = true;
 
     async function loadData() {
@@ -120,7 +135,7 @@ export default function TripChargesModal({
     return () => {
       isMounted = false;
     };
-  }, [tripId]);
+  }, [canManageFees, isLoadingAccess, tripId]);
 
   const confirmedMembers = useMemo(
     () =>
@@ -209,6 +224,13 @@ export default function TripChargesModal({
     event: React.FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault();
+
+    if (isLoadingAccess || !canManageFees) {
+      setSubmitError(
+        "No cuentas con permisos para crear cargos.",
+      );
+      return;
+    }
 
     setSubmitError(null);
     setSuccessMessage(null);
@@ -301,6 +323,39 @@ setSuccessMessage(
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  if (isLoadingAccess) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4">
+        <div className="w-full max-w-4xl rounded-2xl bg-white shadow-2xl">
+          <VivaceLoading message="Verificando permisos..." />
+        </div>
+      </div>
+    );
+  }
+
+  if (!canManageFees) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4">
+        <div className="w-full max-w-4xl rounded-2xl bg-white shadow-2xl">
+          <AccessDenied
+            title="Acceso denegado"
+            description={
+              accessError ||
+              "No cuentas con permisos para crear cargos."
+            }
+            showBackButton={false}
+            className="min-h-64"
+          />
+          <div className="flex justify-end border-t border-slate-200 p-4">
+            <button type="button" onClick={onClose} className="rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700">
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

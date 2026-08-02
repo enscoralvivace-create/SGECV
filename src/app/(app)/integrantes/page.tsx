@@ -7,16 +7,18 @@ import {
   useMemo,
   useState,
 } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import Button from "@/components/common/Button";
-import VivacePageHeader from "@/components/ui/VivacePageHeader";
 import ConfirmDialog from "@/components/common/ConfirmDialog";
 import MemberAccountStatementModal from "@/components/fees/MemberAccountStatementModal";
 import MemberFormModal from "@/components/members/MemberFormModal";
 import MemberStatisticsModal from "@/components/members/MemberStatisticsModal";
 import MembersTable from "@/components/members/MembersTable";
 import PendingMembersCard from "@/components/members/PendingMembersCard";
+
+import useUserAccess from "@/hooks/useUserAccess";
 
 import { supabase } from "@/lib/supabase";
 
@@ -40,6 +42,35 @@ import {
 
 export default function MembersPage() {
   const router = useRouter();
+
+  const {
+    access,
+    isLoading: isLoadingAccess,
+    error: accessError,
+    hasPermission,
+  } = useUserAccess();
+
+  const canManageMembers =
+    hasPermission(
+      "members.manage",
+    );
+
+  const canViewAttendance =
+    hasPermission(
+      "attendance.viewAll",
+    ) ||
+    hasPermission(
+      "attendance.manage",
+    );
+
+  const canViewAllFees =
+    hasPermission("fees.viewAll");
+
+  const canViewOwnFees =
+    hasPermission("fees.viewOwn");
+
+  const canManageFees =
+    hasPermission("fees.manage");
 
   const [members, setMembers] =
     useState<Member[]>([]);
@@ -230,6 +261,13 @@ export default function MembersPage() {
   function openAccountStatement(
     member: Member,
   ) {
+    if (
+      isLoadingAccess ||
+      !canViewAllFees
+    ) {
+      return;
+    }
+
     setAccountStatementMember(member);
   }
 
@@ -423,32 +461,49 @@ export default function MembersPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-5 sm:px-6 sm:py-6 lg:p-8">
-      <section className="mx-auto max-w-7xl">
-        <VivacePageHeader
-          eyebrow="Gestión coral"
-          title="Integrantes"
-          description="Administra integrantes, solicitudes pendientes, perfiles, estadísticas y estados de cuenta."
-        />
+    <main className="min-h-screen bg-slate-100">
+      <header className="bg-emerald-900 px-6 py-6 text-white">
+        <div className="mx-auto max-w-7xl">
+          <Link
+            href="/"
+            className="text-sm font-semibold text-emerald-200 transition hover:text-white"
+          >
+            ← Volver al panel
+          </Link>
 
-        {!isLoading && (
+          <h1 className="mt-4 text-3xl font-bold">
+            Integrantes
+          </h1>
+
+          <p className="mt-2 text-emerald-100">
+            Administración de integrantes
+            del Ensamble Coral Vivace.
+          </p>
+        </div>
+      </header>
+
+      <section className="mx-auto max-w-7xl px-6 py-10">
+        {!isLoading &&
+        canManageMembers ? (
           <PendingMembersCard
             members={pendingMembers}
             onStatusChanged={
               handleApprovalStatusChanged
             }
           />
-        )}
+        ) : null}
 
-        <div className="h-4 sm:h-6" />
+        {canManageMembers ? (
+          <div className="h-8" />
+        ) : null}
 
-        <div className="mb-4 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:mb-6 sm:rounded-3xl sm:p-6 lg:flex-row lg:items-end lg:justify-between">
+        <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h2 className="text-xl font-bold text-slate-900 sm:text-2xl">
+            <h2 className="text-2xl font-bold text-slate-900">
               Lista de integrantes
             </h2>
 
-            <p className="mt-1 text-sm text-slate-600 sm:text-base">
+            <p className="mt-1 text-slate-600">
               {managedMembers.length}{" "}
               {managedMembers.length === 1
                 ? "integrante registrado"
@@ -457,7 +512,7 @@ export default function MembersPage() {
             </p>
           </div>
 
-          <div className="grid w-full gap-3 sm:grid-cols-[minmax(0,1fr)_auto] lg:w-auto">
+          <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto">
             <input
               type="search"
               placeholder="Buscar por nombre, voz, correo o teléfono"
@@ -465,17 +520,23 @@ export default function MembersPage() {
               onChange={(event) =>
                 setSearch(event.target.value)
               }
-              className="min-h-11 w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100 sm:w-96 sm:text-sm"
+              className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-emerald-700 focus:ring-2 focus:ring-emerald-100 sm:w-96"
             />
 
-            <Button onClick={openCreateForm} className="w-full sm:w-auto">
-              + Nuevo integrante
-            </Button>
+            {canManageMembers ? (
+              <Button
+                onClick={
+                  openCreateForm
+                }
+              >
+                + Nuevo integrante
+              </Button>
+            ) : null}
           </div>
         </div>
 
         {message && (
-          <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900 shadow-sm sm:mb-6 sm:px-5 sm:py-4">
+          <div className="mb-6 rounded-xl border border-slate-200 bg-white px-5 py-4 text-sm font-medium text-slate-700 shadow-sm">
             {message}
           </div>
         )}
@@ -485,6 +546,16 @@ export default function MembersPage() {
           search={search}
           isLoading={isLoading}
           processingId={processingId}
+          canManageMembers={
+            canManageMembers
+          }
+          canViewStatistics={
+            canViewAttendance
+          }
+          canViewAccountStatement={
+            !isLoadingAccess &&
+            canViewAllFees
+          }
           onEdit={openEditForm}
           onStatistics={
             openStatistics
@@ -492,11 +563,14 @@ export default function MembersPage() {
           onAccountStatement={
             openAccountStatement
           }
-          onToggleStatus={handleToggleStatus}
+          onToggleStatus={
+            handleToggleStatus
+          }
         />
       </section>
 
-      {isFormOpen && (
+      {isFormOpen &&
+      canManageMembers ? (
         <MemberFormModal
           form={form}
           setForm={setForm}
@@ -505,16 +579,16 @@ export default function MembersPage() {
           onClose={closeForm}
           onSubmit={handleSubmit}
         />
-      )}
+      ) : null}
 
-      {statisticsMember && (
+      {statisticsMember ? (
         <MemberStatisticsModal
           member={statisticsMember}
           onClose={closeStatistics}
         />
-      )}
+      ) : null}
 
-      {accountStatementMember && (
+      {accountStatementMember ? (
         <MemberAccountStatementModal
           member={{
             id: accountStatementMember.id,
@@ -526,10 +600,17 @@ export default function MembersPage() {
               .join(" "),
           }}
           onClose={closeAccountStatement}
+          isLoadingAccess={isLoadingAccess}
+          accessError={accessError}
+          canManageFees={canManageFees}
+          canViewAllFees={canViewAllFees}
+          canViewOwnFees={canViewOwnFees}
+          accessMemberId={access?.memberId ?? null}
         />
-      )}
+      ) : null}
 
-      {memberToConfirm && (
+      {memberToConfirm &&
+      canManageMembers ? (
         <ConfirmDialog
           open={true}
           title={
@@ -564,7 +645,7 @@ export default function MembersPage() {
             void confirmToggleStatus();
           }}
         />
-      )}
+      ) : null}
     </main>
   );
 }

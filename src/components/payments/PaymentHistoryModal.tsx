@@ -11,6 +11,9 @@ import {
   type PaymentListItem,
   type PaymentMethod,
 } from "@/services/paymentService";
+import AccessDenied from "@/components/auth/AccessDenied";
+import VivaceLoading from "@/components/ui/VivaceLoading";
+import type { FeeAccessState } from "@/types/feeAccess";
 
 interface PaymentHistoryCharge {
   id: string;
@@ -21,10 +24,17 @@ interface PaymentHistoryCharge {
   balance: number;
 }
 
-interface PaymentHistoryModalProps {
+interface PaymentHistoryModalProps
+  extends Pick<
+    FeeAccessState,
+    | "canManageFees"
+    | "isLoadingAccess"
+    | "accessError"
+  > {
   charge: PaymentHistoryCharge;
   onClose: () => void;
   onRegisterPayment: () => void;
+  canViewPayments: boolean;
 }
 
 const currencyFormatter = new Intl.NumberFormat("es-MX", {
@@ -43,6 +53,10 @@ export default function PaymentHistoryModal({
   charge,
   onClose,
   onRegisterPayment,
+  canManageFees,
+  isLoadingAccess,
+  canViewPayments,
+  accessError,
 }: PaymentHistoryModalProps) {
   const [payments, setPayments] = useState<
     PaymentListItem[]
@@ -55,6 +69,10 @@ export default function PaymentHistoryModal({
     useState<string | null>(null);
 
   useEffect(() => {
+    if (isLoadingAccess || !canViewPayments) {
+      return;
+    }
+
     let isMounted = true;
 
     async function loadPayments() {
@@ -89,7 +107,7 @@ export default function PaymentHistoryModal({
     return () => {
       isMounted = false;
     };
-  }, [charge.id]);
+  }, [canViewPayments, charge.id, isLoadingAccess]);
 
   const totalPayments = useMemo(
     () =>
@@ -102,7 +120,42 @@ export default function PaymentHistoryModal({
   );
 
   const canRegisterPayment =
+    !isLoadingAccess &&
+    canManageFees &&
     charge.balance > 0;
+
+  if (isLoadingAccess) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4">
+        <div className="w-full max-w-3xl rounded-3xl bg-white shadow-2xl">
+          <VivaceLoading message="Verificando permisos..." />
+        </div>
+      </div>
+    );
+  }
+
+  if (!canViewPayments) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4">
+        <div className="w-full max-w-3xl rounded-3xl bg-white shadow-2xl">
+          <AccessDenied
+            title="Acceso denegado"
+            description={
+              accessError ||
+              "No tienes permisos para consultar estos pagos."
+            }
+            showBackButton={false}
+            className="min-h-64"
+          />
+          <div className="flex justify-end border-t border-slate-200 p-4">
+            <button type="button" onClick={onClose} className="rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700">
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

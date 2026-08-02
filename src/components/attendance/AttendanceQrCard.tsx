@@ -37,6 +37,8 @@ import type {
   Rehearsal,
 } from "@/types/rehearsal";
 
+import useUserAccess from "@/hooks/useUserAccess";
+
 interface AttendanceQrCardProps {
   rehearsal: Rehearsal;
 }
@@ -58,6 +60,15 @@ function formatTime(
 export default function AttendanceQrCard({
   rehearsal,
 }: AttendanceQrCardProps) {
+  const {
+    hasPermission,
+    isLoading: isLoadingAccess,
+  } = useUserAccess();
+
+  const canManageAttendance =
+    hasPermission(
+      "attendance.manage",
+    );
   const [
     session,
     setSession,
@@ -120,8 +131,19 @@ export default function AttendanceQrCard({
     }, [rehearsal]);
 
   useEffect(() => {
+    if (
+      isLoadingAccess ||
+      !canManageAttendance
+    ) {
+      return;
+    }
+
     void loadSession();
-  }, [loadSession]);
+  }, [
+    canManageAttendance,
+    isLoadingAccess,
+    loadSession,
+  ]);
 
   const qrUrl =
     useMemo(() => {
@@ -137,6 +159,22 @@ export default function AttendanceQrCard({
 
       return `${baseUrl}/asistencias/registrar?token=${session.qr_token}`;
     }, [session]);
+
+  if (
+    isLoadingAccess
+  ) {
+    return (
+      <VivaceLoading
+        message="Verificando permisos..."
+        variant="card"
+        className="min-h-[260px] sm:min-h-[320px]"
+      />
+    );
+  }
+
+  if (!canManageAttendance) {
+    return null;
+  }
 
   if (loading) {
     return (
