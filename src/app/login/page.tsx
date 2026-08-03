@@ -1,11 +1,62 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
+import {
+  type FormEvent,
+  Suspense,
+  useState,
+} from "react";
+import {
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginContent />
+    </Suspense>
+  );
+}
+
+function getSafeReturnTo(
+  returnTo: string | null,
+): string | null {
+  if (
+    !returnTo ||
+    !returnTo.startsWith("/") ||
+    returnTo.startsWith("//") ||
+    returnTo.includes("\\") ||
+    returnTo.includes("://") ||
+    /[\u0000-\u001F\u007F]/.test(returnTo)
+  ) {
+    return null;
+  }
+
+  try {
+    const localOrigin = "https://vivace.local";
+    const parsedReturnTo = new URL(
+      returnTo,
+      localOrigin,
+    );
+
+    if (
+      parsedReturnTo.origin !== localOrigin ||
+      parsedReturnTo.username ||
+      parsedReturnTo.password
+    ) {
+      return null;
+    }
+  } catch {
+    return null;
+  }
+
+  return returnTo;
+}
+
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,7 +80,11 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/");
+    const safeReturnTo = getSafeReturnTo(
+      searchParams.get("returnTo"),
+    );
+
+    router.push(safeReturnTo ?? "/");
     router.refresh();
   }
 

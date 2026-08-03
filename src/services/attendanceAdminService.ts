@@ -1,4 +1,7 @@
 import { supabase } from "@/lib/supabase";
+import {
+  requireCurrentUserAccess,
+} from "@/services/userAccessService";
 
 import type {
   AttendanceRecord,
@@ -24,48 +27,34 @@ export interface AttendanceDashboardData {
   sessions: AttendanceSessionSummary[];
 }
 
-interface MemberPermissionRow {
-  role: string;
-  status: string;
+interface MemberStatusRow {
+  status: string | null;
 }
 
-async function ensureCurrentUserIsAdmin(): Promise<void> {
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
+function isActiveMemberStatus(
+  status: string | null,
+): boolean {
+  return (
+    status
+      ?.trim()
+      .toLowerCase() === "activo"
+  );
+}
 
-  if (authError) {
-    throw new Error(
-      `No fue posible consultar tu sesión: ${authError.message}`,
+async function ensureCurrentUserCanAdministerAttendance(): Promise<void> {
+  const access = await requireCurrentUserAccess();
+
+  const canAdministerAttendance =
+    access.permissions.includes(
+      "attendance.viewAll",
+    ) ||
+    access.permissions.includes(
+      "attendance.manage",
     );
-  }
 
-  if (!user?.id) {
-    throw new Error("Debes iniciar sesión.");
-  }
-
-  const { data, error } = await supabase
-    .from("members")
-    .select("role, status")
-    .eq("auth_user_id", user.id)
-    .maybeSingle<MemberPermissionRow>();
-
-  if (error) {
-    throw new Error(
-      `No fue posible consultar tus permisos: ${error.message}`,
-    );
-  }
-
-  if (!data || data.role !== "admin") {
+  if (!canAdministerAttendance) {
     throw new Error(
       "No tienes permisos para administrar asistencias.",
-    );
-  }
-
-  if (data.status !== "Activo") {
-    throw new Error(
-      "Tu cuenta administradora no se encuentra activa.",
     );
   }
 }
@@ -80,18 +69,12 @@ function countStatus(
 }
 
 export async function getAttendanceDashboardData(): Promise<AttendanceDashboardData> {
-  await ensureCurrentUserIsAdmin();
+  await ensureCurrentUserCanAdministerAttendance();
 
-  const {
-    count: activeMembersCount,
-    error: membersError,
-  } = await supabase
-    .from("members")
-    .select("id", {
-      count: "exact",
-      head: true,
-    })
-    .eq("status", "Activo");
+  const { data: membersData, error: membersError } =
+    await supabase
+      .from("members")
+      .select("status");
 
   if (membersError) {
     throw new Error(
@@ -99,7 +82,14 @@ export async function getAttendanceDashboardData(): Promise<AttendanceDashboardD
     );
   }
 
-  const activeMembers = activeMembersCount ?? 0;
+  const activeMembers = (
+    (membersData as MemberStatusRow[] | null) ?? []
+  ).filter(
+    (member) =>
+      isActiveMemberStatus(
+        member.status,
+      ),
+  ).length;
 
   const { data: sessionsData, error: sessionsError } =
     await supabase
@@ -216,7 +206,7 @@ export async function updateAttendanceSessionStatus(
   sessionId: string,
   isActive: boolean,
 ): Promise<void> {
-  await ensureCurrentUserIsAdmin();
+  await ensureCurrentUserCanAdministerAttendance();
 
   const { error } = await supabase
     .from("attendance_sessions")

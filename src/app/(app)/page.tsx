@@ -1,3 +1,9 @@
+"use client";
+
+import {
+  useEffect,
+  useState,
+} from "react";
 import {
   CalendarDays,
   Music2,
@@ -8,8 +14,38 @@ import TodayRehearsalCard from "@/components/dashboard/TodayRehearsalCard";
 import VivaceCard from "@/components/ui/VivaceCard";
 import VivacePageHeader from "@/components/ui/VivacePageHeader";
 import VivaceStatCard from "@/components/ui/VivaceStatCard";
+import { getActiveMembersCount } from "@/services/memberService";
 
 export default function DashboardPage() {
+  const [activeMembersCount, setActiveMembersCount] =
+    useState<number | null>(null);
+  const [activeMembersError, setActiveMembersError] =
+    useState(false);
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    const loadActiveMembersCount = async () => {
+      try {
+        const count = await getActiveMembersCount();
+
+        if (isCurrent) {
+          setActiveMembersCount(count);
+        }
+      } catch {
+        if (isCurrent) {
+          setActiveMembersError(true);
+        }
+      }
+    };
+
+    void loadActiveMembersCount();
+
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
+
   return (
     <main className="px-4 py-5 sm:px-6 sm:py-6 lg:p-8">
       <div className="mx-auto max-w-7xl">
@@ -25,8 +61,14 @@ export default function DashboardPage() {
           <div className="grid grid-cols-2 gap-3 sm:gap-6 xl:grid-cols-1">
             <VivaceStatCard
               title="Integrantes activos"
-              value="—"
-              subtitle="Se conectará con Supabase"
+              value={activeMembersError
+                ? "—"
+                : activeMembersCount ?? "…"}
+              subtitle={activeMembersError
+                ? "Información no disponible"
+                : activeMembersCount === null
+                ? "Consultando integrantes"
+                : "Integrantes activos registrados"}
               icon={
                 <Users className="h-5 w-5 sm:h-6 sm:w-6" />
               }

@@ -8,6 +8,7 @@ export type NavigationItemId =
   | "members"
   | "events"
   | "attendance"
+  | "attendanceRegistration"
   | "repertoire"
   | "fees"
   | "trips"
@@ -191,10 +192,31 @@ NavigationItem[] = [
   },
 ];
 
+const ROUTE_ACCESS_ITEMS:
+NavigationItem[] = [
+  {
+    id: "attendanceRegistration",
+    label: "Registrar asistencia",
+    shortLabel: "Registrar",
+    href: "/asistencias/registrar",
+    icon: "checkCircle",
+    permissions: [
+      "attendance.viewOwn",
+      "attendance.viewAll",
+      "attendance.manage",
+    ],
+    permissionMatch: "any",
+    showInDesktop: false,
+    showInMobileMenu: false,
+    showInMobileBar: false,
+  },
+];
+
 export const ALL_NAVIGATION_ITEMS:
 NavigationItem[] = [
   ...MAIN_NAVIGATION_ITEMS,
   ...SECONDARY_NAVIGATION_ITEMS,
+  ...ROUTE_ACCESS_ITEMS,
 ];
 
 function hasNavigationPermission(
