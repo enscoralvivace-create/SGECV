@@ -2,6 +2,17 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+Create a local `.env.local` file with the public Supabase configuration:
+
+```text
+NEXT_PUBLIC_SUPABASE_URL=<project-url>
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<publishable-key>
+```
+
+Never place a Supabase Secret API Key in `.env.local` under a `NEXT_PUBLIC_*`
+name. All `.env*` files are ignored by Git in this repository, and the frontend
+does not fall back to legacy `anon` keys.
+
 First, run the development server:
 
 ```bash

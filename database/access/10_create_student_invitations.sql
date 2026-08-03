@@ -700,6 +700,16 @@ REVOKE ALL ON FUNCTION public.consume_student_invitation(text)
 REVOKE ALL ON FUNCTION public.revoke_student_invitation(uuid)
   FROM PUBLIC;
 
+-- Normaliza ACL heredadas: anon solo puede validar invitaciones.
+REVOKE EXECUTE ON FUNCTION public.create_student_invitation(bigint, interval)
+  FROM anon;
+REVOKE EXECUTE ON FUNCTION public.list_student_invitations(bigint)
+  FROM anon;
+REVOKE EXECUTE ON FUNCTION public.consume_student_invitation(text)
+  FROM anon;
+REVOKE EXECUTE ON FUNCTION public.revoke_student_invitation(uuid)
+  FROM anon;
+
 GRANT EXECUTE ON FUNCTION public.create_student_invitation(bigint, interval)
   TO authenticated;
 GRANT EXECUTE ON FUNCTION public.list_student_invitations(bigint)

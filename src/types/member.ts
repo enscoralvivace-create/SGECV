@@ -17,6 +17,7 @@ export type MemberVoice =
 export type Member = {
   id: number;
   auth_user_id: string | null;
+  role: "admin" | "teacher" | "member" | "student";
   name: string;
   last_name: string;
   voice: MemberVoice;

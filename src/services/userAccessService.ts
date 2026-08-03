@@ -1,6 +1,10 @@
 import { supabase } from "@/lib/supabase";
 
 import {
+  isAuthRefreshDiscardedError,
+} from "@supabase/supabase-js";
+
+import {
   applyPermissionOverrides,
   getPermissionsForRoles,
   isAppPermission,
@@ -89,6 +93,12 @@ function normalizeOverrides(
 export async function getCurrentUserAccess(): Promise<
   UserAccessProfile | null
 > {
+  return getCurrentUserAccessAttempt(true);
+}
+
+async function getCurrentUserAccessAttempt(
+  canRetryDiscardedRefresh: boolean,
+): Promise<UserAccessProfile | null> {
   const {
     data: {
       session,
@@ -97,6 +107,17 @@ export async function getCurrentUserAccess(): Promise<
   } = await supabase.auth.getSession();
 
   if (sessionError) {
+    if (
+      canRetryDiscardedRefresh &&
+      isAuthRefreshDiscardedError(
+        sessionError,
+      )
+    ) {
+      return getCurrentUserAccessAttempt(
+        false,
+      );
+    }
+
     throw new Error(
       `No fue posible consultar la sesión: ${sessionError.message}`,
     );
@@ -114,6 +135,17 @@ export async function getCurrentUserAccess(): Promise<
   } = await supabase.auth.getUser();
 
   if (authError) {
+    if (
+      canRetryDiscardedRefresh &&
+      isAuthRefreshDiscardedError(
+        authError,
+      )
+    ) {
+      return getCurrentUserAccessAttempt(
+        false,
+      );
+    }
+
     throw new Error(
       `No fue posible validar la sesión: ${authError.message}`,
     );

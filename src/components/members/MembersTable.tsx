@@ -2,6 +2,8 @@
 
 import {
   BarChart3,
+  CircleHelp,
+  UserPlus,
 } from "lucide-react";
 
 import StatusBadge from "@/components/common/StatusBadge";
@@ -10,15 +12,19 @@ import type {
   Member,
 } from "@/types/member";
 
+import { getStudentInvitationEligibility } from "@/utils/studentInvitation";
+
 interface MembersTableProps {
   members: Member[];
   search: string;
   isLoading: boolean;
   processingId: number | null;
   canManageMembers: boolean;
+  canManageInvitations: boolean;
   canViewStatistics: boolean;
   canViewAccountStatement: boolean;
   onEdit: (member: Member) => void;
+  onInviteStudent: (member: Member) => void;
   onStatistics: (member: Member) => void;
   onAccountStatement: (member: Member) => void;
   onToggleStatus: (member: Member) => void;
@@ -54,9 +60,11 @@ export default function MembersTable({
   isLoading,
   processingId,
   canManageMembers,
+  canManageInvitations,
   canViewStatistics,
   canViewAccountStatement,
   onEdit,
+  onInviteStudent,
   onStatistics,
   onAccountStatement,
   onToggleStatus,
@@ -127,8 +135,12 @@ export default function MembersTable({
 
                   const hasVisibleActions =
                     canManageMembers ||
+                    canManageInvitations ||
                     canViewStatistics ||
                     canViewAccountStatement;
+
+                  const invitationEligibility =
+                    getStudentInvitationEligibility(member);
 
                   return (
                     <tr
@@ -206,6 +218,46 @@ export default function MembersTable({
                               >
                                 Editar
                               </button>
+                            ) : null}
+
+                            {canManageInvitations &&
+                            invitationEligibility.isEligible ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  onInviteStudent(member)
+                                }
+                                disabled={
+                                  isProcessing
+                                }
+                                className="inline-flex items-center gap-1.5 font-semibold text-indigo-700 transition hover:text-indigo-900 disabled:cursor-not-allowed disabled:text-slate-400"
+                              >
+                                <UserPlus className="h-4 w-4" />
+                                Invitar alumno
+                              </button>
+                            ) : canManageInvitations ? (
+                              <details className="group max-w-56 text-sm">
+                                <summary
+                                  aria-describedby={`student-invitation-reason-${member.id}`}
+                                  aria-label={`Invitar alumno no disponible. ${invitationEligibility.reason} Presiona para consultar el motivo.`}
+                                  className="inline-flex cursor-help list-none items-center gap-1.5 font-semibold text-slate-400 outline-none marker:content-none focus-visible:rounded focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+                                >
+                                  <UserPlus className="h-4 w-4" />
+                                  Invitar alumno
+                                  <CircleHelp
+                                    className="h-4 w-4"
+                                    aria-hidden="true"
+                                  />
+                                </summary>
+
+                                <p
+                                  id={`student-invitation-reason-${member.id}`}
+                                  role="tooltip"
+                                  className="mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium leading-relaxed text-slate-700 shadow-sm"
+                                >
+                                  {invitationEligibility.reason}
+                                </p>
+                              </details>
                             ) : null}
 
                             {canViewAccountStatement ? (

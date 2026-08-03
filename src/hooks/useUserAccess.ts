@@ -3,6 +3,7 @@
 import {
   useCallback,
   useEffect,
+  useRef,
   useState,
 } from "react";
 
@@ -48,34 +49,54 @@ export default function useUserAccess(): UseUserAccessResult {
     setError,
   ] = useState("");
 
+  const reloadPromiseRef =
+    useRef<Promise<void> | null>(
+      null,
+    );
+
   const reload =
-    useCallback(async (): Promise<void> => {
-      try {
-        setIsLoading(true);
-        setError("");
-
-        const currentAccess =
-          await getCurrentUserAccess();
-
-        setAccess(currentAccess);
-      } catch (loadError: unknown) {
-        console.error(loadError);
-
-        setAccess(null);
-
-        setError(
-          loadError instanceof Error
-            ? loadError.message
-            : "No fue posible consultar los permisos del usuario.",
-        );
-      } finally {
-        setIsLoading(false);
+    useCallback((): Promise<void> => {
+      if (reloadPromiseRef.current) {
+        return reloadPromiseRef.current;
       }
-    }, []);
 
-  useEffect(() => {
-    void reload();
-  }, [reload]);
+      const reloadPromise =
+        (async (): Promise<void> => {
+          try {
+            setIsLoading(true);
+            setError("");
+
+            const currentAccess =
+              await getCurrentUserAccess();
+
+            setAccess(currentAccess);
+          } catch (loadError: unknown) {
+            console.error(loadError);
+
+            setAccess(null);
+
+            setError(
+              loadError instanceof Error
+                ? loadError.message
+                : "No fue posible consultar los permisos del usuario.",
+            );
+          } finally {
+            setIsLoading(false);
+          }
+        })().finally(() => {
+          if (
+            reloadPromiseRef.current ===
+              reloadPromise
+          ) {
+            reloadPromiseRef.current = null;
+          }
+        });
+
+      reloadPromiseRef.current =
+        reloadPromise;
+
+      return reloadPromise;
+    }, []);
 
   useEffect(() => {
     const {

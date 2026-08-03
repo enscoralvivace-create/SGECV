@@ -17,6 +17,7 @@ import MemberFormModal from "@/components/members/MemberFormModal";
 import MemberStatisticsModal from "@/components/members/MemberStatisticsModal";
 import MembersTable from "@/components/members/MembersTable";
 import PendingMembersCard from "@/components/members/PendingMembersCard";
+import StudentInvitationModal from "@/components/members/StudentInvitationModal";
 
 import useUserAccess from "@/hooks/useUserAccess";
 
@@ -39,6 +40,7 @@ import {
   memberFormToPayload,
   memberToForm,
 } from "@/utils/member";
+import { getStudentInvitationEligibility } from "@/utils/studentInvitation";
 
 export default function MembersPage() {
   const router = useRouter();
@@ -54,6 +56,10 @@ export default function MembersPage() {
     hasPermission(
       "members.manage",
     );
+
+  const canManageInvitations =
+    hasPermission("members.manage") ||
+    hasPermission("roles.manage");
 
   const canViewAttendance =
     hasPermission(
@@ -91,6 +97,11 @@ export default function MembersPage() {
   const [
     statisticsMember,
     setStatisticsMember,
+  ] = useState<Member | null>(null);
+
+  const [
+    invitationMember,
+    setInvitationMember,
   ] = useState<Member | null>(null);
 
   const [search, setSearch] =
@@ -256,6 +267,22 @@ export default function MembersPage() {
 
   function closeStatistics() {
     setStatisticsMember(null);
+  }
+
+  function openStudentInvitation(member: Member) {
+    if (
+      isLoadingAccess ||
+      !canManageInvitations ||
+      !getStudentInvitationEligibility(member).isEligible
+    ) {
+      return;
+    }
+
+    setInvitationMember(member);
+  }
+
+  function closeStudentInvitation() {
+    setInvitationMember(null);
   }
 
   function openAccountStatement(
@@ -549,6 +576,10 @@ export default function MembersPage() {
           canManageMembers={
             canManageMembers
           }
+          canManageInvitations={
+            !isLoadingAccess &&
+            canManageInvitations
+          }
           canViewStatistics={
             canViewAttendance
           }
@@ -557,6 +588,9 @@ export default function MembersPage() {
             canViewAllFees
           }
           onEdit={openEditForm}
+          onInviteStudent={
+            openStudentInvitation
+          }
           onStatistics={
             openStatistics
           }
@@ -585,6 +619,18 @@ export default function MembersPage() {
         <MemberStatisticsModal
           member={statisticsMember}
           onClose={closeStatistics}
+        />
+      ) : null}
+
+      {invitationMember ? (
+        <StudentInvitationModal
+          member={invitationMember}
+          isLoadingAccess={isLoadingAccess}
+          accessError={accessError}
+          canManageInvitations={
+            canManageInvitations
+          }
+          onClose={closeStudentInvitation}
         />
       ) : null}
 
