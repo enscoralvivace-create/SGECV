@@ -54,6 +54,14 @@ export default function useUserAccess(): UseUserAccessResult {
       null,
     );
 
+  const reloadTimeoutRef =
+    useRef<ReturnType<
+      typeof setTimeout
+    > | null>(null);
+
+  const mountedRef =
+    useRef(false);
+
   const reload =
     useCallback((): Promise<void> => {
       if (reloadPromiseRef.current) {
@@ -63,25 +71,33 @@ export default function useUserAccess(): UseUserAccessResult {
       const reloadPromise =
         (async (): Promise<void> => {
           try {
-            setIsLoading(true);
-            setError("");
+            if (mountedRef.current) {
+              setIsLoading(true);
+              setError("");
+            }
 
             const currentAccess =
               await getCurrentUserAccess();
 
-            setAccess(currentAccess);
+            if (mountedRef.current) {
+              setAccess(currentAccess);
+            }
           } catch (loadError: unknown) {
             console.error(loadError);
 
-            setAccess(null);
+            if (mountedRef.current) {
+              setAccess(null);
 
-            setError(
-              loadError instanceof Error
-                ? loadError.message
-                : "No fue posible consultar los permisos del usuario.",
-            );
+              setError(
+                loadError instanceof Error
+                  ? loadError.message
+                  : "No fue posible consultar los permisos del usuario.",
+              );
+            }
           } finally {
-            setIsLoading(false);
+            if (mountedRef.current) {
+              setIsLoading(false);
+            }
           }
         })().finally(() => {
           if (
@@ -98,7 +114,28 @@ export default function useUserAccess(): UseUserAccessResult {
       return reloadPromise;
     }, []);
 
+  const scheduleReload =
+    useCallback((): void => {
+      if (reloadTimeoutRef.current) {
+        clearTimeout(
+          reloadTimeoutRef.current,
+        );
+      }
+
+      reloadTimeoutRef.current =
+        setTimeout(() => {
+          reloadTimeoutRef.current =
+            null;
+
+          void reload();
+        }, 0);
+    }, [reload]);
+
   useEffect(() => {
+    mountedRef.current = true;
+
+    void reload();
+
     const {
       data: {
         subscription,
@@ -106,23 +143,49 @@ export default function useUserAccess(): UseUserAccessResult {
     } =
       supabase.auth.onAuthStateChange(
         (event) => {
+          if (!mountedRef.current) {
+            return;
+          }
+
           if (
             event === "SIGNED_OUT"
           ) {
+            if (
+              reloadTimeoutRef.current
+            ) {
+              clearTimeout(
+                reloadTimeoutRef.current,
+              );
+
+              reloadTimeoutRef.current =
+                null;
+            }
+
             setAccess(null);
             setError("");
             setIsLoading(false);
             return;
           }
 
-          void reload();
+          scheduleReload();
         },
       );
 
     return () => {
+      mountedRef.current = false;
+
+      if (reloadTimeoutRef.current) {
+        clearTimeout(
+          reloadTimeoutRef.current,
+        );
+
+        reloadTimeoutRef.current =
+          null;
+      }
+
       subscription.unsubscribe();
     };
-  }, [reload]);
+  }, [reload, scheduleReload]);
 
   const hasRole =
     useCallback(
