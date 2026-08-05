@@ -106,3 +106,69 @@ export function getRehearsalForDate(
 
   return rehearsal;
 }
+
+function getRehearsalIdentity(
+  rehearsal: Rehearsal,
+): string {
+  return [
+    rehearsal.date,
+    rehearsal.startTime,
+    rehearsal.endTime,
+    rehearsal.title.trim().toLocaleLowerCase("es-MX"),
+  ].join("|");
+}
+
+export function getRehearsalsForDate(
+  date: Date,
+  exceptions: RehearsalException[],
+): Rehearsal[] {
+  const dateString = formatDateToISO(date);
+  const matchingExceptions = exceptions.filter(
+    (exception) => exception.event_date === dateString,
+  );
+
+  let regularRehearsal = getRehearsalForDate(
+    date,
+    matchingExceptions.filter(
+      (exception) => exception.exception_type !== "extra",
+    ),
+  );
+
+  if (regularRehearsal?.status === "cancelled") {
+    regularRehearsal = null;
+  }
+
+  const extraRehearsals = matchingExceptions
+    .filter(
+      (exception) => exception.exception_type === "extra",
+    )
+    .map((exception) => applyException(null, exception))
+    .filter(
+      (rehearsal): rehearsal is Rehearsal =>
+        rehearsal !== null &&
+        rehearsal.status !== "cancelled",
+    );
+
+  const rehearsals = [
+    ...(regularRehearsal ? [regularRehearsal] : []),
+    ...extraRehearsals,
+  ];
+
+  return Array.from(
+    new Map(
+      rehearsals.map((rehearsal) => [
+        getRehearsalIdentity(rehearsal),
+        rehearsal,
+      ]),
+    ).values(),
+  ).sort((first, second) => {
+    const timeComparison = first.startTime.localeCompare(
+      second.startTime,
+      "es-MX",
+    );
+
+    return timeComparison !== 0
+      ? timeComparison
+      : first.title.localeCompare(second.title, "es-MX");
+  });
+}
