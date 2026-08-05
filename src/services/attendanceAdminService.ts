@@ -41,7 +41,7 @@ function isActiveMemberStatus(
   );
 }
 
-async function ensureCurrentUserCanAdministerAttendance(): Promise<void> {
+async function ensureCurrentUserCanReadAttendance(): Promise<void> {
   const access = await requireCurrentUserAccess();
 
   const canAdministerAttendance =
@@ -59,6 +59,20 @@ async function ensureCurrentUserCanAdministerAttendance(): Promise<void> {
   }
 }
 
+async function ensureCurrentUserCanMutateAttendance(): Promise<void> {
+  const access = await requireCurrentUserAccess();
+
+  if (
+    !access.permissions.includes(
+      "attendance.manage",
+    )
+  ) {
+    throw new Error(
+      "No tienes permisos para modificar sesiones de asistencia.",
+    );
+  }
+}
+
 function countStatus(
   records: AttendanceRecord[],
   status: AttendanceStatus,
@@ -69,7 +83,7 @@ function countStatus(
 }
 
 export async function getAttendanceDashboardData(): Promise<AttendanceDashboardData> {
-  await ensureCurrentUserCanAdministerAttendance();
+  await ensureCurrentUserCanReadAttendance();
 
   const { data: membersData, error: membersError } =
     await supabase
@@ -96,6 +110,9 @@ export async function getAttendanceDashboardData(): Promise<AttendanceDashboardD
       .from("attendance_sessions")
       .select("*")
       .order("rehearsal_date", {
+        ascending: false,
+      })
+      .order("starts_at", {
         ascending: false,
       })
       .limit(30);
@@ -206,7 +223,7 @@ export async function updateAttendanceSessionStatus(
   sessionId: string,
   isActive: boolean,
 ): Promise<void> {
-  await ensureCurrentUserCanAdministerAttendance();
+  await ensureCurrentUserCanMutateAttendance();
 
   const { error } = await supabase
     .from("attendance_sessions")
