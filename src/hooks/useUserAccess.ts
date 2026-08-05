@@ -21,6 +21,7 @@ import type {
 
 interface UseUserAccessResult {
   access: UserAccessProfile | null;
+  isAuthenticated: boolean;
   isLoading: boolean;
   error: string;
   reload: () => Promise<void>;
@@ -38,6 +39,11 @@ export default function useUserAccess(): UseUserAccessResult {
     useState<UserAccessProfile | null>(
       null,
     );
+
+  const [
+    isAuthenticated,
+    setIsAuthenticated,
+  ] = useState(false);
 
   const [
     isLoading,
@@ -62,6 +68,9 @@ export default function useUserAccess(): UseUserAccessResult {
   const mountedRef =
     useRef(false);
 
+  const authRevisionRef =
+    useRef(0);
+
   const reload =
     useCallback((): Promise<void> => {
       if (reloadPromiseRef.current) {
@@ -70,22 +79,62 @@ export default function useUserAccess(): UseUserAccessResult {
 
       const reloadPromise =
         (async (): Promise<void> => {
+          const authRevision =
+            authRevisionRef.current;
+
           try {
             if (mountedRef.current) {
               setIsLoading(true);
               setError("");
             }
 
+            const {
+              data: {
+                session,
+              },
+              error: sessionError,
+            } =
+              await supabase.auth.getSession();
+
+            if (sessionError) {
+              throw sessionError;
+            }
+
+            if (!session) {
+              if (
+                mountedRef.current &&
+                authRevision === authRevisionRef.current
+              ) {
+                setAccess(null);
+                setIsAuthenticated(false);
+              }
+
+              return;
+            }
+
+            if (
+              mountedRef.current &&
+              authRevision === authRevisionRef.current
+            ) {
+              setIsAuthenticated(true);
+            }
+
             const currentAccess =
               await getCurrentUserAccess();
 
-            if (mountedRef.current) {
+            if (
+              mountedRef.current &&
+              authRevision === authRevisionRef.current
+            ) {
               setAccess(currentAccess);
             }
           } catch (loadError: unknown) {
             console.error(loadError);
 
-            if (mountedRef.current) {
+            if (
+              mountedRef.current &&
+              authRevision === authRevisionRef.current
+            ) {
               setAccess(null);
 
               setError(
@@ -150,6 +199,8 @@ export default function useUserAccess(): UseUserAccessResult {
           if (
             event === "SIGNED_OUT"
           ) {
+            authRevisionRef.current += 1;
+
             if (
               reloadTimeoutRef.current
             ) {
@@ -162,6 +213,7 @@ export default function useUserAccess(): UseUserAccessResult {
             }
 
             setAccess(null);
+            setIsAuthenticated(false);
             setError("");
             setIsLoading(false);
             return;
@@ -209,6 +261,7 @@ export default function useUserAccess(): UseUserAccessResult {
 
   return {
     access,
+    isAuthenticated,
     isLoading,
     error,
     reload,
