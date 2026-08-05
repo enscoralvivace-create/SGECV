@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.8",
+    "dompurify": "^3.4.13",
     "html2canvas-pro": "^2.3.2",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",

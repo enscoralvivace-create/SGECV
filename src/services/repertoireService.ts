@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { sanitizeRichText } from "@/utils/richText";
 
 import type {
   RepertoireFormData,
@@ -70,11 +71,11 @@ function resourcesToPayload(
     video_url:
       resources.videoUrl.trim() || null,
     translation:
-      resources.translation.trim() || null,
+      sanitizeRichText(resources.translation) || null,
     pronunciation:
-      resources.pronunciation.trim() || null,
+      sanitizeRichText(resources.pronunciation) || null,
     director_notes:
-      resources.directorNotes.trim() || null,
+      sanitizeRichText(resources.directorNotes) || null,
   };
 }
 

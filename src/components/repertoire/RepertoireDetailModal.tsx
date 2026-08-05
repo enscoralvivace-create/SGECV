@@ -1,5 +1,6 @@
 "use client";
 
+import RichTextContent from "@/components/ui/RichTextContent";
 import type { RepertoireItem } from "@/types/repertoire";
 
 interface RepertoireDetailModalProps {
@@ -458,9 +459,7 @@ function ContentSection({
 
       <div className="p-7">
         {available ? (
-          <p className="whitespace-pre-wrap leading-7 text-slate-700">
-            {content?.trim()}
-          </p>
+          <RichTextContent content={content?.trim() ?? ""} />
         ) : (
           <p className="italic text-slate-500">
             {emptyMessage}

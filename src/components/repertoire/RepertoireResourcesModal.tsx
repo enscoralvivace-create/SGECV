@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import LimitedRichTextEditor from "@/components/ui/LimitedRichTextEditor";
+import RichTextContent from "@/components/ui/RichTextContent";
 import type { RepertoireResourcesData } from "@/services/repertoireService";
 import type { RepertoireItem } from "@/types/repertoire";
 
@@ -64,9 +66,11 @@ function ResourceText({
         {title}
       </h4>
 
-      <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">
-        {text?.trim() || "Sin información."}
-      </p>
+      {text?.trim() ? (
+        <RichTextContent content={text} className="mt-2 text-sm" />
+      ) : (
+        <p className="mt-2 text-sm text-slate-500">Sin información.</p>
+      )}
     </div>
   );
 }
@@ -332,19 +336,13 @@ export default function RepertoireResourcesModal({
                   🌎 Traducción
                 </label>
 
-                <textarea
+                <LimitedRichTextEditor
                   id="resource-translation"
-                  rows={5}
+                  label="Traducción"
                   value={resourcesForm.translation}
                   disabled={isSaving}
-                  onChange={(event) => {
-                    updateField(
-                      "translation",
-                      event.target.value,
-                    );
-                  }}
+                  onChange={(value) => updateField("translation", value)}
                   placeholder="Escribe la traducción del texto..."
-                  className="w-full resize-y rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-600 focus:ring-2 focus:ring-sky-100 disabled:cursor-not-allowed disabled:bg-slate-100"
                 />
               </div>
 
@@ -356,21 +354,16 @@ export default function RepertoireResourcesModal({
                   🗣️ Pronunciación
                 </label>
 
-                <textarea
+                <LimitedRichTextEditor
                   id="resource-pronunciation"
-                  rows={4}
+                  label="Pronunciación"
                   value={
                     resourcesForm.pronunciation
                   }
                   disabled={isSaving}
-                  onChange={(event) => {
-                    updateField(
-                      "pronunciation",
-                      event.target.value,
-                    );
-                  }}
+                  onChange={(value) => updateField("pronunciation", value)}
                   placeholder="Agrega indicaciones de pronunciación..."
-                  className="w-full resize-y rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-600 focus:ring-2 focus:ring-sky-100 disabled:cursor-not-allowed disabled:bg-slate-100"
+                  minHeightClassName="min-h-32"
                 />
               </div>
 
@@ -382,21 +375,15 @@ export default function RepertoireResourcesModal({
                   📝 Notas del director
                 </label>
 
-                <textarea
+                <LimitedRichTextEditor
                   id="resource-director-notes"
-                  rows={5}
+                  label="Notas del director"
                   value={
                     resourcesForm.directorNotes
                   }
                   disabled={isSaving}
-                  onChange={(event) => {
-                    updateField(
-                      "directorNotes",
-                      event.target.value,
-                    );
-                  }}
+                  onChange={(value) => updateField("directorNotes", value)}
                   placeholder="Agrega indicaciones musicales, interpretativas o de ensayo..."
-                  className="w-full resize-y rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-600 focus:ring-2 focus:ring-sky-100 disabled:cursor-not-allowed disabled:bg-slate-100"
                 />
               </div>
             </section>
