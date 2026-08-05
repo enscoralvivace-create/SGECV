@@ -10,6 +10,7 @@ import {
 import {
   CheckCircle2,
   Clock3,
+  ListChecks,
   QrCode,
   RefreshCw,
   TriangleAlert,
@@ -23,6 +24,7 @@ import VivaceButton from "@/components/ui/VivaceButton";
 import VivaceCard from "@/components/ui/VivaceCard";
 import VivaceLoading from "@/components/ui/VivaceLoading";
 import VivaceStatCard from "@/components/ui/VivaceStatCard";
+import AttendanceExceptionModal from "@/components/attendance/AttendanceExceptionModal";
 
 import {
   getAttendanceCount,
@@ -92,6 +94,11 @@ export default function AttendanceQrCard({
     setErrorMessage,
   ] =
     useState<string | null>(null);
+
+  const [
+    isExceptionModalOpen,
+    setIsExceptionModalOpen,
+  ] = useState(false);
 
   const loadSession =
     useCallback(async (): Promise<void> => {
@@ -295,6 +302,23 @@ export default function AttendanceQrCard({
             }
           />
         </div>
+
+        <div className="mt-4 flex justify-end sm:mt-5">
+          <VivaceButton
+            variant="secondary"
+            leftIcon={<ListChecks className="h-4 w-4" />}
+            onClick={() => setIsExceptionModalOpen(true)}
+          >
+            Excepciones
+          </VivaceButton>
+        </div>
+
+        <AttendanceExceptionModal
+          isOpen={isExceptionModalOpen}
+          sessionId={session.id}
+          sessionTitle={session.title}
+          onClose={() => setIsExceptionModalOpen(false)}
+        />
       </VivaceCard.Body>
     </VivaceCard>
   );

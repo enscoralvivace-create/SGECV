@@ -33,6 +33,7 @@ DECLARE
   target_session public.attendance_sessions%ROWTYPE;
   attendance_record public.attendance_records%ROWTYPE;
   calculated_status text;
+  has_late_exception boolean := false;
 BEGIN
   IF current_user_id IS NULL THEN
     RETURN QUERY SELECT
@@ -148,7 +149,20 @@ BEGIN
     RETURN;
   END IF;
 
-  IF check_in_time > target_session.late_until THEN
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.attendance_session_check_in_exceptions AS exceptions
+    WHERE exceptions.session_id = target_session.id
+      AND exceptions.member_id = target_member.id
+  )
+  INTO has_late_exception;
+
+  IF check_in_time > target_session.ends_at
+    OR (
+      check_in_time > target_session.late_until
+      AND NOT has_late_exception
+    )
+  THEN
     RETURN QUERY SELECT
       false,
       'registration_closed',

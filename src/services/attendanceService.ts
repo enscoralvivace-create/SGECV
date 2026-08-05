@@ -15,13 +15,20 @@ function addMinutes(date: Date, minutes: number): Date {
   return result;
 }
 
-export async function getAttendanceSessionByDate(
-  rehearsalDate: string,
+export async function getAttendanceSessionForRehearsal(
+  rehearsal: Rehearsal,
 ): Promise<AttendanceSession | null> {
+  const startsAt = createDateTime(
+    rehearsal.date,
+    rehearsal.startTime,
+  );
+
   const { data, error } = await supabase
     .from("attendance_sessions")
     .select("*")
-    .eq("rehearsal_date", rehearsalDate)
+    .eq("rehearsal_date", rehearsal.date)
+    .eq("starts_at", startsAt.toISOString())
+    .eq("title", rehearsal.title)
     .maybeSingle();
 
   if (error) {
@@ -53,12 +60,16 @@ export async function createAttendanceSession(
   );
 
   /*
-   * Presente hasta 10 minutos después del inicio.
+   * Presente hasta 20 minutos después del inicio.
    * Retardo permitido hasta 30 minutos después del inicio.
    */
-  const presentUntil = addMinutes(startsAt, 10);
-  const lateUntilCandidate = addMinutes(startsAt, 30);
+  const presentUntilCandidate = addMinutes(startsAt, 20);
+  const presentUntil =
+    presentUntilCandidate < endsAt
+      ? presentUntilCandidate
+      : endsAt;
 
+  const lateUntilCandidate = addMinutes(startsAt, 30);
   const lateUntil =
     lateUntilCandidate < endsAt
       ? lateUntilCandidate
@@ -91,7 +102,7 @@ export async function getOrCreateAttendanceSession(
   rehearsal: Rehearsal,
 ): Promise<AttendanceSession> {
   const existingSession =
-    await getAttendanceSessionByDate(rehearsal.date);
+    await getAttendanceSessionForRehearsal(rehearsal);
 
   if (existingSession) {
     return existingSession;
