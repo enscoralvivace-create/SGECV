@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# temporary permission source archives
+Vivace-*-Permisos-Fuentes.zip
