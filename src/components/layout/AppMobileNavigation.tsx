@@ -37,6 +37,7 @@ import {
 } from "@/config/navigation";
 
 import useUserAccess from "@/hooks/useUserAccess";
+import PersonalGreeting from "@/components/personalization/PersonalGreeting";
 
 const NAVIGATION_ICONS:
 Record<NavigationIconName, LucideIcon> = {
@@ -237,6 +238,8 @@ export default function AppMobileNavigation() {
               </button>
             </div>
 
+            <PersonalGreeting variant="mobile" />
+
             <nav
               aria-label="Navegación móvil"
               className="flex-1 overflow-y-auto overscroll-contain px-4 py-4"
@@ -322,6 +325,11 @@ function MobileMenuLink({
   return (
     <Link
       href={item.href}
+      data-onboarding-target={
+        item.id === "myAccount"
+          ? "my-account"
+          : item.id
+      }
       onClick={onNavigate}
       aria-current={
         isActive
@@ -380,6 +388,11 @@ function MobileBarLink({
   return (
     <Link
       href={item.href}
+      data-onboarding-target={
+        item.id === "myAccount"
+          ? "my-account"
+          : item.id
+      }
       onClick={onNavigate}
       aria-current={
         isActive

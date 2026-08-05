@@ -15,6 +15,26 @@ function canUseServiceWorker(): boolean {
   );
 }
 
+async function removeDevelopmentServiceWorkers(): Promise<void> {
+  if (!("serviceWorker" in navigator)) {
+    return;
+  }
+
+  const registrations = await navigator.serviceWorker.getRegistrations();
+  await Promise.all(
+    registrations.map((registration) => registration.unregister()),
+  );
+
+  if ("caches" in window) {
+    const cacheNames = await caches.keys();
+    await Promise.all(
+      cacheNames
+        .filter((cacheName) => cacheName.startsWith("vivace-suite-"))
+        .map((cacheName) => caches.delete(cacheName)),
+    );
+  }
+}
+
 async function checkForUpdates(
   registration:
     ServiceWorkerRegistration,
@@ -36,6 +56,10 @@ async function checkForUpdates(
 export default function ServiceWorkerRegistration() {
   useEffect(() => {
     if (!canUseServiceWorker()) {
+      if (process.env.NODE_ENV === "development") {
+        void removeDevelopmentServiceWorkers();
+      }
+
       return;
     }
 

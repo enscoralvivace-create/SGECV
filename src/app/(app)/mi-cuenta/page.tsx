@@ -7,7 +7,9 @@ import {
   ShieldCheck,
   TriangleAlert,
   UserRound,
+  PlayCircle,
 } from "lucide-react";
+import type { ReactNode } from "react";
 
 import MemberAttendanceStatsPanel from "@/components/attendance/MemberAttendanceStatsPanel";
 import VivaceAvatar from "@/components/ui/VivaceAvatar";
@@ -16,6 +18,7 @@ import VivaceButton from "@/components/ui/VivaceButton";
 import VivaceCard from "@/components/ui/VivaceCard";
 import VivaceLoading from "@/components/ui/VivaceLoading";
 import VivacePageHeader from "@/components/ui/VivacePageHeader";
+import { useVivaceOnboarding } from "@/components/onboarding/VivaceOnboardingProvider";
 
 import useCurrentUserProfile from "@/hooks/useCurrentUserProfile";
 import { usePwaLifecycle } from "@/hooks/usePwaLifecycle";
@@ -73,7 +76,52 @@ function getRoleLabel(
   }
 }
 
+function MyAccountShell({
+  children,
+  startOnboarding,
+}: {
+  children: ReactNode;
+  startOnboarding: () => void;
+}) {
+  return (
+    <main className="px-4 py-5 sm:px-6 sm:py-6 lg:p-8">
+      <div className="mx-auto max-w-7xl">
+        <VivacePageHeader
+          eyebrow="Portal personal"
+          title="Mi cuenta"
+          description="Consulta tu perfil y tus estadísticas personales dentro de Vivace Suite."
+        />
+
+        <VivaceCard
+          data-onboarding-restart-control="true"
+          className="mb-4 border-emerald-200 sm:mb-6"
+        >
+          <VivaceCard.Body className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+            <div>
+              <h2 className="font-bold text-slate-950">Conoce Vivace Suite</h2>
+              <p className="mt-1 text-sm leading-6 text-slate-600">
+                Vuelve a consultar el recorrido por las funciones principales.
+              </p>
+            </div>
+            <VivaceButton
+              variant="outline"
+              leftIcon={<PlayCircle className="h-4 w-4" />}
+              onClick={startOnboarding}
+              className="shrink-0"
+            >
+              Ver recorrido de Vivace Suite
+            </VivaceButton>
+          </VivaceCard.Body>
+        </VivaceCard>
+
+        {children}
+      </div>
+    </main>
+  );
+}
+
 export default function MyAccountPage() {
+  const { startOnboarding } = useVivaceOnboarding();
   const {
     profile,
     isLoading,
@@ -92,14 +140,12 @@ export default function MyAccountPage() {
 
   if (isLoading) {
     return (
-      <main className="px-4 py-5 sm:px-6 sm:py-6 lg:p-8">
-        <div className="mx-auto max-w-7xl">
-          <VivaceLoading
-            variant="page"
-            message="Cargando tu perfil..."
-          />
-        </div>
-      </main>
+      <MyAccountShell startOnboarding={startOnboarding}>
+        <VivaceLoading
+          variant="page"
+          message="Cargando tu perfil..."
+        />
+      </MyAccountShell>
     );
   }
 
@@ -108,7 +154,7 @@ export default function MyAccountPage() {
     !profile
   ) {
     return (
-      <main className="px-4 py-5 sm:px-6 sm:py-6 lg:p-8">
+      <MyAccountShell startOnboarding={startOnboarding}>
         <div className="mx-auto max-w-3xl">
           <VivaceCard className="border-rose-200 bg-rose-50/70">
             <VivaceCard.Body className="p-4 sm:p-6">
@@ -145,7 +191,7 @@ export default function MyAccountPage() {
             </VivaceCard.Body>
           </VivaceCard>
         </div>
-      </main>
+      </MyAccountShell>
     );
   }
 
@@ -157,14 +203,7 @@ export default function MyAccountPage() {
     );
 
   return (
-    <main className="px-4 py-5 sm:px-6 sm:py-6 lg:p-8">
-      <div className="mx-auto max-w-7xl">
-        <VivacePageHeader
-          eyebrow="Portal personal"
-          title="Mi cuenta"
-          description="Consulta tu perfil y tus estadísticas personales dentro de Vivace Suite."
-        />
-
+    <MyAccountShell startOnboarding={startOnboarding}>
         <VivaceCard
           gradient
           className="mb-4 overflow-hidden border-emerald-100 sm:mb-6"
@@ -261,7 +300,6 @@ export default function MyAccountPage() {
         <MemberAttendanceStatsPanel
           memberId={profile.id}
         />
-      </div>
-    </main>
+    </MyAccountShell>
   );
 }

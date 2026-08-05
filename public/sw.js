@@ -1,4 +1,4 @@
-const CACHE_VERSION = "vivace-suite-v3";
+const CACHE_VERSION = "vivace-suite-v4";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const OFFLINE_URL = "/offline";
 
@@ -44,13 +44,18 @@ self.addEventListener("message", (event) => {
 
 function shouldIgnoreRequest(request) {
   const url = new URL(request.url);
+  const isNextDataRequest =
+    request.headers.get("RSC") === "1" ||
+    request.headers.has("Next-Router-Prefetch") ||
+    request.headers.has("Next-Router-State-Tree");
 
   return (
     request.method !== "GET" ||
     url.origin !== self.location.origin ||
     url.pathname.startsWith("/api/") ||
     url.pathname.startsWith("/auth/") ||
-    url.pathname.startsWith("/_next/webpack-hmr")
+    url.pathname.startsWith("/_next/webpack-hmr") ||
+    isNextDataRequest
   );
 }
 

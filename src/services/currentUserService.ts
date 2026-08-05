@@ -11,6 +11,9 @@ export interface CurrentUserProfile {
   voice: string | null;
   role: string;
   status: string;
+  alias: string;
+  authDisplayName: string;
+  authEmail: string;
 }
 
 interface CurrentUserRow {
@@ -58,6 +61,21 @@ function isMissingSessionError(
       .includes("auth session missing") ===
       true
   );
+}
+
+function getMetadataValue(
+  metadata: Record<string, unknown>,
+  keys: string[],
+): string {
+  for (const key of keys) {
+    const value = metadata[key];
+
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+
+  return "";
 }
 
 export async function getCurrentUserProfile(): Promise<
@@ -118,6 +136,7 @@ export async function getCurrentUserProfile(): Promise<
   }
 
   const row = data as CurrentUserRow;
+  const metadata = user.user_metadata ?? {};
   const lastName = row.last_name ?? "";
 
   const fullName = [
@@ -141,5 +160,16 @@ export async function getCurrentUserProfile(): Promise<
     voice: row.voice,
     role: row.role,
     status: row.status,
+    alias: getMetadataValue(metadata, [
+      "alias",
+      "preferred_name",
+      "nickname",
+    ]),
+    authDisplayName: getMetadataValue(metadata, [
+      "full_name",
+      "name",
+      "display_name",
+    ]),
+    authEmail: user.email?.trim() ?? "",
   };
 }

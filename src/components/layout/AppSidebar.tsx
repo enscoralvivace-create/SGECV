@@ -37,6 +37,7 @@ import {
 } from "@/config/navigation";
 
 import useUserAccess from "@/hooks/useUserAccess";
+import PersonalGreeting from "@/components/personalization/PersonalGreeting";
 
 import { supabase } from "@/lib/supabase";
 
@@ -162,6 +163,8 @@ export default function AppSidebar() {
         </div>
       </Link>
 
+      <PersonalGreeting variant="sidebar" />
+
       <nav
         aria-label="Navegación principal"
         className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5"
@@ -257,6 +260,11 @@ function SidebarLink({
   return (
     <Link
       href={item.href}
+      data-onboarding-target={
+        item.id === "myAccount"
+          ? "my-account"
+          : item.id
+      }
       aria-current={
         isActive
           ? "page"
