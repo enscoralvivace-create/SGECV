@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   type FormEvent,
   Suspense,
@@ -62,6 +63,8 @@ function LoginContent() {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const passwordWasUpdated =
+    searchParams.get("passwordUpdated") === "1";
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -115,6 +118,15 @@ function LoginContent() {
           </div>
 
           <form onSubmit={handleLogin} className="space-y-5">
+            {passwordWasUpdated && !message ? (
+              <div
+                role="status"
+                className="rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800"
+              >
+                Tu contraseña se actualizó correctamente. Ya puedes iniciar sesión.
+              </div>
+            ) : null}
+
             <label className="block">
               <span className="mb-2 block font-semibold text-slate-700">
                 Correo electrónico
@@ -132,8 +144,14 @@ function LoginContent() {
             </label>
 
             <label className="block">
-              <span className="mb-2 block font-semibold text-slate-700">
-                Contraseña
+              <span className="mb-2 flex items-center justify-between gap-3">
+                <span className="font-semibold text-slate-700">Contraseña</span>
+                <Link
+                  href="/recuperar-cuenta"
+                  className="text-sm font-semibold text-emerald-700 hover:text-emerald-900 hover:underline"
+                >
+                  ¿Olvidaste tu contraseña?
+                </Link>
               </span>
 
               <input
