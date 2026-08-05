@@ -71,6 +71,12 @@ export default function useUserAccess(): UseUserAccessResult {
   const authRevisionRef =
     useRef(0);
 
+  const hasResolvedRef =
+    useRef(false);
+
+  const authenticatedUserIdRef =
+    useRef<string | null>(null);
+
   const reload =
     useCallback((): Promise<void> => {
       if (reloadPromiseRef.current) {
@@ -81,10 +87,16 @@ export default function useUserAccess(): UseUserAccessResult {
         (async (): Promise<void> => {
           const authRevision =
             authRevisionRef.current;
+          const isInitialResolution =
+            !hasResolvedRef.current;
+          let didResolve = false;
 
           try {
             if (mountedRef.current) {
-              setIsLoading(true);
+              if (isInitialResolution) {
+                setIsLoading(true);
+              }
+
               setError("");
             }
 
@@ -107,6 +119,8 @@ export default function useUserAccess(): UseUserAccessResult {
               ) {
                 setAccess(null);
                 setIsAuthenticated(false);
+                authenticatedUserIdRef.current = null;
+                didResolve = true;
               }
 
               return;
@@ -117,6 +131,8 @@ export default function useUserAccess(): UseUserAccessResult {
               authRevision === authRevisionRef.current
             ) {
               setIsAuthenticated(true);
+              authenticatedUserIdRef.current =
+                session.user.id;
             }
 
             const currentAccess =
@@ -127,6 +143,7 @@ export default function useUserAccess(): UseUserAccessResult {
               authRevision === authRevisionRef.current
             ) {
               setAccess(currentAccess);
+              didResolve = true;
             }
           } catch (loadError: unknown) {
             console.error(loadError);
@@ -135,16 +152,25 @@ export default function useUserAccess(): UseUserAccessResult {
               mountedRef.current &&
               authRevision === authRevisionRef.current
             ) {
-              setAccess(null);
+              if (isInitialResolution) {
+                setAccess(null);
 
-              setError(
-                loadError instanceof Error
-                  ? loadError.message
-                  : "No fue posible consultar los permisos del usuario.",
-              );
+                setError(
+                  loadError instanceof Error
+                    ? loadError.message
+                    : "No fue posible consultar los permisos del usuario.",
+                );
+              }
             }
           } finally {
-            if (mountedRef.current) {
+            if (
+              mountedRef.current &&
+              authRevision === authRevisionRef.current
+            ) {
+              if (didResolve) {
+                hasResolvedRef.current = true;
+              }
+
               setIsLoading(false);
             }
           }
@@ -191,7 +217,7 @@ export default function useUserAccess(): UseUserAccessResult {
       },
     } =
       supabase.auth.onAuthStateChange(
-        (event) => {
+        (event, session) => {
           if (!mountedRef.current) {
             return;
           }
@@ -216,7 +242,28 @@ export default function useUserAccess(): UseUserAccessResult {
             setIsAuthenticated(false);
             setError("");
             setIsLoading(false);
+            hasResolvedRef.current = true;
+            authenticatedUserIdRef.current = null;
             return;
+          }
+
+          const nextUserId =
+            session?.user.id ?? null;
+
+          if (
+            hasResolvedRef.current &&
+            nextUserId &&
+            authenticatedUserIdRef.current &&
+            nextUserId !== authenticatedUserIdRef.current
+          ) {
+            authRevisionRef.current += 1;
+            reloadPromiseRef.current = null;
+            hasResolvedRef.current = false;
+            authenticatedUserIdRef.current = nextUserId;
+            setAccess(null);
+            setIsAuthenticated(true);
+            setError("");
+            setIsLoading(true);
           }
 
           scheduleReload();
