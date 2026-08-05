@@ -12,6 +12,7 @@ import {
 import type { ReactNode } from "react";
 
 import MemberAttendanceStatsPanel from "@/components/attendance/MemberAttendanceStatsPanel";
+import PilotFeedbackCard from "@/components/feedback/PilotFeedbackCard";
 import VivaceAvatar from "@/components/ui/VivaceAvatar";
 import VivaceBadge from "@/components/ui/VivaceBadge";
 import VivaceButton from "@/components/ui/VivaceButton";
@@ -113,6 +114,8 @@ function MyAccountShell({
             </VivaceButton>
           </VivaceCard.Body>
         </VivaceCard>
+
+        <PilotFeedbackCard />
 
         {children}
       </div>

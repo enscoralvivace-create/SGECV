@@ -179,13 +179,15 @@ export const SECONDARY_NAVIGATION_ITEMS:
 NavigationItem[] = [
   {
     id: "settings",
-    label: "Roles y permisos",
-    shortLabel: "Permisos",
+    label: "Configuración",
+    shortLabel: "Config.",
     href: "/configuracion",
     icon: "settings",
     permissions: [
       "roles.manage",
+      "settings.manage",
     ],
+    permissionMatch: "any",
     showInDesktop: true,
     showInMobileMenu: true,
     showInMobileBar: false,

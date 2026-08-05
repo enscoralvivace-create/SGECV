@@ -17,8 +17,9 @@ export default function ProtectedModuleLayout({
     <PermissionPage
       permissions={[
           "roles.manage",
+          "settings.manage",
       ]}
-      match="all"
+      match="any"
     >
       {children}
     </PermissionPage>
