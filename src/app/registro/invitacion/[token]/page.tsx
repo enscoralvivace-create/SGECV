@@ -11,6 +11,7 @@ import {
   TriangleAlert,
 } from "lucide-react";
 
+import PwaInstallationGuide from "@/components/pwa/PwaInstallationGuide";
 import { validateStudentInvitation } from "@/services/studentInvitationService";
 import {
   registerStudentInvitationAccount,
@@ -166,6 +167,9 @@ export default function StudentInvitationRegistrationPage() {
         <p className="mt-3 text-sm leading-6 text-slate-600">
           Si la solicitud puede procesarse, recibirás un enlace para confirmar tu correo y completar la activación de tu cuenta.
         </p>
+        <p className="mt-3 text-sm leading-6 text-slate-600">
+          Después de confirmar, abre Vivace Suite, inicia sesión y sigue el recorrido “Conoce Vivace Suite”.
+        </p>
         <LoginLink />
       </PublicCard>
     );
@@ -214,12 +218,18 @@ export default function StudentInvitationRegistrationPage() {
           <CheckCircle2 className="mx-auto h-14 w-14 text-emerald-600" />
           <p className="mt-5 text-sm font-semibold uppercase tracking-[0.2em] text-indigo-600">Vivace Suite</p>
           <h1 className="mt-2 text-3xl font-bold text-slate-950">Invitación válida</h1>
-          <p className="mt-3 text-sm text-slate-600">Configura una contraseña para iniciar tu registro.</p>
+          <p className="mt-3 text-sm leading-6 text-slate-600">
+            Esta invitación es personal. Primero crea tu cuenta con el correo indicado; después confirmarás el correo para vincular tu perfil y poder iniciar sesión.
+          </p>
         </div>
 
         <div className="mt-6 rounded-2xl bg-indigo-50 p-4 text-center">
           <p className="text-xs font-semibold uppercase tracking-wide text-indigo-600">Correo esperado</p>
           <p className="mt-1 font-semibold text-indigo-950">{validation.maskedEmail}</p>
+        </div>
+
+        <div className="mt-6">
+          <PwaInstallationGuide compact />
         </div>
 
         {submitError ? (

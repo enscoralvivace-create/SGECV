@@ -135,7 +135,6 @@ export default function MembersTable({
 
                   const hasVisibleActions =
                     canManageMembers ||
-                    canManageInvitations ||
                     canViewStatistics ||
                     canViewAccountStatement;
 
@@ -147,8 +146,60 @@ export default function MembersTable({
                       key={member.id}
                       className="transition hover:bg-slate-50"
                     >
-                      <td className="px-6 py-4 font-semibold text-slate-900">
-                        {fullName}
+                      <td className="px-6 py-4 align-top">
+                        <p className="font-semibold text-slate-900">
+                          {fullName}
+                        </p>
+
+                        {canManageInvitations ? (
+                          <div className="mt-3 max-w-64">
+                            {invitationEligibility.isEligible ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  onInviteStudent(member)
+                                }
+                                disabled={isProcessing}
+                                title="Genera una invitación personal, QR e instrucciones de instalación."
+                                className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-left text-sm font-bold text-indigo-800 transition hover:border-indigo-300 hover:bg-indigo-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                <UserPlus
+                                  aria-hidden="true"
+                                  className="h-4 w-4 shrink-0"
+                                />
+                                Invitar a crear cuenta
+                              </button>
+                            ) : (
+                              <details className="group text-sm">
+                                <summary
+                                  aria-describedby={`student-invitation-reason-${member.id}`}
+                                  aria-label={`Invitar a crear cuenta no disponible. ${invitationEligibility.reason} Presiona para consultar el motivo.`}
+                                  className="inline-flex min-h-10 cursor-help list-none items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left font-semibold text-slate-500 outline-none marker:content-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+                                >
+                                  <UserPlus
+                                    aria-hidden="true"
+                                    className="h-4 w-4 shrink-0"
+                                  />
+                                  Invitar a crear cuenta
+                                  <CircleHelp
+                                    aria-hidden="true"
+                                    className="h-4 w-4 shrink-0"
+                                  />
+                                </summary>
+                                <p
+                                  id={`student-invitation-reason-${member.id}`}
+                                  role="tooltip"
+                                  className="mt-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium leading-relaxed text-slate-700 shadow-sm"
+                                >
+                                  {invitationEligibility.reason}
+                                </p>
+                              </details>
+                            )}
+                            <p className="mt-1.5 text-xs leading-5 text-slate-500">
+                              Genera una invitación personal, QR e instrucciones de instalación.
+                            </p>
+                          </div>
+                        ) : null}
                       </td>
 
                       <td className="px-6 py-4 text-slate-600">
@@ -220,46 +271,6 @@ export default function MembersTable({
                               </button>
                             ) : null}
 
-                            {canManageInvitations &&
-                            invitationEligibility.isEligible ? (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  onInviteStudent(member)
-                                }
-                                disabled={
-                                  isProcessing
-                                }
-                                className="inline-flex items-center gap-1.5 font-semibold text-indigo-700 transition hover:text-indigo-900 disabled:cursor-not-allowed disabled:text-slate-400"
-                              >
-                                <UserPlus className="h-4 w-4" />
-                                Invitar alumno
-                              </button>
-                            ) : canManageInvitations ? (
-                              <details className="group max-w-56 text-sm">
-                                <summary
-                                  aria-describedby={`student-invitation-reason-${member.id}`}
-                                  aria-label={`Invitar alumno no disponible. ${invitationEligibility.reason} Presiona para consultar el motivo.`}
-                                  className="inline-flex cursor-help list-none items-center gap-1.5 font-semibold text-slate-400 outline-none marker:content-none focus-visible:rounded focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
-                                >
-                                  <UserPlus className="h-4 w-4" />
-                                  Invitar alumno
-                                  <CircleHelp
-                                    className="h-4 w-4"
-                                    aria-hidden="true"
-                                  />
-                                </summary>
-
-                                <p
-                                  id={`student-invitation-reason-${member.id}`}
-                                  role="tooltip"
-                                  className="mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium leading-relaxed text-slate-700 shadow-sm"
-                                >
-                                  {invitationEligibility.reason}
-                                </p>
-                              </details>
-                            ) : null}
-
                             {canViewAccountStatement ? (
                               <button
                                 type="button"
@@ -300,7 +311,9 @@ export default function MembersTable({
                           </div>
                         ) : (
                           <span className="text-sm text-slate-400">
-                            Solo consulta
+                            {canManageInvitations
+                              ? "Sin acciones adicionales"
+                              : "Solo consulta"}
                           </span>
                         )}
                       </td>
