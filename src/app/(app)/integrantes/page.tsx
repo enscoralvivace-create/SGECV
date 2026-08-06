@@ -18,6 +18,8 @@ import MemberStatisticsModal from "@/components/members/MemberStatisticsModal";
 import MembersTable from "@/components/members/MembersTable";
 import PendingMembersCard from "@/components/members/PendingMembersCard";
 import StudentInvitationModal from "@/components/members/StudentInvitationModal";
+import IntakeRequestsPanel from "@/components/members/IntakeRequestsPanel";
+import IntakeWindowModal from "@/components/members/IntakeWindowModal";
 
 import useUserAccess from "@/hooks/useUserAccess";
 
@@ -103,6 +105,14 @@ export default function MembersPage() {
     invitationMember,
     setInvitationMember,
   ] = useState<Member | null>(null);
+
+  const [
+    preparedInvitationUrls,
+    setPreparedInvitationUrls,
+  ] = useState<Record<number, string>>({});
+
+  const [isIntakeWindowOpen, setIsIntakeWindowOpen] = useState(false);
+  const [intakeRefreshKey, setIntakeRefreshKey] = useState(0);
 
   const [search, setSearch] =
     useState("");
@@ -284,6 +294,33 @@ export default function MembersPage() {
   function closeStudentInvitation() {
     setInvitationMember(null);
   }
+
+  const updatePreparedInvitationUrl = useCallback(
+    (
+      memberId: number,
+      invitationUrl: string,
+    ) => {
+      setPreparedInvitationUrls(
+        (current) => {
+          if (invitationUrl) {
+            return {
+              ...current,
+              [memberId]: invitationUrl,
+            };
+          }
+
+          const next = {
+            ...current,
+          };
+
+          delete next[memberId];
+
+          return next;
+        },
+      );
+    },
+    [],
+  );
 
   function openAccountStatement(
     member: Member,
@@ -524,6 +561,12 @@ export default function MembersPage() {
           <div className="h-8" />
         ) : null}
 
+        {canManageInvitations ? (
+          <IntakeRequestsPanel
+            refreshKey={intakeRefreshKey}
+          />
+        ) : null}
+
         <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <h2 className="text-2xl font-bold text-slate-900">
@@ -557,6 +600,16 @@ export default function MembersPage() {
                 }
               >
                 + Nuevo integrante
+              </Button>
+            ) : null}
+
+            {canManageInvitations ? (
+              <Button
+                onClick={() => {
+                  setIsIntakeWindowOpen(true);
+                }}
+              >
+                Abrir registro temporal
               </Button>
             ) : null}
           </div>
@@ -630,7 +683,28 @@ export default function MembersPage() {
           canManageInvitations={
             canManageInvitations
           }
+          initialInvitationUrl={
+            preparedInvitationUrls[
+              invitationMember.id
+            ]
+          }
+          onInvitationUrlChange={
+            updatePreparedInvitationUrl
+          }
           onClose={closeStudentInvitation}
+        />
+      ) : null}
+
+      {isIntakeWindowOpen ? (
+        <IntakeWindowModal
+          onClose={() => {
+            setIsIntakeWindowOpen(false);
+          }}
+          onChanged={() => {
+            setIntakeRefreshKey(
+              (current) => current + 1,
+            );
+          }}
         />
       ) : null}
 
