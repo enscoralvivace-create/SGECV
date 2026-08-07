@@ -3,7 +3,8 @@ import { createClient } from "npm:@supabase/supabase-js@2.110.8";
 const MAX_BODY_BYTES = 8 * 1024;
 const MIN_PASSWORD_LENGTH = 8;
 const MAX_PASSWORD_LENGTH = 128;
-const RATE_LIMIT_REQUESTS = 5;
+const INVITATION_RATE_LIMIT_REQUESTS = 5;
+const IP_RATE_LIMIT_REQUESTS = 30;
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 
 interface RegistrationRequest {
@@ -73,16 +74,6 @@ Deno.serve(async (request: Request): Promise<Response> => {
     );
   }
 
-  const clientAddress = getClientAddress(request);
-
-  if (!consumeRateLimit(clientAddress)) {
-    return jsonResponse(
-      429,
-      { ok: false, result_code: "rate_limited" },
-      requestOrigin,
-    );
-  }
-
   let rawBody: string;
 
   try {
@@ -125,14 +116,38 @@ Deno.serve(async (request: Request): Promise<Response> => {
     );
   }
 
+  const clientAddress = getClientAddress(request);
+  const tokenFingerprint = await fingerprintToken(validationResult.token);
+  const invitationRateLimitKey =
+    `invitation:${clientAddress}:${tokenFingerprint}`;
+  const ipRateLimitKey = `ip:${clientAddress}`;
+
+  if (
+    !consumeRateLimit(
+      invitationRateLimitKey,
+      INVITATION_RATE_LIMIT_REQUESTS,
+    ) ||
+    !consumeRateLimit(ipRateLimitKey, IP_RATE_LIMIT_REQUESTS)
+  ) {
+    return failureResponse(
+      request,
+      "rate_limit",
+      429,
+      "rate_limited",
+      requestOrigin,
+    );
+  }
+
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const secretKey = Deno.env.get("VIVACE_SUPABASE_SECRET_KEY");
   const publishableKey = Deno.env.get("VIVACE_SUPABASE_PUBLISHABLE_KEY");
 
   if (!supabaseUrl || !secretKey || !publishableKey) {
-    return jsonResponse(
+    return failureResponse(
+      request,
+      "configuration",
       503,
-      { ok: false, result_code: "temporarily_unavailable" },
+      "temporarily_unavailable",
       requestOrigin,
     );
   }
@@ -146,6 +161,7 @@ Deno.serve(async (request: Request): Promise<Response> => {
         method: "POST",
         headers: {
           apikey: secretKey,
+          Authorization: `Bearer ${secretKey}`,
           "Content-Type": "application/json",
           Accept: "application/json",
         },
@@ -156,18 +172,22 @@ Deno.serve(async (request: Request): Promise<Response> => {
     );
 
     if (!resolutionResponse.ok) {
-      return jsonResponse(
+      return failureResponse(
+        request,
+        "invitation_resolution",
         503,
-        { ok: false, result_code: "temporarily_unavailable" },
+        "temporarily_unavailable",
         requestOrigin,
       );
     }
 
     resolutionData = await resolutionResponse.json();
   } catch {
-    return jsonResponse(
+    return failureResponse(
+      request,
+      "invitation_resolution",
       503,
-      { ok: false, result_code: "temporarily_unavailable" },
+      "temporarily_unavailable",
       requestOrigin,
     );
   }
@@ -206,10 +226,11 @@ Deno.serve(async (request: Request): Promise<Response> => {
         });
 
       if (signUpError) {
-        return jsonResponse(
-          503,
-          { ok: false, result_code: "temporarily_unavailable" },
+        return authFailureResponse(
+          request,
+          signUpError,
           requestOrigin,
+          "auth_signup",
         );
       }
 
@@ -230,10 +251,11 @@ Deno.serve(async (request: Request): Promise<Response> => {
       });
 
       if (resendError) {
-        return jsonResponse(
-          503,
-          { ok: false, result_code: "temporarily_unavailable" },
+        return authFailureResponse(
+          request,
+          resendError,
           requestOrigin,
+          "auth_resend",
         );
       }
     } else {
@@ -245,17 +267,20 @@ Deno.serve(async (request: Request): Promise<Response> => {
       );
 
       if (resetError) {
-        return jsonResponse(
-          503,
-          { ok: false, result_code: "temporarily_unavailable" },
+        return authFailureResponse(
+          request,
+          resetError,
           requestOrigin,
+          "auth_password_reset",
         );
       }
     }
   } catch {
-    return jsonResponse(
+    return failureResponse(
+      request,
+      "auth_request",
       503,
-      { ok: false, result_code: "temporarily_unavailable" },
+      "temporarily_unavailable",
       requestOrigin,
     );
   }
@@ -377,7 +402,18 @@ function getClientAddress(request: Request): string {
   );
 }
 
-function consumeRateLimit(key: string): boolean {
+async function fingerprintToken(token: string): Promise<string> {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(token),
+  );
+
+  return Array.from(new Uint8Array(digest), (byte) =>
+    byte.toString(16).padStart(2, "0")
+  ).join("");
+}
+
+function consumeRateLimit(key: string, maximumRequests: number): boolean {
   const now = Date.now();
 
   if (rateLimitEntries.size > 10_000) {
@@ -398,12 +434,65 @@ function consumeRateLimit(key: string): boolean {
     return true;
   }
 
-  if (current.count >= RATE_LIMIT_REQUESTS) {
+  if (current.count >= maximumRequests) {
     return false;
   }
 
   current.count += 1;
   return true;
+}
+
+function authFailureResponse(
+  request: Request,
+  error: unknown,
+  origin: string,
+  stage: string,
+): Response {
+  if (isAuthRateLimitError(error)) {
+    return failureResponse(request, stage, 429, "rate_limited", origin);
+  }
+
+  return failureResponse(
+    request,
+    stage,
+    503,
+    "temporarily_unavailable",
+    origin,
+  );
+}
+
+function isAuthRateLimitError(error: unknown): boolean {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const candidate = error as Record<string, unknown>;
+
+  return candidate.status === 429 ||
+    (typeof candidate.code === "string" &&
+      /rate.?limit|too.?many/i.test(candidate.code)) ||
+    (typeof candidate.message === "string" &&
+      /rate.?limit|too many requests/i.test(candidate.message));
+}
+
+function failureResponse(
+  request: Request,
+  stage: string,
+  status: number,
+  resultCode: string,
+  origin?: string,
+): Response {
+  const executionId = request.headers.get("x-deno-execution-id") ??
+    request.headers.get("sb-execution-id");
+
+  console.error(JSON.stringify({
+    stage,
+    status,
+    result_code: resultCode,
+    ...(executionId ? { execution_id: executionId } : {}),
+  }));
+
+  return jsonResponse(status, { ok: false, result_code: resultCode }, origin);
 }
 
 function corsHeaders(origin: string): HeadersInit {

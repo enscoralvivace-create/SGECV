@@ -98,19 +98,48 @@ function normalizeResponse(
 async function readErrorResponse(
   error: unknown,
 ): Promise<StudentInvitationRegistrationResult | null> {
-  if (
-    !error ||
-    typeof error !== "object" ||
-    !("context" in error) ||
-    !(error.context instanceof Response)
-  ) {
+  const directResponse = normalizeResponse(error);
+
+  if (directResponse) {
+    return directResponse;
+  }
+
+  if (!error || typeof error !== "object" || !("context" in error)) {
     return null;
   }
 
+  const context = error.context;
+  const contextResponse = normalizeResponse(context);
+
+  if (contextResponse) {
+    return contextResponse;
+  }
+
+  if (!context || typeof context !== "object") {
+    return null;
+  }
+
+  const responseLike = context as {
+    clone?: () => unknown;
+    json?: () => Promise<unknown>;
+  };
+
   try {
-    return normalizeResponse(
-      await error.context.clone().json(),
-    );
+    const clone = typeof responseLike.clone === "function"
+      ? responseLike.clone()
+      : responseLike;
+
+    if (!clone || typeof clone !== "object") {
+      return null;
+    }
+
+    const json = (clone as { json?: () => Promise<unknown> }).json;
+
+    if (typeof json !== "function") {
+      return null;
+    }
+
+    return normalizeResponse(await json.call(clone));
   } catch {
     return null;
   }

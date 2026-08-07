@@ -20,6 +20,9 @@ const SESSION_TIMEOUT_MS = 15_000;
 
 type ActivationState =
   | "checking_email"
+  | "confirmation_ready"
+  | "confirmation_invalid"
+  | "rate_limited"
   | "password_recovery"
   | "activating"
   | "activation_retry"
@@ -42,6 +45,9 @@ type AuthUrlClassification =
 
 interface AuthUrlEvidence {
   classification: AuthUrlClassification;
+  tokenHash: string | null;
+  otpType: string | null;
+  code: string | null;
 }
 
 export default function ActivateAccountPage() {
@@ -49,12 +55,14 @@ export default function ActivateAccountPage() {
   const invitationToken = useRef("");
   const authUrlEvidence = useRef<AuthUrlEvidence | null>(null);
   const activationStarted = useRef(false);
+  const confirmationSubmissionStarted = useRef(false);
   const passwordSubmissionStarted = useRef(false);
   const [state, setState] = useState<ActivationState>("checking_email");
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
+  const [isConfirmingEmail, setIsConfirmingEmail] = useState(false);
 
   useEffect(() => {
     isMounted.current = true;
@@ -72,6 +80,15 @@ export default function ActivateAccountPage() {
       if (!isValidInvitationToken(invitationToken.current)) {
         clearActivationUrl();
         setCurrentState("invalid");
+        return;
+      }
+
+      if (
+        authUrlEvidence.current.tokenHash &&
+        authUrlEvidence.current.otpType === "signup"
+      ) {
+        clearActivationUrl();
+        setCurrentState("confirmation_ready");
         return;
       }
 
@@ -141,6 +158,51 @@ export default function ActivateAccountPage() {
       abortController.abort();
     };
   }, []);
+
+  async function handleEmailConfirmation() {
+    const evidence = authUrlEvidence.current;
+
+    if (
+      state !== "confirmation_ready" ||
+      confirmationSubmissionStarted.current ||
+      !evidence?.tokenHash ||
+      evidence.otpType !== "signup"
+    ) {
+      return;
+    }
+
+    confirmationSubmissionStarted.current = true;
+    setIsConfirmingEmail(true);
+
+    try {
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.verifyOtp({
+        token_hash: evidence.tokenHash,
+        type: "signup",
+      });
+
+      if (error || !session?.user.email_confirmed_at) {
+        if (isAuthRateLimitError(error)) {
+          setState("rate_limited");
+          return;
+        }
+
+        setState("confirmation_invalid");
+        return;
+      }
+
+      setState("activating");
+      const result = await consumeStudentInvitation(invitationToken.current);
+      setState(getConsumptionState(result));
+    } catch (error: unknown) {
+      setState(isAuthRateLimitError(error) ? "rate_limited" : "error");
+    } finally {
+      evidence.tokenHash = null;
+      setIsConfirmingEmail(false);
+    }
+  }
 
   async function handlePasswordRecovery(
     event: FormEvent<HTMLFormElement>,
@@ -285,6 +347,63 @@ export default function ActivateAccountPage() {
         <p className="mt-3 text-sm text-slate-600">
           Espera un momento mientras completamos el proceso.
         </p>
+      </ActivationCard>
+    );
+  }
+
+  if (state === "confirmation_ready") {
+    return (
+      <ActivationCard>
+        <CheckCircle2 className="mx-auto h-14 w-14 text-emerald-600" />
+        <h1 className="mt-5 text-2xl font-bold text-slate-950">
+          Confirma tu correo
+        </h1>
+        <p className="mt-3 text-sm leading-6 text-slate-600">
+          Para proteger tu cuenta, la confirmación solo se completará cuando
+          pulses el botón.
+        </p>
+        <button
+          type="button"
+          onClick={() => void handleEmailConfirmation()}
+          disabled={isConfirmingEmail}
+          className="mt-7 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-5 py-3 font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isConfirmingEmail ? (
+            <LoaderCircle className="h-5 w-5 animate-spin" />
+          ) : null}
+          {isConfirmingEmail ? "Activando cuenta..." : "Activar mi cuenta"}
+        </button>
+      </ActivationCard>
+    );
+  }
+
+  if (state === "confirmation_invalid") {
+    return (
+      <ActivationCard>
+        <TriangleAlert className="mx-auto h-12 w-12 text-amber-600" />
+        <h1 className="mt-5 text-2xl font-bold text-slate-950">
+          Enlace vencido o inválido
+        </h1>
+        <p className="mt-3 text-sm leading-6 text-slate-600">
+          El enlace de confirmación ya no está disponible. Solicita un nuevo
+          correo de activación.
+        </p>
+        <LoginLink />
+      </ActivationCard>
+    );
+  }
+
+  if (state === "rate_limited") {
+    return (
+      <ActivationCard>
+        <TriangleAlert className="mx-auto h-12 w-12 text-amber-600" />
+        <h1 className="mt-5 text-2xl font-bold text-slate-950">
+          Demasiados intentos
+        </h1>
+        <p className="mt-3 text-sm leading-6 text-slate-600">
+          Espera unos minutos antes de intentar activar la cuenta nuevamente.
+        </p>
+        <LoginLink />
       </ActivationCard>
     );
   }
@@ -482,6 +601,22 @@ async function waitForAuthFlow(
   urlEvidence: AuthUrlEvidence,
   abortSignal: AbortSignal,
 ): Promise<AuthFlow> {
+  if (urlEvidence.code) {
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.exchangeCodeForSession(urlEvidence.code);
+
+    if (error || !session) {
+      throw error ?? new Error("The authentication code is invalid.");
+    }
+
+    return {
+      session,
+      isPasswordRecovery: urlEvidence.classification === "recovery",
+    };
+  }
+
   return await new Promise<AuthFlow>((resolve, reject) => {
     let isSettled = false;
     let authSubscription: { unsubscribe: () => void } | null = null;
@@ -592,6 +727,8 @@ async function waitForAuthFlow(
 
 function getAuthUrlEvidence(url: URL): AuthUrlEvidence {
   const hashParameters = new URLSearchParams(url.hash.replace(/^#/, ""));
+  const tokenHash = url.searchParams.get("token_hash");
+  const code = url.searchParams.get("code");
   const flowType = (
     hashParameters.get("type") ??
     url.searchParams.get("type") ??
@@ -604,6 +741,7 @@ function getAuthUrlEvidence(url: URL): AuthUrlEvidence {
     "expires_at",
     "token_type",
     "code",
+    "token_hash",
     "error",
     "error_code",
     "error_description",
@@ -619,22 +757,51 @@ function getAuthUrlEvidence(url: URL): AuthUrlEvidence {
     url.searchParams.has("error_code");
 
   if (hasAuthError) {
-    return { classification: "error" };
+    return {
+      classification: "error",
+      tokenHash,
+      otpType: flowType || null,
+      code,
+    };
   }
 
   if (flowType === "recovery") {
-    return { classification: "recovery" };
+    return { classification: "recovery", tokenHash, otpType: flowType, code };
   }
 
   if (flowType === "signup") {
-    return { classification: "confirmation" };
+    return {
+      classification: "confirmation",
+      tokenHash,
+      otpType: flowType,
+      code,
+    };
   }
 
   if (hasAuthParameters || flowType !== "") {
-    return { classification: "ambiguous" };
+    return {
+      classification: "ambiguous",
+      tokenHash,
+      otpType: flowType || null,
+      code,
+    };
   }
 
-  return { classification: "none" };
+  return { classification: "none", tokenHash, otpType: null, code };
+}
+
+function isAuthRateLimitError(error: unknown): boolean {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const candidate = error as Record<string, unknown>;
+
+  return candidate.status === 429 ||
+    (typeof candidate.code === "string" &&
+      /rate.?limit|too.?many/i.test(candidate.code)) ||
+    (typeof candidate.message === "string" &&
+      /rate.?limit|too many requests/i.test(candidate.message));
 }
 
 function getConsumptionState(result: {
